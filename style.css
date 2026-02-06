@@ -12,9 +12,7 @@
   --radius:16px;
 }
 
-*{
-  box-sizing:border-box;
-}
+*{ box-sizing:border-box; }
 
 body{
   margin:0;
@@ -23,8 +21,7 @@ body{
   color:var(--text);
 }
 
-/* ===================== TOPO ===================== */
-
+/* TOPO */
 .topbar{
   background:white;
   border-bottom:1px solid var(--border);
@@ -48,7 +45,7 @@ body{
   gap:16px;
 }
 
-/* LOGO PADRÃO */
+/* logos */
 .logo{
   height:60px;
   width:auto;
@@ -56,12 +53,11 @@ body{
   display:block;
 }
 
-/* LOGO EMIVE MAIOR */
+/* EMIVE maior */
 .logo.emive{
-  height:150px;
+  height:90px;
 }
 
-/* TITULO */
 .brand-title{
   font-weight:700;
   font-size:18px;
@@ -72,8 +68,7 @@ body{
   font-size:13px;
 }
 
-/* ===================== CONTAINER ===================== */
-
+/* CONTAINER */
 .container{
   max-width:900px;
   margin:22px auto;
@@ -83,8 +78,7 @@ body{
   gap:16px;
 }
 
-/* ===================== CARDS ===================== */
-
+/* CARD */
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -93,20 +87,11 @@ body{
   padding:18px;
 }
 
-.card-head{
-  margin-bottom:10px;
-}
+.card-head{ margin-bottom:10px; }
+.muted{ color:var(--muted); }
+.small{ font-size:12px; }
 
-.muted{
-  color:var(--muted);
-}
-
-.small{
-  font-size:12px;
-}
-
-/* ===================== CAMPOS ===================== */
-
+/* CAMPOS */
 .grid-2{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -129,8 +114,7 @@ input{
   text-align:center;
 }
 
-/* ===================== CHIPS (NOMES) ===================== */
-
+/* CHIPS */
 .chips{
   display:flex;
   flex-wrap:wrap;
@@ -175,20 +159,15 @@ input{
   cursor:pointer;
 }
 
-/* ===================== ADICIONAR NOME ===================== */
-
+/* ADD NOME */
 .add-nome{
   display:flex;
   gap:10px;
   margin-top:10px;
 }
+.add-nome input{ flex:1; }
 
-.add-nome input{
-  flex:1;
-}
-
-/* ===================== BOTÕES ===================== */
-
+/* BOTÕES */
 .actions{
   display:flex;
   flex-wrap:wrap;
@@ -207,20 +186,11 @@ input{
   transition:.2s;
 }
 
-.btn:hover{
-  background:#a32633;
-}
+.btn:hover{ background:#a32633; }
+.btn.secondary{ background:var(--digital-dark); }
+.btn.danger{ background:#dc3545; }
 
-.btn.secondary{
-  background:var(--digital-dark);
-}
-
-.btn.danger{
-  background:#dc3545;
-}
-
-/* ===================== TABELA ===================== */
-
+/* TABELA */
 table{
   width:100%;
   border-collapse:collapse;
@@ -234,42 +204,21 @@ th, td{
   vertical-align:top;
 }
 
-th{
-  background:#f0f0f0;
-}
+th{ background:#f0f0f0; }
 
-/* ===================== RODAPÉ ===================== */
-
+/* FOOTER */
 .footer{
   text-align:center;
   color:var(--muted);
   margin-top:6px;
 }
 
-/* ===================== RESPONSIVO ===================== */
-
+/* RESPONSIVO */
 @media (max-width: 800px){
+  .grid-2{ grid-template-columns: 1fr; }
+  .add-nome{ flex-direction: column; }
+  .brand{ flex-direction: column; align-items:flex-start; }
 
-  .grid-2{
-    grid-template-columns:1fr;
-  }
-
-  .add-nome{
-    flex-direction:column;
-  }
-
-  .brand{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .logo{
-    height:50px;
-  }
-
-  .logo.emive{
-    height:75px;
-  }
+  .logo{ height:50px; }
+  .logo.emive{ height:75px; }
 }
-
-
