@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Presença diária — Ferroport</title>
+
+  <!-- Ícone da aba (opcional): coloque um arquivo favicon.png na pasta -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
   <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -14,10 +18,11 @@
 
     <div class="logos">
       <img src="logo-digital.png" alt="Logo Digital" class="logo">
-     <img src="logo-emive.png" class="logo emive">
+      <!-- EMIVE maior: precisa dessa classe "emive" -->
+      <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
     </div>
 
-    <div>
+    <div class="brand-text">
       <div class="brand-title">Presença diária — Ferroport</div>
       <div class="brand-subtitle">Controle de técnicos no contrato</div>
     </div>
@@ -57,7 +62,8 @@
       <button class="btn" onclick="salvarDiario()">💾 Salvar dia</button>
       <button class="btn secondary" onclick="limparDiario()">🧹 Limpar</button>
       <button class="btn danger" onclick="apagarDiarios()">🗑 Apagar tudo</button>
-      <button class="btn" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
+      <button class="btn" onclick="exportarDiarioCSV()">⬇ Exportar CSV</button>
+      <button class="btn" onclick="gerarRelatorio()">📄 Gerar relatório mensal</button>
     </div>
   </section>
 
@@ -71,7 +77,7 @@
       <thead>
         <tr>
           <th>Data</th>
-          <th>Pessoas</th>
+          <th>Técnicos presentes</th>
         </tr>
       </thead>
       <tbody id="tabelaDiario"></tbody>
@@ -100,6 +106,12 @@
   function formatarDataBR(dataISO){
     const [y,m,d] = dataISO.split("-");
     return `${d}/${m}/${y}`;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, s => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[s]));
   }
 
   // Render dos nomes com botão de excluir
@@ -217,8 +229,8 @@
     lista.forEach(r => {
       tbody.innerHTML += `
         <tr>
-          <td><strong>${r.dataBR}</strong></td>
-          <td>${r.pessoas.join("<br>")}</td>
+          <td><strong>${escapeHtml(r.dataBR)}</strong></td>
+          <td>${(r.pessoas || []).map(escapeHtml).join("<br>")}</td>
         </tr>
       `;
     });
@@ -247,7 +259,7 @@
 
     let csv = "Data;Pessoas\n";
     lista.forEach(r => {
-      csv += `${r.dataBR};"${r.pessoas.join(", ")}"\n`;
+      csv += `${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
     });
 
     const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
@@ -255,6 +267,212 @@
     link.href = URL.createObjectURL(blob);
     link.download = "presencas_ferroport.csv";
     link.click();
+  }
+
+  // RELATÓRIO BONITO (abre para imprimir/salvar PDF)
+  function gerarRelatorio(){
+    let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
+
+    if(lista.length === 0){
+      alert("Não há dados para gerar relatório.");
+      return;
+    }
+
+    // Ordena por data
+    lista.sort((a,b) => a.dataISO.localeCompare(b.dataISO));
+
+    const nomesMes = {
+      "01":"Janeiro","02":"Fevereiro","03":"Março","04":"Abril",
+      "05":"Maio","06":"Junho","07":"Julho","08":"Agosto",
+      "09":"Setembro","10":"Outubro","11":"Novembro","12":"Dezembro"
+    };
+
+    // filtra somente o mês do primeiro item (relatório mensal)
+    const [ano, mes] = (lista[0].dataISO || "0000-00-00").split("-");
+    const mesNome = nomesMes[mes] || "Mês";
+
+    const listaMes = lista.filter(x => (x.dataISO || "").startsWith(`${ano}-${mes}`));
+
+    // total por técnico
+    const totals = {};
+    listaMes.forEach(r => {
+      (r.pessoas || []).forEach(p => {
+        totals[p] = (totals[p] || 0) + 1;
+      });
+    });
+
+    let linhas = "";
+    listaMes.forEach(r => {
+      linhas += `
+        <tr>
+          <td>${escapeHtml(r.dataBR)}</td>
+          <td>${(r.pessoas || []).map(escapeHtml).join(", ")}</td>
+        </tr>
+      `;
+    });
+
+    let resumo = "";
+    const tecnicosOrdenados = Object.keys(totals).sort((a,b)=>a.localeCompare(b,"pt-BR"));
+    tecnicosOrdenados.forEach(t => {
+      resumo += `<li><strong>${escapeHtml(t)}</strong>: ${totals[t]} dia(s)</li>`;
+    });
+
+    const html = `
+    <!doctype html>
+    <html lang="pt-br">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Relatório Mensal — Ferroport</title>
+      <style>
+        :root{
+          --text:#1E2328;
+          --muted:#6B7280;
+          --border:#E6E8EE;
+          --red:#CB3344;
+        }
+        body{
+          font-family: Arial, sans-serif;
+          color: var(--text);
+          margin: 0;
+          padding: 36px;
+        }
+        .topo{
+          display:flex;
+          align-items:center;
+          gap:18px;
+          border-bottom:2px solid var(--border);
+          padding-bottom:16px;
+          margin-bottom:18px;
+        }
+        .logos{
+          display:flex;
+          align-items:center;
+          gap:16px;
+        }
+        .logo{ height:58px; width:auto; object-fit:contain; }
+        .logo.emive{ height:78px; }
+        h1{ margin:0; font-size:20px; }
+        .sub{ margin-top:4px; color:var(--muted); }
+        .meta{
+          margin-top:8px;
+          display:flex;
+          gap:18px;
+          flex-wrap:wrap;
+          color:var(--muted);
+          font-size:13px;
+        }
+        .badge{
+          display:inline-block;
+          padding:6px 10px;
+          border:1px solid var(--border);
+          border-radius:999px;
+          background:#fafafa;
+        }
+        table{
+          width:100%;
+          border-collapse:collapse;
+          margin-top:14px;
+        }
+        th,td{
+          border:1px solid var(--border);
+          padding:10px;
+          text-align:left;
+          vertical-align:top;
+          font-size:13px;
+        }
+        th{ background:#f3f4f6; text-align:center; }
+        td:nth-child(1){ width:140px; text-align:center; }
+        .grid{
+          display:grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 16px;
+          margin-top: 14px;
+        }
+        .box{
+          border:1px solid var(--border);
+          border-radius:14px;
+          padding:14px;
+        }
+        .box h2{
+          margin:0 0 8px 0;
+          font-size:14px;
+        }
+        ul{ margin:0; padding-left:18px; }
+        .rodape{
+          margin-top:22px;
+          padding-top:12px;
+          border-top:1px solid var(--border);
+          text-align:center;
+          color:var(--muted);
+          font-size:12px;
+        }
+        .print-hint{
+          margin-top:10px;
+          color:var(--muted);
+          font-size:12px;
+        }
+        @media print{
+          .print-hint{ display:none; }
+          body{ padding: 18px; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="topo">
+        <div class="logos">
+          <img src="logo-digital.png" class="logo" alt="Digital">
+          <img src="logo-emive.png" class="logo emive" alt="Emive">
+        </div>
+        <div>
+          <h1>Relatório Mensal de Presença</h1>
+          <div class="sub">Contrato: Ferroport</div>
+          <div class="meta">
+            <span class="badge"><strong>Mês:</strong> ${escapeHtml(mesNome)} / ${escapeHtml(ano)}</span>
+            <span class="badge"><strong>Registros:</strong> ${listaMes.length}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="box">
+          <h2>Presenças por dia</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Técnicos presentes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${linhas}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box">
+          <h2>Resumo do mês (dias por técnico)</h2>
+          <ul>
+            ${resumo || "<li>Nenhum dado.</li>"}
+          </ul>
+
+          <div class="print-hint">
+            Para gerar PDF: pressione <strong>Ctrl + P</strong> e selecione <strong>Salvar como PDF</strong>.
+          </div>
+        </div>
+      </div>
+
+      <div class="rodape">
+        DIGITAL • EMIVE — Tecnologia e Segurança
+      </div>
+    </body>
+    </html>
+    `;
+
+    const w = window.open("", "_blank");
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
   // Inicializa
