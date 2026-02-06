@@ -1,224 +1,274 @@
 :root{
-  --bg:#f5f6f8;
-  --card:#fff;
-  --text:#1E2328;
-  --muted:#6B7280;
-  --border:#E6E8EE;
+--bg:#f5f6f8;
+--card:#fff;
+--text:#1E2328;
+--muted:#6B7280;
+--border:#E6E8EE;
 
-  --digital-red:#CB3344;
-  --digital-dark:#36393B;
+--digital-red:#CB3344;
+--digital-dark:#36393B;
 
-  --shadow:0 12px 30px rgba(0,0,0,.08);
-  --radius:16px;
+--shadow:0 12px 30px rgba(0,0,0,.08);
+--radius:16px;
 }
 
-*{ box-sizing:border-box; }
+*{
+box-sizing:border-box;
+}
 
 body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:var(--bg);
-  color:var(--text);
+margin:0;
+font-family:Arial, sans-serif;
+background:var(--bg);
+color:var(--text);
 }
 
-/* TOPO */
+/* ===================== TOPO ===================== */
+
 .topbar{
-  background:white;
-  border-bottom:1px solid var(--border);
-  padding:16px 0;
-  display:flex;
-  justify-content:center;
+background:white;
+border-bottom:1px solid var(--border);
+padding:16px 0;
+display:flex;
+justify-content:center;
 }
 
 .brand{
-  max-width:900px;
-  width:100%;
-  padding:0 16px;
-  display:flex;
-  align-items:center;
-  gap:18px;
+max-width:900px;
+width:100%;
+padding:0 16px;
+display:flex;
+align-items:center;
+gap:18px;
 }
 
 .logos{
-  display:flex;
-  align-items:center;
-  gap:16px;
+display:flex;
+align-items:center;
+gap:16px;
 }
 
-/* logos */
+/* LOGO PADRÃO */
 .logo{
-  height:60px;
-  width:auto;
-  object-fit:contain;
-  display:block;
+height:60px;
+width:auto;
+object-fit:contain;
+display:block;
 }
 
-/* EMIVE maior */
+/* LOGO EMIVE MAIOR */
 .logo.emive{
   height:90px;
+  height:110px;
 }
 
+/* TITULO */
 .brand-title{
-  font-weight:700;
-  font-size:18px;
+font-weight:700;
+font-size:18px;
 }
 
 .brand-subtitle{
-  color:var(--muted);
-  font-size:13px;
+color:var(--muted);
+font-size:13px;
 }
 
-/* CONTAINER */
+/* ===================== CONTAINER ===================== */
+
 .container{
-  max-width:900px;
-  margin:22px auto;
-  padding:0 16px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
+max-width:900px;
+margin:22px auto;
+padding:0 16px;
+display:flex;
+flex-direction:column;
+gap:16px;
 }
 
-/* CARD */
+/* ===================== CARDS ===================== */
+
 .card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:18px;
+background:var(--card);
+border:1px solid var(--border);
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+padding:18px;
 }
 
-.card-head{ margin-bottom:10px; }
-.muted{ color:var(--muted); }
-.small{ font-size:12px; }
+.card-head{
+margin-bottom:10px;
+}
 
-/* CAMPOS */
+.muted{
+color:var(--muted);
+}
+
+.small{
+font-size:12px;
+}
+
+/* ===================== CAMPOS ===================== */
+
 .grid-2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-  align-items:start;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:14px;
+align-items:start;
 }
 
 .field label{
-  display:block;
-  margin-bottom:6px;
-  font-size:13px;
-  color:var(--muted);
+display:block;
+margin-bottom:6px;
+font-size:13px;
+color:var(--muted);
 }
 
 input{
-  width:100%;
-  padding:10px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  text-align:center;
+width:100%;
+padding:10px;
+border:1px solid var(--border);
+border-radius:10px;
+text-align:center;
 }
 
-/* CHIPS */
+/* ===================== CHIPS (NOMES) ===================== */
+
 .chips{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
+display:flex;
+flex-wrap:wrap;
+gap:10px;
 }
 
 .chip-box{
-  position:relative;
-  display:inline-block;
+position:relative;
+display:inline-block;
 }
 
 .chip{
-  border:1px solid #ccc;
-  border-radius:30px;
-  padding:8px 14px;
-  cursor:pointer;
-  background:white;
-  transition:.15s;
-  user-select:none;
+border:1px solid #ccc;
+border-radius:30px;
+padding:8px 14px;
+cursor:pointer;
+background:white;
+transition:.15s;
+user-select:none;
 }
 
 .chip:hover{
-  transform:translateY(-1px);
-  border-color:rgba(203,51,68,.45);
+transform:translateY(-1px);
+border-color:rgba(203,51,68,.45);
 }
 
 .chip.active{
-  background:var(--digital-red);
-  color:white;
-  border-color:var(--digital-red);
+background:var(--digital-red);
+color:white;
+border-color:var(--digital-red);
 }
 
 .remove{
-  position:absolute;
-  top:-6px;
-  right:-6px;
-  background:#dc3545;
-  color:white;
-  border-radius:50%;
-  font-size:10px;
-  padding:2px 5px;
-  cursor:pointer;
+position:absolute;
+top:-6px;
+right:-6px;
+background:#dc3545;
+color:white;
+border-radius:50%;
+font-size:10px;
+padding:2px 5px;
+cursor:pointer;
 }
 
-/* ADD NOME */
+/* ===================== ADICIONAR NOME ===================== */
+
 .add-nome{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
+display:flex;
+gap:10px;
+margin-top:10px;
 }
-.add-nome input{ flex:1; }
 
-/* BOTÕES */
+.add-nome input{
+flex:1;
+}
+
+/* ===================== BOTÕES ===================== */
+
 .actions{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:14px;
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-top:14px;
 }
 
 .btn{
-  background:var(--digital-red);
-  color:white;
-  border:none;
-  padding:10px 16px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:700;
-  transition:.2s;
+background:var(--digital-red);
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:10px;
+cursor:pointer;
+font-weight:700;
+transition:.2s;
 }
 
-.btn:hover{ background:#a32633; }
-.btn.secondary{ background:var(--digital-dark); }
-.btn.danger{ background:#dc3545; }
+.btn:hover{
+background:#a32633;
+}
 
-/* TABELA */
+.btn.secondary{
+background:var(--digital-dark);
+}
+
+.btn.danger{
+background:#dc3545;
+}
+
+/* ===================== TABELA ===================== */
+
 table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
 }
 
 th, td{
-  border:1px solid var(--border);
-  padding:10px;
-  text-align:center;
-  vertical-align:top;
+border:1px solid var(--border);
+padding:10px;
+text-align:center;
+vertical-align:top;
 }
 
-th{ background:#f0f0f0; }
+th{
+background:#f0f0f0;
+}
 
-/* FOOTER */
+/* ===================== RODAPÉ ===================== */
+
 .footer{
-  text-align:center;
-  color:var(--muted);
-  margin-top:6px;
+text-align:center;
+color:var(--muted);
+margin-top:6px;
 }
 
-/* RESPONSIVO */
-@media (max-width: 800px){
-  .grid-2{ grid-template-columns: 1fr; }
-  .add-nome{ flex-direction: column; }
-  .brand{ flex-direction: column; align-items:flex-start; }
+/* ===================== RESPONSIVO ===================== */
 
-  .logo{ height:50px; }
-  .logo.emive{ height:75px; }
+@media (max-width: 800px){
+
+.grid-2{
+grid-template-columns:1fr;
+}
+
+.add-nome{
+flex-direction:column;
+}
+
+.brand{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.logo{
+height:50px;
+}
+
+.logo.emive{
+height:75px;
+}
 }
