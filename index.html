@@ -4,100 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Presença diária — Ferroport</title>
-
-  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Biblioteca para gerar PDF -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-  <style>
-    /* Área do relatório escondida (só usada para gerar PDF) */
-    #relatorioPdfArea{
-      position: fixed;
-      left: -99999px;
-      top: 0;
-      width: 794px; /* ~ A4 em px (96dpi) */
-      background: #fff;
-      color: #1E2328;
-      font-family: Arial, sans-serif;
-    }
-    /* Estilo do relatório (bonito e corporativo) */
-    .pdf-wrap{ padding: 28px; }
-    .pdf-top{
-      display:flex;
-      align-items:center;
-      gap:16px;
-      border-bottom:2px solid #E6E8EE;
-      padding-bottom:14px;
-      margin-bottom:14px;
-    }
-    .pdf-logos{ display:flex; align-items:center; gap:14px; }
-    .pdf-logo{ height:52px; width:auto; object-fit:contain; display:block; }
-    .pdf-logo.emive{ height:72px; }
-    .pdf-title{ margin:0; font-size:18px; font-weight:800; }
-    .pdf-sub{ margin-top:4px; color:#6B7280; font-size:12px; }
-    .pdf-badges{ margin-top:8px; display:flex; gap:10px; flex-wrap:wrap; }
-    .pdf-badge{
-      display:inline-block;
-      border:1px solid #E6E8EE;
-      border-radius:999px;
-      padding:6px 10px;
-      background:#fafafa;
-      font-size:12px;
-      color:#36393B;
-    }
-    .pdf-grid{
-      display:grid;
-      grid-template-columns: 1.25fr 0.75fr;
-      gap: 14px;
-      margin-top: 14px;
-    }
-    .pdf-box{
-      border:1px solid #E6E8EE;
-      border-radius:14px;
-      padding:12px;
-    }
-    .pdf-box h3{
-      margin:0 0 8px 0;
-      font-size:13px;
-      font-weight:800;
-    }
-    .pdf-table{
-      width:100%;
-      border-collapse:collapse;
-      margin-top: 6px;
-      font-size:12px;
-    }
-    .pdf-table th, .pdf-table td{
-      border:1px solid #E6E8EE;
-      padding:8px;
-      vertical-align:top;
-    }
-    .pdf-table th{
-      background:#f3f4f6;
-      text-align:center;
-      font-weight:800;
-    }
-    .pdf-table td:first-child{
-      width:120px;
-      text-align:center;
-      font-weight:700;
-    }
-    .pdf-list{
-      margin:0;
-      padding-left:16px;
-      font-size:12px;
-    }
-    .pdf-footer{
-      margin-top:16px;
-      padding-top:10px;
-      border-top:1px solid #E6E8EE;
-      text-align:center;
-      color:#6B7280;
-      font-size:11px;
-    }
-  </style>
 </head>
 
 <body>
@@ -107,10 +14,10 @@
 
     <div class="logos">
       <img src="logo-digital.png" alt="Logo Digital" class="logo">
-      <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
+     <img src="logo-emive.png" class="logo emive">
     </div>
 
-    <div class="brand-text">
+    <div>
       <div class="brand-title">Presença diária — Ferroport</div>
       <div class="brand-subtitle">Controle de técnicos no contrato</div>
     </div>
@@ -150,8 +57,7 @@
       <button class="btn" onclick="salvarDiario()">💾 Salvar dia</button>
       <button class="btn secondary" onclick="limparDiario()">🧹 Limpar</button>
       <button class="btn danger" onclick="apagarDiarios()">🗑 Apagar tudo</button>
-      <button class="btn" onclick="exportarDiarioCSV()">⬇ Exportar CSV</button>
-      <button class="btn" onclick="baixarPdfMensal()">📄 Baixar PDF (mensal)</button>
+      <button class="btn" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
     </div>
   </section>
 
@@ -165,7 +71,7 @@
       <thead>
         <tr>
           <th>Data</th>
-          <th>Técnicos presentes</th>
+          <th>Pessoas</th>
         </tr>
       </thead>
       <tbody id="tabelaDiario"></tbody>
@@ -178,51 +84,6 @@
 
 </main>
 
-<!-- Área escondida do PDF -->
-<div id="relatorioPdfArea">
-  <div class="pdf-wrap">
-    <div class="pdf-top">
-      <div class="pdf-logos">
-        <img src="logo-digital.png" class="pdf-logo" alt="Digital">
-        <img src="logo-emive.png" class="pdf-logo emive" alt="Emive">
-      </div>
-
-      <div>
-        <h1 class="pdf-title">Relatório Mensal de Presença</h1>
-        <div class="pdf-sub">Contrato: Ferroport</div>
-        <div class="pdf-badges">
-          <span class="pdf-badge" id="pdfBadgeMesAno"><strong>Mês:</strong> —</span>
-          <span class="pdf-badge" id="pdfBadgeRegistros"><strong>Registros:</strong> —</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="pdf-grid">
-      <div class="pdf-box">
-        <h3>Presenças por dia</h3>
-        <table class="pdf-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Técnicos presentes</th>
-            </tr>
-          </thead>
-          <tbody id="pdfTabelaLinhas"></tbody>
-        </table>
-      </div>
-
-      <div class="pdf-box">
-        <h3>Resumo do mês (dias por técnico)</h3>
-        <ul class="pdf-list" id="pdfResumo"></ul>
-      </div>
-    </div>
-
-    <div class="pdf-footer">
-      DIGITAL • EMIVE — Tecnologia e Segurança
-    </div>
-  </div>
-</div>
-
 <script>
   const KEY_DIARIOS = "presencas_diarias";
   const KEY_NOMES = "nomes_tecnicos";
@@ -231,12 +92,6 @@
   let NOMES = JSON.parse(localStorage.getItem(KEY_NOMES)) || [...NOMES_PADRAO];
 
   let selecaoDiaria = [];
-
-  const nomesMes = {
-    "01":"Janeiro","02":"Fevereiro","03":"Março","04":"Abril",
-    "05":"Maio","06":"Junho","07":"Julho","08":"Agosto",
-    "09":"Setembro","10":"Outubro","11":"Novembro","12":"Dezembro"
-  };
 
   function salvarNomes(){
     localStorage.setItem(KEY_NOMES, JSON.stringify(NOMES));
@@ -247,12 +102,7 @@
     return `${d}/${m}/${y}`;
   }
 
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, s => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-    }[s]));
-  }
-
+  // Render dos nomes com botão de excluir
   function renderChipsDiario(){
     const wrap = document.getElementById("chipsDiario");
     wrap.innerHTML = "";
@@ -295,10 +145,16 @@
     const input = document.getElementById("novoNome");
     const nome = input.value.trim();
 
-    if(!nome){ alert("Digite um nome."); return; }
+    if(!nome){
+      alert("Digite um nome.");
+      return;
+    }
 
     const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
-    if(existe){ alert("Esse nome já existe."); return; }
+    if(existe){
+      alert("Esse nome já existe.");
+      return;
+    }
 
     NOMES.push(nome);
     NOMES.sort((a,b) => a.localeCompare(b, "pt-BR"));
@@ -320,8 +176,15 @@
   function salvarDiario(){
     const data = document.getElementById("dataDia").value;
 
-    if(!data){ alert("Selecione a data."); return; }
-    if(selecaoDiaria.length === 0){ alert("Selecione pelo menos uma pessoa."); return; }
+    if(!data){
+      alert("Selecione a data.");
+      return;
+    }
+
+    if(selecaoDiaria.length === 0){
+      alert("Selecione pelo menos uma pessoa.");
+      return;
+    }
 
     const item = {
       dataISO: data,
@@ -330,11 +193,15 @@
     };
 
     let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
+
+    // Atualiza se já existir a data
     const idx = lista.findIndex(x => x.dataISO === data);
     if(idx >= 0) lista[idx] = item;
     else lista.push(item);
 
+    // Ordena por data
     lista.sort((a,b) => a.dataISO.localeCompare(b.dataISO));
+
     localStorage.setItem(KEY_DIARIOS, JSON.stringify(lista));
 
     carregarDiario();
@@ -346,13 +213,12 @@
     tbody.innerHTML = "";
 
     let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
-    lista.sort((a,b) => a.dataISO.localeCompare(b.dataISO));
 
     lista.forEach(r => {
       tbody.innerHTML += `
         <tr>
-          <td><strong>${escapeHtml(r.dataBR)}</strong></td>
-          <td>${(r.pessoas || []).map(escapeHtml).join("<br>")}</td>
+          <td><strong>${r.dataBR}</strong></td>
+          <td>${r.pessoas.join("<br>")}</td>
         </tr>
       `;
     });
@@ -373,13 +239,15 @@
 
   function exportarDiarioCSV(){
     let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
-    if(lista.length === 0){ alert("Não há registros para exportar."); return; }
 
-    lista.sort((a,b) => a.dataISO.localeCompare(b.dataISO));
+    if(lista.length === 0){
+      alert("Não há registros para exportar.");
+      return;
+    }
 
     let csv = "Data;Pessoas\n";
     lista.forEach(r => {
-      csv += `${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
+      csv += `${r.dataBR};"${r.pessoas.join(", ")}"\n`;
     });
 
     const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
@@ -387,83 +255,6 @@
     link.href = URL.createObjectURL(blob);
     link.download = "presencas_ferroport.csv";
     link.click();
-  }
-
-  // === PDF AUTOMÁTICO (mensal) ===
-  function baixarPdfMensal(){
-    if (typeof html2pdf === "undefined") {
-      alert("A biblioteca de PDF ainda não carregou. Aguarde 2 segundos e tente novamente.");
-      return;
-    }
-
-    let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
-    if(lista.length === 0){ alert("Não há dados para gerar PDF."); return; }
-
-    lista.sort((a,b) => a.dataISO.localeCompare(b.dataISO));
-
-    // Pega mês/ano do primeiro item
-    const [ano, mes] = (lista[0].dataISO || "0000-00-00").split("-");
-    const mesNome = nomesMes[mes] || "Mes";
-
-    // Filtra apenas registros do mês (primeiro mês encontrado)
-    const listaMes = lista.filter(x => (x.dataISO || "").startsWith(`${ano}-${mes}`));
-
-    // Preenche badges
-    document.getElementById("pdfBadgeMesAno").innerHTML = `<strong>Mês:</strong> ${escapeHtml(mesNome)} / ${escapeHtml(ano)}`;
-    document.getElementById("pdfBadgeRegistros").innerHTML = `<strong>Registros:</strong> ${listaMes.length}`;
-
-    // Monta tabela do PDF
-    const tbody = document.getElementById("pdfTabelaLinhas");
-    tbody.innerHTML = "";
-    listaMes.forEach(r => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${escapeHtml(r.dataBR)}</td>
-        <td>${escapeHtml((r.pessoas || []).join(", "))}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    // Resumo por técnico
-    const totals = {};
-    listaMes.forEach(r => (r.pessoas || []).forEach(p => totals[p] = (totals[p] || 0) + 1));
-    const resumoEl = document.getElementById("pdfResumo");
-    resumoEl.innerHTML = "";
-
-    const tecnicos = Object.keys(totals).sort((a,b)=>a.localeCompare(b,"pt-BR"));
-    if (tecnicos.length === 0) {
-      resumoEl.innerHTML = "<li>Nenhum dado.</li>";
-    } else {
-      tecnicos.forEach(t => {
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>${escapeHtml(t)}</strong>: ${totals[t]} dia(s)`;
-        resumoEl.appendChild(li);
-      });
-    }
-
-    const area = document.getElementById("relatorioPdfArea");
-
-    // Nome do arquivo
-    const fileName = `Relatorio_Ferroport_${mesNome}_${ano}.pdf`
-      .replace(/\s+/g, "_")
-      .replace(/[çÇ]/g, "c")
-      .replace(/[ãÃ]/g, "a")
-      .replace(/[õÕ]/g, "o")
-      .replace(/[áàâäÁÀÂÄ]/g, "a")
-      .replace(/[éèêëÉÈÊË]/g, "e")
-      .replace(/[íìîïÍÌÎÏ]/g, "i")
-      .replace(/[óòôöÓÒÔÖ]/g, "o")
-      .replace(/[úùûüÚÙÛÜ]/g, "u");
-
-    const opt = {
-      margin:       10,
-      filename:     fileName,
-      image:        { type: "jpeg", quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
-    };
-
-    html2pdf().set(opt).from(area).save();
   }
 
   // Inicializa
