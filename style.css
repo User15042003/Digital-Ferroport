@@ -46,6 +46,7 @@ body{
   gap:16px;
 }
 
+/* LOGO */
 .logo{
   height:60px;
   width:auto;
@@ -199,10 +200,19 @@ input{
 .btn.secondary{ background:var(--digital-dark); }
 .btn.danger{ background:#dc3545; }
 
-/* botão menor (para tabela) */
-.btn-sm{
+/* botões menores (usados na tabela) */
+.btn.small{
   padding:8px 12px;
   font-size:12px;
+  border-radius:10px;
+}
+
+/* ações lado a lado */
+.row-actions{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  flex-wrap:wrap;
 }
 
 /* ===================== TABELA ===================== */
@@ -234,7 +244,6 @@ th{ background:#f0f0f0; }
 
 @media (max-width: 800px){
   .grid-2{ grid-template-columns:1fr; }
-
   .add-nome{ flex-direction:column; }
 
   .brand{
