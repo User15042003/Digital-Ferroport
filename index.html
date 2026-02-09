@@ -1,17 +1,16 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Presença diária — Ferroport</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Presença diária — Ferroport</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-<header class="topbar">
+<header class="topbar no-print">
   <div class="brand">
-
     <div class="logos">
       <img src="logo-digital.png" alt="Logo Digital" class="logo">
       <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
@@ -21,89 +20,227 @@
       <div class="brand-title">Presença diária — Ferroport</div>
       <div class="brand-subtitle">Controle de técnicos no contrato</div>
     </div>
-
   </div>
 </header>
 
 <main class="container">
 
-<section class="card" id="cardPresenca">
-  <div class="card-head">
-    <h2>Presença por dia</h2>
-    <p class="muted">Selecione a data e marque quem esteve no contrato.</p>
-  </div>
-
-  <div class="grid-2">
-    <div class="field">
-      <label>Data</label>
-      <input id="dataDia" type="date" />
+  <!-- ====== RELATÓRIO / PAINEL DO GESTOR ====== -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Painel do gestor</h2>
+      <p class="muted">Selecione o mês para ver o ranking e gerar o relatório em PDF.</p>
     </div>
 
-    <div class="field">
-      <label>Pessoas</label>
-
-      <div class="chips" id="chipsDiario"></div>
-
-      <div class="add-nome">
-        <input type="text" id="novoNome" placeholder="Adicionar técnico (ex: João Silva)">
-        <button class="btn" type="button" onclick="adicionarNome()">+ Adicionar</button>
+    <div class="grid-3">
+      <div class="field">
+        <label>Mês/Ano</label>
+        <input id="mesAno" type="month" />
       </div>
 
-      <p class="muted small">Os nomes ficam salvos no navegador.</p>
+      <div class="field">
+        <label>Resumo</label>
+        <div class="kpi-wrap">
+          <div class="kpi">
+            <div class="kpi-label">Dias registrados</div>
+            <div class="kpi-value" id="kpiDias">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Técnicos no mês</div>
+            <div class="kpi-value" id="kpiTecnicos">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Ações</label>
+        <div class="actions">
+          <button class="btn" type="button" onclick="atualizarPainel()">🔄 Atualizar</button>
+          <button class="btn secondary" type="button" onclick="gerarPDF()">📄 Gerar PDF</button>
+        </div>
+        <p class="muted small">O PDF é gerado via impressão do navegador (Ctrl+P).</p>
+      </div>
     </div>
-  </div>
 
-  <div class="actions">
-    <button class="btn" onclick="salvarDiario()">💾 Salvar dia</button>
-    <button class="btn secondary" onclick="limparDiario()">🧹 Limpar</button>
-    <button class="btn danger" onclick="apagarDiarios()">🗑 Apagar tudo</button>
-    <button class="btn" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
-  </div>
-</section>
+    <div class="split">
+      <div>
+        <h3 class="h3">Ranking (dias trabalhados no mês)</h3>
+        <table class="table-compact">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Técnico</th>
+              <th>Dias</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaRanking"></tbody>
+        </table>
+      </div>
 
-<section class="card">
-  <div class="card-head">
-    <h2>Presenças registradas</h2>
-    <p class="muted">Se salvar a mesma data novamente, o sistema atualiza. Use “Editar” para carregar um registro.</p>
-  </div>
+      <div>
+        <h3 class="h3">Registros do mês (para o relatório)</h3>
+        <table class="table-compact">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Pessoas</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaMes"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Pessoas</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody id="tabelaDiario"></tbody>
-  </table>
-</section>
+  <!-- ====== FORMULÁRIO DIÁRIO ====== -->
+  <section class="card" id="cardPresenca">
+    <div class="card-head">
+      <h2>Presença por dia</h2>
+      <p class="muted">Selecione a data e marque quem esteve no contrato.</p>
+    </div>
 
-<footer class="footer">
-  DIGITAL • EMIVE • Tecnologia e Segurança
-</footer>
+    <div class="grid-2">
+      <div class="field">
+        <label>Data</label>
+        <input id="dataDia" type="date" />
+      </div>
+
+      <div class="field">
+        <label>Pessoas</label>
+        <div class="chips" id="chipsDiario"></div>
+
+        <div class="add-nome">
+          <input type="text" id="novoNome" placeholder="Adicionar técnico (ex: João Silva)">
+          <button class="btn" type="button" onclick="adicionarNome()">+ Adicionar</button>
+        </div>
+
+        <p class="muted small">Os nomes ficam salvos no navegador.</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" type="button" onclick="salvarDiario()">💾 Salvar dia</button>
+      <button class="btn secondary" type="button" onclick="limparDiario()">🧹 Limpar</button>
+      <button class="btn danger" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
+      <button class="btn" type="button" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
+    </div>
+  </section>
+
+  <!-- ====== LISTA DE REGISTROS ====== -->
+  <section class="card no-print">
+    <div class="card-head">
+      <h2>Presenças registradas</h2>
+      <p class="muted">Se salvar a mesma data novamente, o sistema atualiza. Use “Editar” para carregar um registro.</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Pessoas</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaDiario"></tbody>
+    </table>
+  </section>
+
+  <footer class="footer no-print">
+    DIGITAL • EMIVE • Tecnologia e Segurança
+  </footer>
 
 </main>
 
+<!-- ====== CABEÇALHO DO PDF (SÓ APARECE NA IMPRESSÃO) ====== -->
+<section class="print-only report">
+  <div class="report-head">
+    <div class="report-logos">
+      <img src="logo-digital.png" alt="Logo Digital" class="logo">
+      <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
+    </div>
+
+    <div class="report-titles">
+      <div class="report-title">Relatório de Presença — Ferroport</div>
+      <div class="report-subtitle" id="reportPeriodo">Período: —</div>
+      <div class="report-subtitle" id="reportGeradoEm">Gerado em: —</div>
+    </div>
+  </div>
+
+  <div class="report-grid">
+    <div class="report-box">
+      <div class="box-title">Ranking — Dias trabalhados</div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Técnico</th>
+            <th>Dias</th>
+          </tr>
+        </thead>
+        <tbody id="printRanking"></tbody>
+      </table>
+    </div>
+
+    <div class="report-box">
+      <div class="box-title">Registros do mês</div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Pessoas</th>
+          </tr>
+        </thead>
+        <tbody id="printMes"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="report-footer">
+    DIGITAL • EMIVE — Tecnologia e Segurança
+  </div>
+</section>
+
 <script>
+/* ===================== DADOS ===================== */
 const KEY_DIARIOS = "presencas_diarias";
 const KEY_NOMES = "nomes_tecnicos";
 
 const NOMES_PADRAO = ["Luan Nogueira", "Lucas Gregorio", "Phillipe Carvalho"];
 let NOMES = JSON.parse(localStorage.getItem(KEY_NOMES)) || [...NOMES_PADRAO];
-
 let selecaoDiaria = [];
 
+/* ===================== UTIL ===================== */
 function salvarNomes(){
   localStorage.setItem(KEY_NOMES, JSON.stringify(NOMES));
 }
-
 function formatarDataBR(dataISO){
   const [y,m,d] = dataISO.split("-");
   return `${d}/${m}/${y}`;
 }
+function hojeISO(){
+  const d = new Date();
+  const pad = (n)=> String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function agoraBR(){
+  const d = new Date();
+  const pad = (n)=> String(n).padStart(2,"0");
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function getLista(){
+  return JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
+}
+function setLista(lista){
+  localStorage.setItem(KEY_DIARIOS, JSON.stringify(lista));
+}
+function getMesAnoSelecionado(){
+  const v = document.getElementById("mesAno").value; // YYYY-MM
+  if(!v) return null;
+  const [y,m] = v.split("-");
+  return { y, m };
+}
 
-// Render dos nomes com botão de excluir
+/* ===================== CHIPS ===================== */
 function renderChipsDiario(){
   const wrap = document.getElementById("chipsDiario");
   wrap.innerHTML = "";
@@ -174,18 +311,12 @@ function excluirNome(nome){
   renderChipsDiario();
 }
 
+/* ===================== CRUD DIÁRIO ===================== */
 function salvarDiario(){
   const data = document.getElementById("dataDia").value;
 
-  if(!data){
-    alert("Selecione a data.");
-    return;
-  }
-
-  if(selecaoDiaria.length === 0){
-    alert("Selecione pelo menos uma pessoa.");
-    return;
-  }
+  if(!data) return alert("Selecione a data.");
+  if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
 
   const item = {
     dataISO: data,
@@ -193,19 +324,17 @@ function salvarDiario(){
     pessoas: [...selecaoDiaria]
   };
 
-  let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
+  let lista = getLista();
 
-  // Atualiza se já existir a data
   const idx = lista.findIndex(x => x.dataISO === data);
   if(idx >= 0) lista[idx] = item;
   else lista.push(item);
 
-  // Ordena por data
   lista.sort((a,b) => a.dataISO.localeCompare(b.dataISO));
-
-  localStorage.setItem(KEY_DIARIOS, JSON.stringify(lista));
+  setLista(lista);
 
   carregarDiario();
+  atualizarPainel();
   limparDiario();
 }
 
@@ -213,7 +342,7 @@ function carregarDiario(){
   const tbody = document.getElementById("tabelaDiario");
   tbody.innerHTML = "";
 
-  let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
+  let lista = getLista();
 
   lista.forEach(r => {
     tbody.innerHTML += `
@@ -232,7 +361,7 @@ function carregarDiario(){
 }
 
 function editarRegistro(dataISO){
-  let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
+  let lista = getLista();
   const reg = lista.find(x => x.dataISO === dataISO);
 
   if(!reg){
@@ -240,26 +369,23 @@ function editarRegistro(dataISO){
     return;
   }
 
-  // Carrega no formulário
   document.getElementById("dataDia").value = reg.dataISO;
   selecaoDiaria = [...reg.pessoas];
-
   renderChipsDiario();
 
-  // Leva o usuário pro topo/form
   document.getElementById("cardPresenca").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function apagarRegistro(dataISO){
   if(!confirm("Deseja apagar somente este dia registrado?")) return;
 
-  let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
+  let lista = getLista();
   lista = lista.filter(x => x.dataISO !== dataISO);
+  setLista(lista);
 
-  localStorage.setItem(KEY_DIARIOS, JSON.stringify(lista));
   carregarDiario();
+  atualizarPainel();
 
-  // Se estiver com essa data carregada no formulário, limpa
   if(document.getElementById("dataDia").value === dataISO){
     limparDiario();
   }
@@ -275,11 +401,12 @@ function apagarDiarios(){
   if(confirm("Deseja apagar todos os registros?")){
     localStorage.removeItem(KEY_DIARIOS);
     carregarDiario();
+    atualizarPainel();
   }
 }
 
 function exportarDiarioCSV(){
-  let lista = JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
+  let lista = getLista();
 
   if(lista.length === 0){
     alert("Não há registros para exportar.");
@@ -298,10 +425,119 @@ function exportarDiarioCSV(){
   link.click();
 }
 
-// Inicializa
-salvarNomes();
-renderChipsDiario();
-carregarDiario();
+/* ===================== PAINEL DO GESTOR ===================== */
+function atualizarPainel(){
+  const sel = getMesAnoSelecionado();
+  const lista = getLista();
+
+  // se não tiver mês selecionado, assume mês atual
+  if(!sel){
+    const hoje = new Date();
+    const pad = (n)=> String(n).padStart(2,"0");
+    document.getElementById("mesAno").value = `${hoje.getFullYear()}-${String(pad(hoje.getMonth()+1))}`;
+    return atualizarPainel();
+  }
+
+  const prefixo = `${sel.y}-${sel.m}`; // YYYY-MM
+  const registrosMes = lista.filter(r => r.dataISO.startsWith(prefixo));
+
+  // KPI
+  document.getElementById("kpiDias").innerText = registrosMes.length;
+
+  // Contagem por técnico (dias, sem duplicar no mesmo dia)
+  const contagem = new Map(); // nome -> dias
+  registrosMes.forEach(r => {
+    const unicos = Array.from(new Set(r.pessoas));
+    unicos.forEach(p => contagem.set(p, (contagem.get(p) || 0) + 1));
+  });
+
+  document.getElementById("kpiTecnicos").innerText = contagem.size;
+
+  // Ranking ordenado por dias desc, nome asc
+  const ranking = Array.from(contagem.entries())
+    .map(([nome, dias]) => ({ nome, dias }))
+    .sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
+
+  // Tabela ranking (tela)
+  const tbodyRank = document.getElementById("tabelaRanking");
+  tbodyRank.innerHTML = ranking.length
+    ? ranking.map((x, i) => `
+        <tr>
+          <td>${i+1}</td>
+          <td>${x.nome}</td>
+          <td><strong>${x.dias}</strong></td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="3" class="muted">Sem registros neste mês.</td></tr>`;
+
+  // Tabela do mês (tela)
+  const tbodyMes = document.getElementById("tabelaMes");
+  tbodyMes.innerHTML = registrosMes.length
+    ? registrosMes
+        .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
+        .map(r => `
+          <tr>
+            <td><strong>${r.dataBR}</strong></td>
+            <td>${r.pessoas.join("<br>")}</td>
+          </tr>
+        `).join("")
+    : `<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>`;
+
+  // Preenche também as versões de impressão
+  document.getElementById("printRanking").innerHTML = ranking.length
+    ? ranking.map((x, i) => `
+        <tr>
+          <td>${i+1}</td>
+          <td>${x.nome}</td>
+          <td><strong>${x.dias}</strong></td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="3">Sem registros neste mês.</td></tr>`;
+
+  document.getElementById("printMes").innerHTML = registrosMes.length
+    ? registrosMes
+        .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
+        .map(r => `
+          <tr>
+            <td><strong>${r.dataBR}</strong></td>
+            <td>${r.pessoas.join(", ")}</td>
+          </tr>
+        `).join("")
+    : `<tr><td colspan="2">Sem registros neste mês.</td></tr>`;
+
+  // Cabeçalho do relatório (impressão)
+  const mesBR = `${sel.m}/${sel.y}`;
+  document.getElementById("reportPeriodo").innerText = `Período: ${mesBR}`;
+  document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
+}
+
+function gerarPDF(){
+  // garante que o painel/relatório esteja atualizado antes de imprimir
+  atualizarPainel();
+
+  // pequena espera para garantir render (sem depender de libs)
+  setTimeout(() => window.print(), 50);
+}
+
+/* ===================== INIT ===================== */
+(function init(){
+  // data padrão hoje no formulário
+  document.getElementById("dataDia").value = hojeISO();
+
+  salvarNomes();
+  renderChipsDiario();
+  carregarDiario();
+
+  // mês atual
+  const d = new Date();
+  const pad = (n)=> String(n).padStart(2,"0");
+  document.getElementById("mesAno").value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+
+  atualizarPainel();
+
+  // auto atualizar quando mudar mês
+  document.getElementById("mesAno").addEventListener("change", atualizarPainel);
+})();
 </script>
 
 </body>
