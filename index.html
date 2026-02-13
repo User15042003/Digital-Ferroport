@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Presença diária — Ferroport</title>
+  <title>Presença diária — Contratos</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -30,6 +30,7 @@
 
   <div class="actions">
     <button class="btn" type="button" onclick="login()">Entrar</button>
+    <button class="btn secondary" type="button" onclick="esqueciSenha()">Esqueci minha senha</button>
   </div>
 
   <p class="muted small" id="loginMsg"></p>
@@ -46,11 +47,21 @@
     </div>
 
     <div>
-      <div class="brand-title">Presença diária — Ferroport</div>
-      <div class="brand-subtitle">Controle de técnicos no contrato</div>
+      <div class="brand-title">Presença diária — Contratos</div>
+      <div class="brand-subtitle" id="userBadge">Logado como: —</div>
     </div>
 
     <div class="top-actions">
+      <div class="field inline">
+        <label>Contrato</label>
+        <select id="contratoSelect">
+          <option value="ferroport">Ferroport</option>
+          <option value="porto-sudeste">Porto Sudeste</option>
+          <option value="vale">Vale</option>
+        </select>
+      </div>
+
+      <span class="role-pill" id="rolePill">—</span>
       <button class="btn secondary small" type="button" onclick="logout()">Sair</button>
     </div>
   </div>
@@ -62,7 +73,7 @@
   <section class="card">
     <div class="card-head">
       <h2>Painel do gestor</h2>
-      <p class="muted">Selecione o mês para ver o ranking e gerar o relatório em PDF.</p>
+      <p class="muted">Selecione o mês para ver o ranking, resumo e gerar o relatório em PDF.</p>
     </div>
 
     <div class="grid-3">
@@ -81,6 +92,10 @@
           <div class="kpi">
             <div class="kpi-label">Técnicos no mês</div>
             <div class="kpi-value" id="kpiTecnicos">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Presenças (total)</div>
+            <div class="kpi-value" id="kpiPresencas">0</div>
           </div>
         </div>
       </div>
@@ -104,6 +119,7 @@
               <th>#</th>
               <th>Técnico</th>
               <th>Dias</th>
+              <th style="width:38%;">Progresso</th>
             </tr>
           </thead>
           <tbody id="tabelaRanking"></tbody>
@@ -148,13 +164,14 @@
         </div>
 
         <p class="muted small">Os nomes ficam salvos no banco (tempo real).</p>
+        <p class="muted small" id="permMsg" style="display:none;">Você está como Técnico: algumas ações ficam bloqueadas.</p>
       </div>
     </div>
 
     <div class="actions">
       <button class="btn" type="button" onclick="salvarDiario()">💾 Salvar dia</button>
       <button class="btn secondary" type="button" onclick="limparDiario()">🧹 Limpar</button>
-      <button class="btn danger" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
+      <button class="btn danger" id="btnApagarTudo" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
       <button class="btn" type="button" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
     </div>
   </section>
@@ -201,7 +218,7 @@
     </div>
 
     <div class="report-titles">
-      <div class="report-title">Relatório de Presença — Ferroport</div>
+      <div class="report-title">Relatório de Presença — <span id="reportContrato">—</span></div>
       <div class="report-subtitle" id="reportPeriodo">Período: —</div>
       <div class="report-subtitle" id="reportGeradoEm">Gerado em: —</div>
     </div>
@@ -243,10 +260,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
   import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-  // ✅ Sua config
+  // ✅ Sua config (ok expor no front)
   const firebaseConfig = {
     apiKey: "AIzaSyBzgChouE4W25XnD-vFybJrKVN9yl3R0IQ",
     authDomain: "ferroportluannogueira.firebaseapp.com",
@@ -257,21 +274,40 @@
     measurementId: "G-61BRVCSHD7"
   };
 
+  // ✅ DEFINA AQUI OS E-MAILS DE GESTOR/ADMIN (podem apagar tudo e apagar registros)
+  const ADMIN_EMAILS = [
+    // "gestor@empresa.com",
+    // "outro@empresa.com"
+  ];
+
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Estrutura: contratos/ferroport/diarios/{dataISO} e contratos/ferroport/nomes/{id}
-  const refDiarios = collection(db, "contratos", "ferroport", "diarios");
-  const refNomes = collection(db, "contratos", "ferroport", "nomes");
-
+  // Estado
   let LISTA = [];
   let NOMES = [];
   let selecaoDiaria = [];
+  let isAdmin = false;
 
   // Ver mais (lista geral)
   let mostrarTodosRegistros = false;
   const LIMITE_REGISTROS = 5;
+
+  // Contrato atual (multi-contratos)
+  const KEY_CONTRATO = "contrato_atual";
+  let contratoAtual = localStorage.getItem(KEY_CONTRATO) || "ferroport";
+
+  // Refs (mudam conforme contrato)
+  let refDiarios = null;
+  let refNomes = null;
+  let unsubDiarios = null;
+  let unsubNomes = null;
+
+  function setRefsContrato(){
+    refDiarios = collection(db, "contratos", contratoAtual, "diarios");
+    refNomes   = collection(db, "contratos", contratoAtual, "nomes");
+  }
 
   /* ===================== LOGIN ===================== */
   window.login = async function(){
@@ -283,7 +319,25 @@
     try{
       await signInWithEmailAndPassword(auth, email, senha);
     }catch(e){
-      msg.textContent = "Falha no login: " + (e?.message || e);
+      msg.textContent = "Falha no login: " + (e?.code || e?.message || e);
+    }
+  };
+
+  window.esqueciSenha = async function(){
+    const email = document.getElementById("loginEmail").value.trim();
+    const msg = document.getElementById("loginMsg");
+    msg.textContent = "";
+
+    if(!email){
+      msg.textContent = "Digite seu e-mail para receber o link de redefinição.";
+      return;
+    }
+
+    try{
+      await sendPasswordResetEmail(auth, email);
+      msg.textContent = "Pronto! Enviamos um e-mail para redefinir sua senha.";
+    }catch(e){
+      msg.textContent = "Não foi possível enviar: " + (e?.code || e?.message || e);
     }
   };
 
@@ -294,6 +348,19 @@
   function mostrarApp(logado){
     document.getElementById("loginBox").style.display = logado ? "none" : "block";
     document.getElementById("appRoot").style.display = logado ? "block" : "none";
+  }
+
+  function aplicarPermissoesUI(){
+    const pill = document.getElementById("rolePill");
+    const permMsg = document.getElementById("permMsg");
+    const btnApagarTudo = document.getElementById("btnApagarTudo");
+
+    pill.textContent = isAdmin ? "Gestor" : "Técnico";
+    pill.classList.toggle("admin", isAdmin);
+
+    // Só gestor pode apagar tudo
+    btnApagarTudo.style.display = isAdmin ? "inline-block" : "none";
+    permMsg.style.display = isAdmin ? "none" : "block";
   }
 
   /* ===================== UTIL ===================== */
@@ -325,31 +392,54 @@
       .replace(/[^a-z0-9\-]/g,"")
       .slice(0, 80);
   }
+  function nomeContratoBonito(slug){
+    const mapa = {
+      "ferroport": "Ferroport",
+      "porto-sudeste": "Porto Sudeste",
+      "vale": "Vale"
+    };
+    return mapa[slug] || slug;
+  }
 
   /* ===================== REALTIME ===================== */
+  function desligarRealtime(){
+    if(typeof unsubDiarios === "function") unsubDiarios();
+    if(typeof unsubNomes === "function") unsubNomes();
+    unsubDiarios = null;
+    unsubNomes = null;
+  }
+
   function ligarRealtime(){
-    onSnapshot(refDiarios, (snap) => {
+    desligarRealtime();
+
+    unsubDiarios = onSnapshot(refDiarios, (snap) => {
       LISTA = snap.docs.map(d => d.data());
       LISTA.sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
       carregarDiario();
       atualizarPainel();
     });
 
-    onSnapshot(refNomes, (snap) => {
+    unsubNomes = onSnapshot(refNomes, (snap) => {
       NOMES = snap.docs.map(d => d.data().nome).sort((a,b)=> a.localeCompare(b, "pt-BR"));
       renderChipsDiario();
     });
   }
 
-  onAuthStateChanged(auth, (user) => {
-    if(!user){
-      mostrarApp(false);
-      return;
-    }
-    mostrarApp(true);
+  function setContrato(novo){
+    contratoAtual = novo;
+    localStorage.setItem(KEY_CONTRATO, contratoAtual);
+    setRefsContrato();
     ligarRealtime();
-    initUI();
-  });
+
+    // atualiza título do PDF
+    document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
+
+    // limpa seleção diária ao trocar contrato
+    selecaoDiaria = [];
+    renderChipsDiario();
+    limparDiario(true);
+    atualizarPainel();
+  }
 
   /* ===================== CHIPS ===================== */
   window.renderChipsDiario = function(){
@@ -376,8 +466,11 @@
 
       const remover = document.createElement("span");
       remover.className = "remove";
-      remover.title = "Excluir nome";
+      remover.title = "Excluir nome (gestor)";
       remover.innerText = "✖";
+
+      // Só gestor pode excluir nome
+      remover.style.display = isAdmin ? "inline-flex" : "none";
 
       remover.onclick = (e) => {
         e.stopPropagation();
@@ -405,14 +498,17 @@
       return;
     }
 
-    await setDoc(doc(db, "contratos", "ferroport", "nomes", idSeguro(nome)), { nome });
-
+    await setDoc(doc(db, "contratos", contratoAtual, "nomes", idSeguro(nome)), { nome });
     input.value = "";
   };
 
   async function excluirNome(nome){
+    if(!isAdmin){
+      alert("Somente gestor pode excluir nomes.");
+      return;
+    }
     if(!confirm(`Deseja excluir "${nome}"?`)) return;
-    await deleteDoc(doc(db, "contratos", "ferroport", "nomes", idSeguro(nome)));
+    await deleteDoc(doc(db, "contratos", contratoAtual, "nomes", idSeguro(nome)));
     selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
   }
 
@@ -429,7 +525,7 @@
       pessoas: [...selecaoDiaria]
     };
 
-    await setDoc(doc(db, "contratos", "ferroport", "diarios", data), item);
+    await setDoc(doc(db, "contratos", contratoAtual, "diarios", data), item);
     limparDiario();
   };
 
@@ -438,28 +534,37 @@
     if(!reg) return alert("Registro não encontrado.");
 
     document.getElementById("dataDia").value = reg.dataISO;
-    selecaoDiaria = [...reg.pessoas];
+    selecaoDiaria = [...(reg.pessoas || [])];
     renderChipsDiario();
 
     document.getElementById("cardPresenca").scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   window.apagarRegistro = async function(dataISO){
+    if(!isAdmin){
+      alert("Somente gestor pode apagar registros.");
+      return;
+    }
     if(!confirm("Deseja apagar somente este dia registrado?")) return;
-    await deleteDoc(doc(db, "contratos", "ferroport", "diarios", dataISO));
+    await deleteDoc(doc(db, "contratos", contratoAtual, "diarios", dataISO));
     if(document.getElementById("dataDia").value === dataISO){
       limparDiario();
     }
   };
 
-  window.limparDiario = function(){
+  window.limparDiario = function(silencioso=false){
     document.getElementById("dataDia").value = "";
     selecaoDiaria = [];
     renderChipsDiario();
+    if(!silencioso) document.getElementById("novoNome").value = "";
   };
 
   window.apagarDiarios = async function(){
-    if(!confirm("Deseja apagar todos os registros?")) return;
+    if(!isAdmin){
+      alert("Somente gestor pode apagar tudo.");
+      return;
+    }
+    if(!confirm("Deseja apagar TODOS os registros deste contrato?")) return;
 
     const snap = await getDocs(refDiarios);
     for(const d of snap.docs){
@@ -475,15 +580,15 @@
 
     const ordenado = [...LISTA].sort((a,b) => a.dataISO.localeCompare(b.dataISO));
 
-    let csv = "Data;Pessoas\n";
+    let csv = "Contrato;Data;Pessoas\n";
     ordenado.forEach(r => {
-      csv += `${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
+      csv += `${nomeContratoBonito(contratoAtual)};${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
     });
 
     const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "presencas_ferroport.csv";
+    link.download = `presencas_${contratoAtual}.csv`;
     link.click();
   };
 
@@ -512,7 +617,6 @@
     if(!tbody) return;
     tbody.innerHTML = "";
 
-    // mais recentes primeiro
     const lista = [...LISTA].sort((a,b) => b.dataISO.localeCompare(a.dataISO));
     const exibida = mostrarTodosRegistros ? lista : lista.slice(0, LIMITE_REGISTROS);
 
@@ -524,7 +628,7 @@
           <td>
             <div class="row-actions">
               <button class="btn small secondary" type="button" onclick="editarRegistro('${r.dataISO}')">✏ Editar</button>
-              <button class="btn small danger" type="button" onclick="apagarRegistro('${r.dataISO}')">🗑 Apagar</button>
+              <button class="btn small danger" type="button" onclick="apagarRegistro('${r.dataISO}')" ${isAdmin ? "" : "disabled"}>🗑 Apagar</button>
             </div>
           </td>
         </tr>
@@ -550,7 +654,11 @@
 
     document.getElementById("kpiDias").innerText = registrosMes.length;
 
-    const contagem = new Map();
+    // total de presenças (somatório de pessoas)
+    const totalPresencas = registrosMes.reduce((acc, r) => acc + (r.pessoas ? r.pessoas.length : 0), 0);
+    document.getElementById("kpiPresencas").innerText = totalPresencas;
+
+    const contagem = new Map(); // nome -> dias
     registrosMes.forEach(r => {
       const unicos = Array.from(new Set(r.pessoas || []));
       unicos.forEach(p => contagem.set(p, (contagem.get(p) || 0) + 1));
@@ -562,6 +670,8 @@
       .map(([nome, dias]) => ({ nome, dias }))
       .sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
 
+    const maxDias = ranking.length ? Math.max(...ranking.map(x => x.dias)) : 0;
+
     const tbodyRank = document.getElementById("tabelaRanking");
     tbodyRank.innerHTML = ranking.length
       ? ranking.map((x, i) => `
@@ -569,9 +679,14 @@
             <td>${i+1}</td>
             <td>${x.nome}</td>
             <td><strong>${x.dias}</strong></td>
+            <td>
+              <div class="bar">
+                <div class="bar-fill" style="width:${maxDias ? (x.dias/maxDias*100).toFixed(0) : 0}%;"></div>
+              </div>
+            </td>
           </tr>
         `).join("")
-      : `<tr><td colspan="3" class="muted">Sem registros neste mês.</td></tr>`;
+      : `<tr><td colspan="4" class="muted">Sem registros neste mês.</td></tr>`;
 
     const tbodyMes = document.getElementById("tabelaMes");
     tbodyMes.innerHTML = registrosMes.length
@@ -610,6 +725,7 @@
     const mesBR = `${sel.m}/${sel.y}`;
     document.getElementById("reportPeriodo").innerText = `Período: ${mesBR}`;
     document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
+    document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
   };
 
   window.gerarPDF = function(){
@@ -618,6 +734,11 @@
   };
 
   function initUI(){
+    // contrato
+    const selContrato = document.getElementById("contratoSelect");
+    selContrato.value = contratoAtual;
+    selContrato.addEventListener("change", () => setContrato(selContrato.value));
+
     // data padrão hoje
     document.getElementById("dataDia").value = hojeISO();
 
@@ -625,10 +746,32 @@
     const d = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
     document.getElementById("mesAno").value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-
     document.getElementById("mesAno").addEventListener("change", atualizarPainel);
-    atualizarPainel();
   }
+
+  onAuthStateChanged(auth, (user) => {
+    if(!user){
+      mostrarApp(false);
+      desligarRealtime();
+      return;
+    }
+
+    // define role
+    const email = (user.email || "").toLowerCase();
+    isAdmin = ADMIN_EMAILS.map(x => String(x).toLowerCase()).includes(email);
+
+    // UI
+    document.getElementById("userBadge").textContent = `Logado como: ${user.email || "—"}`;
+    aplicarPermissoesUI();
+    mostrarApp(true);
+
+    // refs + realtime
+    setRefsContrato();
+    ligarRealtime();
+
+    initUI();
+    atualizarPainel();
+  });
 </script>
 
 </body>
