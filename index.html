@@ -74,17 +74,7 @@
             </tr>
           </thead>
           <tbody id="tabelaRanking"></tbody>
-          <div class="ver-mais-wrap">
-  <button class="btn secondary small" id="btnVerMaisRanking" type="button" onclick="toggleVerMaisRanking()">
-    Ver mais ranking
-  </button>
-</div>
         </table>
-
-        <!-- ✅ VER MAIS RANKING -->
-        <div class="ver-mais-wrap">
-          <button class="btn secondary small" id="btnVerMaisRanking" type="button" onclick="toggleVerMaisRanking()">Ver mais ranking</button>
-        </div>
       </div>
 
       <div>
@@ -97,17 +87,7 @@
             </tr>
           </thead>
           <tbody id="tabelaMes"></tbody>
-          <div class="ver-mais-wrap">
-  <button class="btn secondary small" id="btnVerMaisMes" type="button" onclick="toggleVerMaisMes()">
-    Ver mais registros do mês
-  </button>
-</div>
         </table>
-
-        <!-- ✅ VER MAIS REGISTROS DO MÊS -->
-        <div class="ver-mais-wrap">
-          <button class="btn secondary small" id="btnVerMaisMes" type="button" onclick="toggleVerMaisMes()">Ver mais registros do mês</button>
-        </div>
       </div>
     </div>
   </section>
@@ -233,26 +213,10 @@ const KEY_NOMES = "nomes_tecnicos";
 const NOMES_PADRAO = ["Luan Nogueira", "Lucas Gregorio", "Phillipe Carvalho"];
 let NOMES = JSON.parse(localStorage.getItem(KEY_NOMES)) || [...NOMES_PADRAO];
 let selecaoDiaria = [];
-  // ✅ VER MAIS (LISTA GERAL)
+
+/* ✅ VER MAIS / VER MENOS */
 let mostrarTodosRegistros = false;
 const LIMITE_REGISTROS = 5;
-
-// ✅ VER MAIS (PAINEL DO GESTOR)
-let mostrarRankingCompleto = false;
-let mostrarMesCompleto = false;
-const LIMITE_RANKING = 8;
-const LIMITE_MES = 10;
-
-
-/* ✅ VER MAIS / VER MENOS (LISTA GERAL) */
-let mostrarTodosRegistros = false;
-const LIMITE_REGISTROS = 5;
-
-/* ✅ VER MAIS (PAINEL) */
-let mostrarRankingCompleto = false;
-let mostrarMesCompleto = false;
-const LIMITE_RANKING = 8;
-const LIMITE_MES = 10;
 
 /* ===================== UTIL ===================== */
 function salvarNomes(){
@@ -279,7 +243,7 @@ function setLista(lista){
   localStorage.setItem(KEY_DIARIOS, JSON.stringify(lista));
 }
 function getMesAnoSelecionado(){
-  const v = document.getElementById("mesAno").value;
+  const v = document.getElementById("mesAno").value; // YYYY-MM
   if(!v) return null;
   const [y,m] = v.split("-");
   return { y, m };
@@ -370,6 +334,7 @@ function salvarDiario(){
   };
 
   let lista = getLista();
+
   const idx = lista.findIndex(x => x.dataISO === data);
   if(idx >= 0) lista[idx] = item;
   else lista.push(item);
@@ -386,7 +351,9 @@ function carregarDiario(){
   const tbody = document.getElementById("tabelaDiario");
   tbody.innerHTML = "";
 
+  // ✅ mais recentes primeiro
   let lista = getLista().sort((a,b) => b.dataISO.localeCompare(a.dataISO));
+
   const listaExibida = mostrarTodosRegistros ? lista : lista.slice(0, LIMITE_REGISTROS);
 
   listaExibida.forEach(r => {
@@ -404,13 +371,20 @@ function carregarDiario(){
     `;
   });
 
+  atualizarBotaoVerMais(lista.length);
+}
+
+function atualizarBotaoVerMais(total){
   const btn = document.getElementById("btnVerMais");
-  if(lista.length <= LIMITE_REGISTROS){
+  if(!btn) return;
+
+  if(total <= LIMITE_REGISTROS){
     btn.style.display = "none";
-  }else{
-    btn.style.display = "inline-block";
-    btn.innerText = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
+    return;
   }
+
+  btn.style.display = "inline-block";
+  btn.innerText = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
 }
 
 function toggleVerMais(){
@@ -421,7 +395,11 @@ function toggleVerMais(){
 function editarRegistro(dataISO){
   let lista = getLista();
   const reg = lista.find(x => x.dataISO === dataISO);
-  if(!reg) return alert("Registro não encontrado.");
+
+  if(!reg){
+    alert("Registro não encontrado.");
+    return;
+  }
 
   document.getElementById("dataDia").value = reg.dataISO;
   selecaoDiaria = [...reg.pessoas];
@@ -461,6 +439,7 @@ function apagarDiarios(){
 
 function exportarDiarioCSV(){
   let lista = getLista();
+
   if(lista.length === 0){
     alert("Não há registros para exportar.");
     return;
@@ -486,7 +465,7 @@ function atualizarPainel(){
   if(!sel){
     const hoje = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
-    document.getElementById("mesAno").value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
+    document.getElementById("mesAno").value = `${hoje.getFullYear()}-${String(pad(hoje.getMonth()+1))}`;
     return atualizarPainel();
   }
 
@@ -507,10 +486,9 @@ function atualizarPainel(){
     .map(([nome, dias]) => ({ nome, dias }))
     .sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
 
-  const rankingExibido = mostrarRankingCompleto ? ranking : ranking.slice(0, LIMITE_RANKING);
   const tbodyRank = document.getElementById("tabelaRanking");
-  tbodyRank.innerHTML = rankingExibido.length
-    ? rankingExibido.map((x, i) => `
+  tbodyRank.innerHTML = ranking.length
+    ? ranking.map((x, i) => `
         <tr>
           <td>${i+1}</td>
           <td>${x.nome}</td>
@@ -519,36 +497,18 @@ function atualizarPainel(){
       `).join("")
     : `<tr><td colspan="3" class="muted">Sem registros neste mês.</td></tr>`;
 
-  const btnRank = document.getElementById("btnVerMaisRanking");
-  if(ranking.length <= LIMITE_RANKING){
-    btnRank.style.display = "none";
-  }else{
-    btnRank.style.display = "inline-block";
-    btnRank.innerText = mostrarRankingCompleto ? "Ver menos" : "Ver mais ranking";
-  }
-
-  const registrosOrdenados = [...registrosMes].sort((a,b)=> b.dataISO.localeCompare(a.dataISO));
-  const mesExibido = mostrarMesCompleto ? registrosOrdenados : registrosOrdenados.slice(0, LIMITE_MES);
-
   const tbodyMes = document.getElementById("tabelaMes");
-  tbodyMes.innerHTML = mesExibido.length
-    ? mesExibido.map(r => `
-        <tr>
-          <td><strong>${r.dataBR}</strong></td>
-          <td>${r.pessoas.join("<br>")}</td>
-        </tr>
-      `).join("")
+  tbodyMes.innerHTML = registrosMes.length
+    ? registrosMes
+        .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
+        .map(r => `
+          <tr>
+            <td><strong>${r.dataBR}</strong></td>
+            <td>${r.pessoas.join("<br>")}</td>
+          </tr>
+        `).join("")
     : `<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>`;
 
-  const btnMes = document.getElementById("btnVerMaisMes");
-  if(registrosOrdenados.length <= LIMITE_MES){
-    btnMes.style.display = "none";
-  }else{
-    btnMes.style.display = "inline-block";
-    btnMes.innerText = mostrarMesCompleto ? "Ver menos" : "Ver mais registros do mês";
-  }
-
-  /* impressão: sempre completo */
   document.getElementById("printRanking").innerHTML = ranking.length
     ? ranking.map((x, i) => `
         <tr>
@@ -575,16 +535,6 @@ function atualizarPainel(){
   document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
 }
 
-function toggleVerMaisRanking(){
-  mostrarRankingCompleto = !mostrarRankingCompleto;
-  atualizarPainel();
-}
-
-function toggleVerMaisMes(){
-  mostrarMesCompleto = !mostrarMesCompleto;
-  atualizarPainel();
-}
-
 function gerarPDF(){
   atualizarPainel();
   setTimeout(() => window.print(), 50);
@@ -609,4 +559,3 @@ function gerarPDF(){
 
 </body>
 </html>
-
