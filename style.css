@@ -21,6 +21,13 @@ body{
   color:var(--text);
 }
 
+/* ✅ LOGIN */
+.container-login{
+  max-width:900px;
+  margin:22px auto;
+  padding:0 16px;
+}
+
 /* ===================== TOPO ===================== */
 .topbar{
   background:white;
@@ -37,6 +44,13 @@ body{
   display:flex;
   align-items:center;
   gap:18px;
+}
+
+.top-actions{
+  margin-left:auto;
+  display:flex;
+  gap:10px;
+  align-items:center;
 }
 
 .logos{
@@ -401,6 +415,12 @@ th{ background:#f0f0f0; }
   .brand{
     flex-direction:column;
     align-items:flex-start;
+  }
+
+  .top-actions{
+    margin-left:0;
+    width:100%;
+    justify-content:flex-start;
   }
 
   .logo{ height:50px; }
