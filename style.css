@@ -21,12 +21,92 @@ body{
   color:var(--text);
 }
 
-/* ✅ LOGIN */
-.container-login{
-  max-width:900px;
-  margin:22px auto;
-  padding:0 16px;
+/* ===================== LOGIN (CENTRAL + PREMIUM) ===================== */
+.login-page{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(1200px 500px at 10% 0%, rgba(203,51,68,.12), transparent 60%),
+    radial-gradient(900px 400px at 90% 10%, rgba(54,57,59,.10), transparent 55%),
+    var(--bg);
 }
+
+.login-card{
+  width:100%;
+  max-width:560px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:34px 34px 26px;
+  box-shadow:0 20px 60px rgba(0,0,0,.10);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.login-card:before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:linear-gradient(135deg, rgba(203,51,68,.25), rgba(54,57,59,.18));
+  filter:blur(18px);
+  opacity:.35;
+  z-index:0;
+}
+
+.login-card > *{
+  position:relative;
+  z-index:1;
+}
+
+.login-logos{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+  margin-bottom:18px;
+}
+
+.login-card h2{
+  margin:0 0 8px;
+  font-size:22px;
+}
+
+.login-card .muted{
+  margin:0 0 18px;
+}
+
+.actions.center{
+  justify-content:center;
+}
+
+.login-status{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-weight:700;
+}
+
+.spinner{
+  width:16px;
+  height:16px;
+  border:2px solid rgba(203,51,68,.25);
+  border-top-color:var(--digital-red);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+
+.center{ text-align:center; }
+.tiny{ font-size:11px; }
 
 /* ===================== TOPO ===================== */
 .topbar{
@@ -68,22 +148,6 @@ select{
   background:#fff;
 }
 
-.role-pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  height:38px;
-  padding:0 12px;
-  border-radius:999px;
-  border:1px solid var(--border);
-  background:#fff;
-  font-weight:800;
-  font-size:12px;
-}
-.role-pill.admin{
-  border-color: rgba(203,51,68,.4);
-}
-
 /* LOGOS */
 .logos{
   display:flex;
@@ -101,6 +165,20 @@ select{
 /* TITULO */
 .brand-title{ font-weight:700; font-size:18px; }
 .brand-subtitle{ color:var(--muted); font-size:13px; }
+
+.role-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:38px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:800;
+  font-size:12px;
+}
+.role-pill.admin{ border-color: rgba(203,51,68,.4); }
 
 /* ===================== CONTAINER ===================== */
 .container{
@@ -190,7 +268,7 @@ input{
   margin-top:4px;
 }
 
-/* ===================== BARRA (dashboard) ===================== */
+/* ===================== BARRA ===================== */
 .bar{
   height:10px;
   border-radius:999px;
@@ -435,10 +513,6 @@ th{ background:#f0f0f0; }
   .report-grid{
     width:100%;
     margin:0 auto;
-  }
-
-  .report-box{
-    break-inside: auto;
   }
 
   .report-footer{
