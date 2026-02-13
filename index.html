@@ -1,772 +1,548 @@
-<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Presença diária — Contratos</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
+:root{
+  --bg:#f5f6f8;
+  --card:#fff;
+  --text:#1E2328;
+  --muted:#6B7280;
+  --border:#E6E8EE;
 
-<body>
+  --digital-red:#CB3344;
+  --digital-dark:#36393B;
 
-<!-- ===================== LOGIN ===================== -->
-<section class="card container-login" id="loginBox" style="display:none;">
-  <div class="card-head">
-    <h2>Acesso restrito</h2>
-    <p class="muted">Entre com seu e-mail e senha para acessar o controle de presença.</p>
-  </div>
+  --shadow:0 12px 30px rgba(0,0,0,.08);
+  --radius:16px;
+}
 
-  <div class="grid-2">
-    <div class="field">
-      <label>E-mail</label>
-      <input id="loginEmail" type="email" placeholder="seuemail@empresa.com" autocomplete="username">
-    </div>
+*{ box-sizing:border-box; }
 
-    <div class="field">
-      <label>Senha</label>
-      <input id="loginSenha" type="password" placeholder="••••••••" autocomplete="current-password">
-    </div>
-  </div>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
 
-  <div class="actions">
-    <button class="btn" type="button" onclick="login()">Entrar</button>
-    <button class="btn secondary" type="button" onclick="esqueciSenha()">Esqueci minha senha</button>
-  </div>
+/* ===================== LOGIN (CENTRAL + PREMIUM) ===================== */
+.login-page{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(1200px 500px at 10% 0%, rgba(203,51,68,.12), transparent 60%),
+    radial-gradient(900px 400px at 90% 10%, rgba(54,57,59,.10), transparent 55%),
+    var(--bg);
+}
 
-  <p class="muted small" id="loginMsg"></p>
-</section>
+.login-card{
+  width:100%;
+  max-width:560px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:34px 34px 26px;
+  box-shadow:0 20px 60px rgba(0,0,0,.10);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
 
-<!-- ===================== APP ===================== -->
-<div id="appRoot" style="display:none;">
+.login-card:before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:linear-gradient(135deg, rgba(203,51,68,.25), rgba(54,57,59,.18));
+  filter:blur(18px);
+  opacity:.35;
+  z-index:0;
+}
 
-<header class="topbar no-print">
-  <div class="brand">
-    <div class="logos">
-      <img src="logo-digital.png" alt="Logo Digital" class="logo">
-      <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
-    </div>
+.login-card > *{
+  position:relative;
+  z-index:1;
+}
 
-    <div>
-      <div class="brand-title">Presença diária — Contratos</div>
-      <div class="brand-subtitle" id="userBadge">Logado como: —</div>
-    </div>
+.login-logos{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+  margin-bottom:18px;
+}
 
-    <div class="top-actions">
-      <div class="field inline">
-        <label>Contrato</label>
-        <select id="contratoSelect">
-          <option value="ferroport">Ferroport</option>
-        </select>
-      </div>
+.login-card h2{
+  margin:0 0 8px;
+  font-size:22px;
+}
 
-      <span class="role-pill" id="rolePill">—</span>
-      <button class="btn secondary small" type="button" onclick="logout()">Sair</button>
-    </div>
-  </div>
-</header>
+.login-card .muted{
+  margin:0 0 18px;
+}
 
-<main class="container">
+.actions.center{
+  justify-content:center;
+}
 
-  <!-- ====== RELATÓRIO / PAINEL DO GESTOR ====== -->
-  <section class="card">
-    <div class="card-head">
-      <h2>Painel do gestor</h2>
-      <p class="muted">Selecione o mês para ver o ranking, resumo e gerar o relatório em PDF.</p>
-    </div>
+.login-status{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-weight:700;
+}
 
-    <div class="grid-3">
-      <div class="field">
-        <label>Mês/Ano</label>
-        <input id="mesAno" type="month" />
-      </div>
+.spinner{
+  width:16px;
+  height:16px;
+  border:2px solid rgba(203,51,68,.25);
+  border-top-color:var(--digital-red);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
 
-      <div class="field">
-        <label>Resumo</label>
-        <div class="kpi-wrap">
-          <div class="kpi">
-            <div class="kpi-label">Dias registrados</div>
-            <div class="kpi-value" id="kpiDias">0</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Técnicos no mês</div>
-            <div class="kpi-value" id="kpiTecnicos">0</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Presenças (total)</div>
-            <div class="kpi-value" id="kpiPresencas">0</div>
-          </div>
-        </div>
-      </div>
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
 
-      <div class="field">
-        <label>Ações</label>
-        <div class="actions">
-          <button class="btn" type="button" onclick="atualizarPainel()">🔄 Atualizar</button>
-          <button class="btn secondary" type="button" onclick="gerarPDF()">📄 Gerar PDF</button>
-        </div>
-        <p class="muted small">O PDF é gerado via impressão do navegador (Ctrl+P).</p>
-      </div>
-    </div>
+.center{ text-align:center; }
+.tiny{ font-size:11px; }
 
-    <div class="split">
-      <div>
-        <h3 class="h3">Ranking (dias trabalhados no mês)</h3>
-        <table class="table-compact">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Técnico</th>
-              <th>Dias</th>
-              <th style="width:38%;">Progresso</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaRanking"></tbody>
-        </table>
-      </div>
+/* ===================== TOPO ===================== */
+.topbar{
+  background:white;
+  border-bottom:1px solid var(--border);
+  padding:16px 0;
+  display:flex;
+  justify-content:center;
+}
 
-      <div>
-        <h3 class="h3">Registros do mês (para o relatório)</h3>
-        <table class="table-compact">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Pessoas</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaMes"></tbody>
-        </table>
+.brand{
+  max-width:900px;
+  width:100%;
+  padding:0 16px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
 
-        <!-- ✅ VER MAIS / VER MENOS (PAINEL DO GESTOR) -->
-        <div class="ver-mais-wrap">
-          <button class="btn secondary small" id="btnVerMaisMes" type="button" onclick="toggleVerMaisMes()">
-            Ver mais registros
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
+.top-actions{
+  margin-left:auto;
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+}
 
-  <!-- ====== FORMULÁRIO DIÁRIO ====== -->
-  <section class="card" id="cardPresenca">
-    <div class="card-head">
-      <h2>Presença por dia</h2>
-      <p class="muted">Selecione a data e marque quem esteve no contrato.</p>
-    </div>
+.field.inline label{
+  font-size:12px;
+  margin-bottom:4px;
+}
 
-    <div class="grid-2">
-      <div class="field">
-        <label>Data</label>
-        <input id="dataDia" type="date" />
-      </div>
+select{
+  width:100%;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  text-align:center;
+  background:#fff;
+}
 
-      <div class="field">
-        <label>Pessoas</label>
-        <div class="chips" id="chipsDiario"></div>
+/* LOGOS */
+.logos{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.logo{
+  height:60px;
+  width:auto;
+  object-fit:contain;
+  display:block;
+}
+.logo.emive{ height:110px; }
 
-        <div class="add-nome">
-          <input type="text" id="novoNome" placeholder="Adicionar técnico (ex: João Silva)">
-          <button class="btn" type="button" onclick="adicionarNome()">+ Adicionar</button>
-        </div>
+/* TITULO */
+.brand-title{ font-weight:700; font-size:18px; }
+.brand-subtitle{ color:var(--muted); font-size:13px; }
 
-        <p class="muted small">Os nomes ficam salvos no banco (tempo real).</p>
-        <p class="muted small" id="permMsg" style="display:none;">Você está como Técnico: algumas ações ficam bloqueadas.</p>
-      </div>
-    </div>
+.role-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:38px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:800;
+  font-size:12px;
+}
+.role-pill.admin{ border-color: rgba(203,51,68,.4); }
 
-    <div class="actions">
-      <button class="btn" type="button" onclick="salvarDiario()">💾 Salvar dia</button>
-      <button class="btn secondary" type="button" onclick="limparDiario()">🧹 Limpar</button>
-      <button class="btn danger" id="btnApagarTudo" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
-      <button class="btn" type="button" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
-    </div>
-  </section>
+/* ===================== CONTAINER ===================== */
+.container{
+  max-width:900px;
+  margin:22px auto;
+  padding:0 16px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
 
-  <!-- ====== LISTA DE REGISTROS ====== -->
-  <section class="card no-print">
-    <div class="card-head">
-      <h2>Presenças registradas</h2>
-      <p class="muted">Se salvar a mesma data novamente, o sistema atualiza. Use “Editar” para carregar um registro.</p>
-    </div>
+/* ===================== CARDS ===================== */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+}
+.card-head{ margin-bottom:10px; }
+.muted{ color:var(--muted); }
+.small{ font-size:12px; }
 
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Pessoas</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaDiario"></tbody>
-    </table>
+.h3{
+  margin:8px 0 10px;
+  font-size:14px;
+}
 
-    <div class="ver-mais-wrap">
-      <button class="btn secondary small" id="btnVerMais" type="button" onclick="toggleVerMais()">
-        Ver mais registros
-      </button>
-    </div>
-  </section>
+/* ===================== GRIDS ===================== */
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  align-items:start;
+}
 
-  <footer class="footer no-print">
-    DIGITAL • EMIVE • Tecnologia e Segurança
-  </footer>
+.grid-3{
+  display:grid;
+  grid-template-columns: 220px 1fr 260px;
+  gap:14px;
+  align-items:start;
+}
 
-</main>
+.split{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+  margin-top:12px;
+}
 
-</div>
+/* ===================== CAMPOS ===================== */
+.field label{
+  display:block;
+  margin-bottom:6px;
+  font-size:13px;
+  color:var(--muted);
+}
 
-<!-- ====== PDF (impressão) ====== -->
-<section class="print-only report">
-  <div class="report-head">
-    <div class="report-logos">
-      <img src="logo-digital.png" alt="Logo Digital" class="logo">
-      <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
-    </div>
+input{
+  width:100%;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  text-align:center;
+}
 
-    <div class="report-titles">
-      <div class="report-title">Relatório de Presença — <span id="reportContrato">—</span></div>
-      <div class="report-subtitle" id="reportPeriodo">Período: —</div>
-      <div class="report-subtitle" id="reportGeradoEm">Gerado em: —</div>
-    </div>
-  </div>
+/* ===================== KPI ===================== */
+.kpi-wrap{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.kpi{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  min-width:150px;
+  background:#fff;
+}
+.kpi-label{
+  font-size:12px;
+  color:var(--muted);
+}
+.kpi-value{
+  font-size:22px;
+  font-weight:800;
+  margin-top:4px;
+}
 
-  <div class="report-grid">
-    <div class="report-box">
-      <div class="box-title">Ranking — Dias trabalhados</div>
-      <table class="report-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Técnico</th>
-            <th>Dias</th>
-          </tr>
-        </thead>
-        <tbody id="printRanking"></tbody>
-      </table>
-    </div>
+/* ===================== BARRA ===================== */
+.bar{
+  height:10px;
+  border-radius:999px;
+  background:#f1f1f1;
+  overflow:hidden;
+  border:1px solid #e7e7e7;
+}
+.bar-fill{
+  height:100%;
+  background: var(--digital-red);
+  width:0%;
+}
 
-    <div class="report-box">
-      <div class="box-title">Registros do mês</div>
-      <table class="report-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Pessoas</th>
-          </tr>
-        </thead>
-        <tbody id="printMes"></tbody>
-      </table>
-    </div>
-  </div>
+/* ===================== CHIPS ===================== */
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
 
-  <div class="report-footer">
-    DIGITAL • EMIVE — Tecnologia e Segurança
-  </div>
-</section>
+.chip-box{
+  position:relative;
+  display:inline-block;
+}
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+.chip{
+  border:1px solid #ccc;
+  border-radius:30px;
+  padding:8px 14px;
+  cursor:pointer;
+  background:white;
+  transition:.15s;
+  user-select:none;
+}
+.chip:hover{
+  transform:translateY(-1px);
+  border-color:rgba(203,51,68,.45);
+}
+.chip.active{
+  background:var(--digital-red);
+  color:white;
+  border-color:var(--digital-red);
+}
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBzgChouE4W25XnD-vFybJrKVN9yl3R0IQ",
-    authDomain: "ferroportluannogueira.firebaseapp.com",
-    projectId: "ferroportluannogueira",
-    storageBucket: "ferroportluannogueira.firebasestorage.app",
-    messagingSenderId: "531699539518",
-    appId: "1:531699539518:web:6e32a169d9110f70b9fb6f",
-    measurementId: "G-61BRVCSHD7"
-  };
+.remove{
+  position:absolute;
+  top:-6px;
+  right:-6px;
+  background:#dc3545;
+  color:white;
+  border-radius:50%;
+  font-size:10px;
+  padding:2px 5px;
+  cursor:pointer;
+  display:inline-flex;
+}
 
-  const ADMIN_EMAILS = [
-    "luan.nogueira@digitaltecnologia.com.br"
-  ];
+/* ===================== ADICIONAR NOME ===================== */
+.add-nome{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.add-nome input{ flex:1; }
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+/* ===================== BOTÕES ===================== */
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:14px;
+}
 
-  let LISTA = [];
-  let NOMES = [];
-  let selecaoDiaria = [];
-  let isAdmin = false;
+.btn{
+  background:var(--digital-red);
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+  transition:.2s;
+}
+.btn:hover{ background:#a32633; }
+.btn.secondary{ background:var(--digital-dark); }
+.btn.danger{ background:#dc3545; }
 
-  // Ver mais (lista geral)
-  let mostrarTodosRegistros = false;
-  const LIMITE_REGISTROS = 5;
+.btn.small{
+  padding:8px 12px;
+  font-size:12px;
+  border-radius:10px;
+}
 
-  // ✅ Ver mais (registros do mês no painel)
-  let mostrarTodosMes = false;
-  const LIMITE_MES = 6;
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
 
-  // Contrato atual
-  const KEY_CONTRATO = "contrato_atual";
-  let contratoAtual = localStorage.getItem(KEY_CONTRATO) || "ferroport";
+.row-actions{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
 
-  let refDiarios = null;
-  let refNomes = null;
-  let unsubDiarios = null;
-  let unsubNomes = null;
+/* ===================== TABELAS ===================== */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
 
-  function setRefsContrato(){
-    refDiarios = collection(db, "contratos", contratoAtual, "diarios");
-    refNomes   = collection(db, "contratos", contratoAtual, "nomes");
+th, td{
+  border:1px solid var(--border);
+  padding:10px;
+  text-align:center;
+  vertical-align:top;
+}
+th{ background:#f0f0f0; }
+
+.table-compact th, .table-compact td{
+  padding:8px;
+}
+
+/* ✅ Ver mais */
+.ver-mais-wrap{
+  text-align:center;
+  margin-top:12px;
+}
+
+/* ===================== RODAPÉ ===================== */
+.footer{
+  text-align:center;
+  color:var(--muted);
+  margin-top:6px;
+}
+
+/* ===================== PDF / IMPRESSÃO ===================== */
+.print-only{ display:none; }
+.no-print{ display:block; }
+
+.report{ padding:22px; }
+
+.report-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  border-bottom:2px solid #111;
+  padding-bottom:12px;
+  margin-bottom:14px;
+}
+
+.report-logos{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.report-titles{ text-align:right; }
+
+.report-title{
+  font-size:18px;
+  font-weight:800;
+}
+.report-subtitle{
+  font-size:12px;
+  color:#333;
+  margin-top:3px;
+}
+
+.report-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+}
+
+.report-box{
+  border:1px solid #111;
+  border-radius:10px;
+  padding:12px;
+}
+
+.box-title{
+  font-weight:800;
+  margin-bottom:10px;
+  font-size:13px;
+}
+
+.report-table{
+  width:100%;
+  border-collapse:collapse;
+}
+.report-table th, .report-table td{
+  border:1px solid #111;
+  padding:8px;
+  text-align:left;
+  vertical-align:top;
+  font-size:12px;
+}
+.report-table th{
+  background:#f2f2f2;
+  text-align:left;
+}
+
+.report-footer{
+  margin-top:14px;
+  padding-top:10px;
+  border-top:1px solid #111;
+  font-size:11px;
+  color:#333;
+  text-align:center;
+}
+
+/* Impressão */
+@media print{
+  body{
+    background:#fff;
+    margin:0;
+    padding:0;
   }
 
-  /* ===================== LOGIN ===================== */
-  window.login = async function(){
-    const email = document.getElementById("loginEmail").value.trim();
-    const senha = document.getElementById("loginSenha").value.trim();
-    const msg = document.getElementById("loginMsg");
-    msg.textContent = "";
+  .no-print{ display:none !important; }
+  .print-only{ display:block !important; }
 
-    try{
-      await signInWithEmailAndPassword(auth, email, senha);
-    }catch(e){
-      msg.textContent = "Falha no login: " + (e?.code || e?.message || e);
-    }
-  };
-
-  window.esqueciSenha = async function(){
-    const email = document.getElementById("loginEmail").value.trim();
-    const msg = document.getElementById("loginMsg");
-    msg.textContent = "";
-
-    if(!email){
-      msg.textContent = "Digite seu e-mail para receber o link de redefinição.";
-      return;
-    }
-
-    try{
-      await sendPasswordResetEmail(auth, email);
-      msg.textContent = "Pronto! Enviamos um e-mail para redefinir sua senha.";
-    }catch(e){
-      msg.textContent = "Não foi possível enviar: " + (e?.code || e?.message || e);
-    }
-  };
-
-  window.logout = async function(){
-    await signOut(auth);
-  };
-
-  function mostrarApp(logado){
-    document.getElementById("loginBox").style.display = logado ? "none" : "block";
-    document.getElementById("appRoot").style.display = logado ? "block" : "none";
+  .report{
+    width:900px;
+    margin:0 auto;
+    padding:20px 10px;
   }
 
-  function aplicarPermissoesUI(){
-    const pill = document.getElementById("rolePill");
-    const permMsg = document.getElementById("permMsg");
-    const btnApagarTudo = document.getElementById("btnApagarTudo");
-
-    pill.textContent = isAdmin ? "Gestor" : "Técnico";
-    pill.classList.toggle("admin", isAdmin);
-
-    btnApagarTudo.style.display = isAdmin ? "inline-block" : "none";
-    permMsg.style.display = isAdmin ? "none" : "block";
+  .report-head{
+    justify-content:center;
+    text-align:center;
+    flex-direction:column;
+    gap:10px;
   }
 
-  /* ===================== UTIL ===================== */
-  function formatarDataBR(dataISO){
-    const [y,m,d] = dataISO.split("-");
-    return `${d}/${m}/${y}`;
-  }
-  function hojeISO(){
-    const d = new Date();
-    const pad = (n)=> String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  }
-  function agoraBR(){
-    const d = new Date();
-    const pad = (n)=> String(n).padStart(2,"0");
-    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  }
-  function getMesAnoSelecionado(){
-    const v = document.getElementById("mesAno").value; // YYYY-MM
-    if(!v) return null;
-    const [y,m] = v.split("-");
-    return { y, m };
-  }
-  function idSeguro(str){
-    return str
-      .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g,"-")
-      .replace(/[^a-z0-9\-]/g,"")
-      .slice(0, 80);
-  }
-  function nomeContratoBonito(slug){
-    const mapa = {
-      "ferroport": "Ferroport",
-      "porto-sudeste": "Porto Sudeste",
-      "vale": "Vale"
-    };
-    return mapa[slug] || slug;
+  .report-logos{ justify-content:center; }
+  .report-titles{ text-align:center; }
+
+  .report-grid{
+    width:100%;
+    margin:0 auto;
   }
 
-  /* ===================== REALTIME ===================== */
-  function desligarRealtime(){
-    if(typeof unsubDiarios === "function") unsubDiarios();
-    if(typeof unsubNomes === "function") unsubNomes();
-    unsubDiarios = null;
-    unsubNomes = null;
+  .report-footer{
+    text-align:center;
+    margin-top:20px;
+  }
+}
+
+/* ===================== RESPONSIVO ===================== */
+@media (max-width: 900px){
+  .grid-3{ grid-template-columns: 1fr; }
+  .split{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 800px){
+  .grid-2{ grid-template-columns:1fr; }
+  .add-nome{ flex-direction:column; }
+
+  .brand{
+    flex-direction:column;
+    align-items:flex-start;
   }
 
-  function ligarRealtime(){
-    desligarRealtime();
-
-    unsubDiarios = onSnapshot(refDiarios, (snap) => {
-      LISTA = snap.docs.map(d => d.data());
-      LISTA.sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
-      carregarDiario();
-      atualizarPainel();
-    });
-
-    unsubNomes = onSnapshot(refNomes, (snap) => {
-      NOMES = snap.docs.map(d => d.data().nome).sort((a,b)=> a.localeCompare(b, "pt-BR"));
-      renderChipsDiario();
-    });
+  .top-actions{
+    margin-left:0;
+    width:100%;
+    justify-content:flex-start;
+    align-items:flex-start;
   }
 
-  function setContrato(novo){
-    contratoAtual = novo;
-    localStorage.setItem(KEY_CONTRATO, contratoAtual);
-    setRefsContrato();
-    ligarRealtime();
-
-    document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
-
-    selecaoDiaria = [];
-    renderChipsDiario();
-    limparDiario(true);
-
-    // reseta "ver mais" do mês ao trocar contrato
-    mostrarTodosMes = false;
-
-    atualizarPainel();
-  }
-
-  /* ===================== CHIPS ===================== */
-  window.renderChipsDiario = function(){
-    const wrap = document.getElementById("chipsDiario");
-    wrap.innerHTML = "";
-
-    NOMES.forEach(nome => {
-      const box = document.createElement("div");
-      box.className = "chip-box";
-
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "chip" + (selecaoDiaria.includes(nome) ? " active" : "");
-      btn.innerText = nome;
-
-      btn.onclick = () => {
-        if (selecaoDiaria.includes(nome)) {
-          selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
-        } else {
-          selecaoDiaria.push(nome);
-        }
-        renderChipsDiario();
-      };
-
-      const remover = document.createElement("span");
-      remover.className = "remove";
-      remover.title = "Excluir nome (gestor)";
-      remover.innerText = "✖";
-      remover.style.display = isAdmin ? "inline-flex" : "none";
-
-      remover.onclick = (e) => {
-        e.stopPropagation();
-        excluirNome(nome);
-      };
-
-      box.appendChild(btn);
-      box.appendChild(remover);
-      wrap.appendChild(box);
-    });
-  };
-
-  window.adicionarNome = async function(){
-    const input = document.getElementById("novoNome");
-    const nome = input.value.trim();
-
-    if(!nome) return alert("Digite um nome.");
-
-    const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
-    if(existe) return alert("Esse nome já existe.");
-
-    await setDoc(doc(db, "contratos", contratoAtual, "nomes", idSeguro(nome)), { nome });
-    input.value = "";
-  };
-
-  async function excluirNome(nome){
-    if(!isAdmin) return alert("Somente gestor pode excluir nomes.");
-    if(!confirm(`Deseja excluir "${nome}"?`)) return;
-    await deleteDoc(doc(db, "contratos", contratoAtual, "nomes", idSeguro(nome)));
-    selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
-  }
-
-  /* ===================== CRUD DIÁRIO ===================== */
-  window.salvarDiario = async function(){
-    const data = document.getElementById("dataDia").value;
-    if(!data) return alert("Selecione a data.");
-    if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
-
-    const item = { dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
-    await setDoc(doc(db, "contratos", contratoAtual, "diarios", data), item);
-    limparDiario();
-  };
-
-  window.editarRegistro = function(dataISO){
-    const reg = LISTA.find(x => x.dataISO === dataISO);
-    if(!reg) return alert("Registro não encontrado.");
-
-    document.getElementById("dataDia").value = reg.dataISO;
-    selecaoDiaria = [...(reg.pessoas || [])];
-    renderChipsDiario();
-
-    document.getElementById("cardPresenca").scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  window.apagarRegistro = async function(dataISO){
-    if(!isAdmin) return alert("Somente gestor pode apagar registros.");
-    if(!confirm("Deseja apagar somente este dia registrado?")) return;
-    await deleteDoc(doc(db, "contratos", contratoAtual, "diarios", dataISO));
-    if(document.getElementById("dataDia").value === dataISO) limparDiario();
-  };
-
-  window.limparDiario = function(silencioso=false){
-    document.getElementById("dataDia").value = "";
-    selecaoDiaria = [];
-    renderChipsDiario();
-    if(!silencioso) document.getElementById("novoNome").value = "";
-  };
-
-  window.apagarDiarios = async function(){
-    if(!isAdmin) return alert("Somente gestor pode apagar tudo.");
-    if(!confirm("Deseja apagar TODOS os registros deste contrato?")) return;
-
-    const snap = await getDocs(refDiarios);
-    for(const d of snap.docs) await deleteDoc(d.ref);
-  };
-
-  window.exportarDiarioCSV = function(){
-    if(LISTA.length === 0) return alert("Não há registros para exportar.");
-
-    const ordenado = [...LISTA].sort((a,b) => a.dataISO.localeCompare(b.dataISO));
-    let csv = "Contrato;Data;Pessoas\n";
-    ordenado.forEach(r => {
-      csv += `${nomeContratoBonito(contratoAtual)};${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
-    });
-
-    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `presencas_${contratoAtual}.csv`;
-    link.click();
-  };
-
-  /* ===================== VER MAIS (LISTA GERAL) ===================== */
-  function atualizarBotaoVerMais(total){
-    const btn = document.getElementById("btnVerMais");
-    if(!btn) return;
-
-    if(total <= LIMITE_REGISTROS){
-      btn.style.display = "none";
-      return;
-    }
-
-    btn.style.display = "inline-block";
-    btn.innerText = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
-  }
-
-  window.toggleVerMais = function(){
-    mostrarTodosRegistros = !mostrarTodosRegistros;
-    carregarDiario();
-  };
-
-  /* ===================== VER MAIS (PAINEL DO MÊS) ===================== */
-  function atualizarBotaoVerMaisMes(total){
-    const btn = document.getElementById("btnVerMaisMes");
-    if(!btn) return;
-
-    if(total <= LIMITE_MES){
-      btn.style.display = "none";
-      return;
-    }
-
-    btn.style.display = "inline-block";
-    btn.innerText = mostrarTodosMes ? "Ver menos" : "Ver mais registros";
-  }
-
-  window.toggleVerMaisMes = function(){
-    mostrarTodosMes = !mostrarTodosMes;
-    atualizarPainel();
-  };
-
-  /* ===================== TABELA DIÁRIA ===================== */
-  function carregarDiario(){
-    const tbody = document.getElementById("tabelaDiario");
-    if(!tbody) return;
-    tbody.innerHTML = "";
-
-    const lista = [...LISTA].sort((a,b) => b.dataISO.localeCompare(a.dataISO));
-    const exibida = mostrarTodosRegistros ? lista : lista.slice(0, LIMITE_REGISTROS);
-
-    exibida.forEach(r => {
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${r.dataBR}</strong></td>
-          <td>${(r.pessoas || []).join("<br>")}</td>
-          <td>
-            <div class="row-actions">
-              <button class="btn small secondary" type="button" onclick="editarRegistro('${r.dataISO}')">✏ Editar</button>
-              <button class="btn small danger" type="button" onclick="apagarRegistro('${r.dataISO}')" ${isAdmin ? "" : "disabled"}>🗑 Apagar</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    atualizarBotaoVerMais(lista.length);
-  }
-
-  /* ===================== PAINEL DO GESTOR ===================== */
-  window.atualizarPainel = function(){
-    const sel = getMesAnoSelecionado();
-
-    if(!sel){
-      const hoje = new Date();
-      const pad = (n)=> String(n).padStart(2,"0");
-      document.getElementById("mesAno").value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
-      return atualizarPainel();
-    }
-
-    const prefixo = `${sel.y}-${sel.m}`;
-    const registrosMes = LISTA.filter(r => r.dataISO.startsWith(prefixo));
-
-    document.getElementById("kpiDias").innerText = registrosMes.length;
-
-    const totalPresencas = registrosMes.reduce((acc, r) => acc + (r.pessoas ? r.pessoas.length : 0), 0);
-    document.getElementById("kpiPresencas").innerText = totalPresencas;
-
-    const contagem = new Map();
-    registrosMes.forEach(r => {
-      const unicos = Array.from(new Set(r.pessoas || []));
-      unicos.forEach(p => contagem.set(p, (contagem.get(p) || 0) + 1));
-    });
-
-    document.getElementById("kpiTecnicos").innerText = contagem.size;
-
-    const ranking = Array.from(contagem.entries())
-      .map(([nome, dias]) => ({ nome, dias }))
-      .sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
-
-    const maxDias = ranking.length ? Math.max(...ranking.map(x => x.dias)) : 0;
-
-    const tbodyRank = document.getElementById("tabelaRanking");
-    tbodyRank.innerHTML = ranking.length
-      ? ranking.map((x, i) => `
-          <tr>
-            <td>${i+1}</td>
-            <td>${x.nome}</td>
-            <td><strong>${x.dias}</strong></td>
-            <td>
-              <div class="bar">
-                <div class="bar-fill" style="width:${maxDias ? (x.dias/maxDias*100).toFixed(0) : 0}%;"></div>
-              </div>
-            </td>
-          </tr>
-        `).join("")
-      : `<tr><td colspan="4" class="muted">Sem registros neste mês.</td></tr>`;
-
-    // ✅ Tabela do mês com "ver mais"
-    const tbodyMes = document.getElementById("tabelaMes");
-    const ordenados = [...registrosMes].sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
-    const exibidaMes = mostrarTodosMes ? ordenados : ordenados.slice(0, LIMITE_MES);
-
-    tbodyMes.innerHTML = exibidaMes.length
-      ? exibidaMes.map(r => `
-          <tr>
-            <td><strong>${r.dataBR}</strong></td>
-            <td>${(r.pessoas || []).join("<br>")}</td>
-          </tr>
-        `).join("")
-      : `<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>`;
-
-    atualizarBotaoVerMaisMes(registrosMes.length);
-
-    // impressão (sempre completo)
-    document.getElementById("printRanking").innerHTML = ranking.length
-      ? ranking.map((x, i) => `
-          <tr>
-            <td>${i+1}</td>
-            <td>${x.nome}</td>
-            <td><strong>${x.dias}</strong></td>
-          </tr>
-        `).join("")
-      : `<tr><td colspan="3">Sem registros neste mês.</td></tr>`;
-
-    document.getElementById("printMes").innerHTML = registrosMes.length
-      ? [...registrosMes]
-          .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
-          .map(r => `
-            <tr>
-              <td><strong>${r.dataBR}</strong></td>
-              <td>${(r.pessoas || []).join(", ")}</td>
-            </tr>
-          `).join("")
-      : `<tr><td colspan="2">Sem registros neste mês.</td></tr>`;
-
-    const mesBR = `${sel.m}/${sel.y}`;
-    document.getElementById("reportPeriodo").innerText = `Período: ${mesBR}`;
-    document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
-    document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
-  };
-
-  window.gerarPDF = function(){
-    atualizarPainel();
-    setTimeout(() => window.print(), 50);
-  };
-
-  function initUI(){
-    const selContrato = document.getElementById("contratoSelect");
-    selContrato.value = contratoAtual;
-    selContrato.addEventListener("change", () => setContrato(selContrato.value));
-
-    document.getElementById("dataDia").value = hojeISO();
-
-    const d = new Date();
-    const pad = (n)=> String(n).padStart(2,"0");
-    document.getElementById("mesAno").value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-    document.getElementById("mesAno").addEventListener("change", atualizarPainel);
-
-    // garante o contrato no PDF
-    document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
-  }
-
-  onAuthStateChanged(auth, (user) => {
-    if(!user){
-      mostrarApp(false);
-      desligarRealtime();
-      return;
-    }
-
-    const email = (user.email || "").toLowerCase();
-    isAdmin = ADMIN_EMAILS.map(x => String(x).toLowerCase()).includes(email);
-
-    document.getElementById("userBadge").textContent = `Logado como: ${user.email || "—"}`;
-    aplicarPermissoesUI();
-    mostrarApp(true);
-
-    setRefsContrato();
-    ligarRealtime();
-
-    initUI();
-    atualizarPainel();
-  });
-</script>
-
-</body>
-</html>
-
+  .logo{ height:50px; }
+  .logo.emive{ height:75px; }
+}
