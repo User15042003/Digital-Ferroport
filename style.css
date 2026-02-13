@@ -251,6 +251,12 @@ th{ background:#f0f0f0; }
   padding:8px;
 }
 
+/* ✅ Ver mais */
+.ver-mais-wrap{
+  text-align:center;
+  margin-top:12px;
+}
+
 /* ===================== RODAPÉ ===================== */
 .footer{
   text-align:center;
@@ -262,9 +268,7 @@ th{ background:#f0f0f0; }
 .print-only{ display:none; }
 .no-print{ display:block; }
 
-.report{
-  padding:22px;
-}
+.report{ padding:22px; }
 
 .report-head{
   display:flex;
@@ -282,9 +286,7 @@ th{ background:#f0f0f0; }
   gap:14px;
 }
 
-.report-titles{
-  text-align:right;
-}
+.report-titles{ text-align:right; }
 
 .report-title{
   font-size:18px;
@@ -341,29 +343,21 @@ th{ background:#f0f0f0; }
 
 /* Impressão: mostra só o relatório */
 @media print{
-
   body{
     background:#fff;
     margin:0;
     padding:0;
   }
 
-  .no-print{
-    display:none !important;
-  }
+  .no-print{ display:none !important; }
+  .print-only{ display:block !important; }
 
-  .print-only{
-    display:block !important;
-  }
-
-  /* CENTRALIZA TODO O RELATÓRIO */
   .report{
     width:900px;
     margin:0 auto;
     padding:20px 10px;
   }
 
-  /* CABEÇALHO CENTRAL */
   .report-head{
     justify-content:center;
     text-align:center;
@@ -371,15 +365,9 @@ th{ background:#f0f0f0; }
     gap:10px;
   }
 
-  .report-logos{
-    justify-content:center;
-  }
+  .report-logos{ justify-content:center; }
+  .report-titles{ text-align:center; }
 
-  .report-titles{
-    text-align:center;
-  }
-
-  /* TABELAS CENTRALIZADAS */
   .report-grid{
     width:100%;
     margin:0 auto;
@@ -394,7 +382,6 @@ th{ background:#f0f0f0; }
     margin:0 auto;
   }
 
-  /* RODAPÉ CENTRAL */
   .report-footer{
     text-align:center;
     margin-top:20px;
@@ -403,12 +390,8 @@ th{ background:#f0f0f0; }
 
 /* ===================== RESPONSIVO ===================== */
 @media (max-width: 900px){
-  .grid-3{
-    grid-template-columns: 1fr;
-  }
-  .split{
-    grid-template-columns: 1fr;
-  }
+  .grid-3{ grid-template-columns: 1fr; }
+  .split{ grid-template-columns: 1fr; }
 }
 
 @media (max-width: 800px){
@@ -423,4 +406,3 @@ th{ background:#f0f0f0; }
   .logo{ height:50px; }
   .logo.emive{ height:75px; }
 }
-
