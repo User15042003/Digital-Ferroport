@@ -9,6 +9,35 @@
 
 <body>
 
+<!-- ===================== LOGIN ===================== -->
+<section class="card container-login" id="loginBox" style="display:none;">
+  <div class="card-head">
+    <h2>Acesso restrito</h2>
+    <p class="muted">Entre com seu e-mail e senha para acessar o controle de presença.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>E-mail</label>
+      <input id="loginEmail" type="email" placeholder="seuemail@empresa.com" autocomplete="username">
+    </div>
+
+    <div class="field">
+      <label>Senha</label>
+      <input id="loginSenha" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="button" onclick="login()">Entrar</button>
+  </div>
+
+  <p class="muted small" id="loginMsg"></p>
+</section>
+
+<!-- ===================== APP ===================== -->
+<div id="appRoot" style="display:none;">
+
 <header class="topbar no-print">
   <div class="brand">
     <div class="logos">
@@ -19,6 +48,10 @@
     <div>
       <div class="brand-title">Presença diária — Ferroport</div>
       <div class="brand-subtitle">Controle de técnicos no contrato</div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn secondary small" type="button" onclick="logout()">Sair</button>
     </div>
   </div>
 </header>
@@ -114,7 +147,7 @@
           <button class="btn" type="button" onclick="adicionarNome()">+ Adicionar</button>
         </div>
 
-        <p class="muted small">Os nomes ficam salvos no navegador.</p>
+        <p class="muted small">Os nomes ficam salvos no banco (tempo real).</p>
       </div>
     </div>
 
@@ -144,9 +177,10 @@
       <tbody id="tabelaDiario"></tbody>
     </table>
 
-    <!-- ✅ VER MAIS / VER MENOS -->
     <div class="ver-mais-wrap">
-      <button class="btn secondary small" id="btnVerMais" type="button" onclick="toggleVerMais()">Ver mais registros</button>
+      <button class="btn secondary small" id="btnVerMais" type="button" onclick="toggleVerMais()">
+        Ver mais registros
+      </button>
     </div>
   </section>
 
@@ -156,7 +190,9 @@
 
 </main>
 
-<!-- ====== CABEÇALHO DO PDF (SÓ APARECE NA IMPRESSÃO) ====== -->
+</div>
+
+<!-- ====== PDF (impressão) ====== -->
 <section class="print-only report">
   <div class="report-head">
     <div class="report-logos">
@@ -205,356 +241,394 @@
   </div>
 </section>
 
-<script>
-/* ===================== DADOS ===================== */
-const KEY_DIARIOS = "presencas_diarias";
-const KEY_NOMES = "nomes_tecnicos";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-const NOMES_PADRAO = ["Luan Nogueira", "Lucas Gregorio", "Phillipe Carvalho"];
-let NOMES = JSON.parse(localStorage.getItem(KEY_NOMES)) || [...NOMES_PADRAO];
-let selecaoDiaria = [];
-
-/* ✅ VER MAIS / VER MENOS */
-let mostrarTodosRegistros = false;
-const LIMITE_REGISTROS = 5;
-
-/* ===================== UTIL ===================== */
-function salvarNomes(){
-  localStorage.setItem(KEY_NOMES, JSON.stringify(NOMES));
-}
-function formatarDataBR(dataISO){
-  const [y,m,d] = dataISO.split("-");
-  return `${d}/${m}/${y}`;
-}
-function hojeISO(){
-  const d = new Date();
-  const pad = (n)=> String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-}
-function agoraBR(){
-  const d = new Date();
-  const pad = (n)=> String(n).padStart(2,"0");
-  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-function getLista(){
-  return JSON.parse(localStorage.getItem(KEY_DIARIOS) || "[]");
-}
-function setLista(lista){
-  localStorage.setItem(KEY_DIARIOS, JSON.stringify(lista));
-}
-function getMesAnoSelecionado(){
-  const v = document.getElementById("mesAno").value; // YYYY-MM
-  if(!v) return null;
-  const [y,m] = v.split("-");
-  return { y, m };
-}
-
-/* ===================== CHIPS ===================== */
-function renderChipsDiario(){
-  const wrap = document.getElementById("chipsDiario");
-  wrap.innerHTML = "";
-
-  NOMES.forEach(nome => {
-    const box = document.createElement("div");
-    box.className = "chip-box";
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "chip" + (selecaoDiaria.includes(nome) ? " active" : "");
-    btn.innerText = nome;
-
-    btn.onclick = () => {
-      if (selecaoDiaria.includes(nome)) {
-        selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
-      } else {
-        selecaoDiaria.push(nome);
-      }
-      renderChipsDiario();
-    };
-
-    const remover = document.createElement("span");
-    remover.className = "remove";
-    remover.title = "Excluir nome";
-    remover.innerText = "✖";
-
-    remover.onclick = (e) => {
-      e.stopPropagation();
-      excluirNome(nome);
-    };
-
-    box.appendChild(btn);
-    box.appendChild(remover);
-    wrap.appendChild(box);
-  });
-}
-
-function adicionarNome(){
-  const input = document.getElementById("novoNome");
-  const nome = input.value.trim();
-
-  if(!nome){
-    alert("Digite um nome.");
-    return;
-  }
-
-  const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
-  if(existe){
-    alert("Esse nome já existe.");
-    return;
-  }
-
-  NOMES.push(nome);
-  NOMES.sort((a,b) => a.localeCompare(b, "pt-BR"));
-  salvarNomes();
-
-  input.value = "";
-  renderChipsDiario();
-}
-
-function excluirNome(nome){
-  if(!confirm(`Deseja excluir "${nome}"?`)) return;
-
-  NOMES = NOMES.filter(n => n !== nome);
-  selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
-  salvarNomes();
-  renderChipsDiario();
-}
-
-/* ===================== CRUD DIÁRIO ===================== */
-function salvarDiario(){
-  const data = document.getElementById("dataDia").value;
-
-  if(!data) return alert("Selecione a data.");
-  if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
-
-  const item = {
-    dataISO: data,
-    dataBR: formatarDataBR(data),
-    pessoas: [...selecaoDiaria]
+  // ✅ Sua config
+  const firebaseConfig = {
+    apiKey: "AIzaSyBzgChouE4W25XnD-vFybJrKVN9yl3R0IQ",
+    authDomain: "ferroportluannogueira.firebaseapp.com",
+    projectId: "ferroportluannogueira",
+    storageBucket: "ferroportluannogueira.firebasestorage.app",
+    messagingSenderId: "531699539518",
+    appId: "1:531699539518:web:6e32a169d9110f70b9fb6f",
+    measurementId: "G-61BRVCSHD7"
   };
 
-  let lista = getLista();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  const idx = lista.findIndex(x => x.dataISO === data);
-  if(idx >= 0) lista[idx] = item;
-  else lista.push(item);
+  // Estrutura: contratos/ferroport/diarios/{dataISO} e contratos/ferroport/nomes/{id}
+  const refDiarios = collection(db, "contratos", "ferroport", "diarios");
+  const refNomes = collection(db, "contratos", "ferroport", "nomes");
 
-  lista.sort((a,b) => a.dataISO.localeCompare(b.dataISO));
-  setLista(lista);
+  let LISTA = [];
+  let NOMES = [];
+  let selecaoDiaria = [];
 
-  carregarDiario();
-  atualizarPainel();
-  limparDiario();
-}
+  // Ver mais (lista geral)
+  let mostrarTodosRegistros = false;
+  const LIMITE_REGISTROS = 5;
 
-function carregarDiario(){
-  const tbody = document.getElementById("tabelaDiario");
-  tbody.innerHTML = "";
+  /* ===================== LOGIN ===================== */
+  window.login = async function(){
+    const email = document.getElementById("loginEmail").value.trim();
+    const senha = document.getElementById("loginSenha").value.trim();
+    const msg = document.getElementById("loginMsg");
+    msg.textContent = "";
 
-  // ✅ mais recentes primeiro
-  let lista = getLista().sort((a,b) => b.dataISO.localeCompare(a.dataISO));
+    try{
+      await signInWithEmailAndPassword(auth, email, senha);
+    }catch(e){
+      msg.textContent = "Falha no login: " + (e?.message || e);
+    }
+  };
 
-  const listaExibida = mostrarTodosRegistros ? lista : lista.slice(0, LIMITE_REGISTROS);
+  window.logout = async function(){
+    await signOut(auth);
+  };
 
-  listaExibida.forEach(r => {
-    tbody.innerHTML += `
-      <tr>
-        <td><strong>${r.dataBR}</strong></td>
-        <td>${r.pessoas.join("<br>")}</td>
-        <td>
-          <div class="row-actions">
-            <button class="btn small secondary" type="button" onclick="editarRegistro('${r.dataISO}')">✏ Editar</button>
-            <button class="btn small danger" type="button" onclick="apagarRegistro('${r.dataISO}')">🗑 Apagar</button>
-          </div>
-        </td>
-      </tr>
-    `;
+  function mostrarApp(logado){
+    document.getElementById("loginBox").style.display = logado ? "none" : "block";
+    document.getElementById("appRoot").style.display = logado ? "block" : "none";
+  }
+
+  /* ===================== UTIL ===================== */
+  function formatarDataBR(dataISO){
+    const [y,m,d] = dataISO.split("-");
+    return `${d}/${m}/${y}`;
+  }
+  function hojeISO(){
+    const d = new Date();
+    const pad = (n)=> String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  function agoraBR(){
+    const d = new Date();
+    const pad = (n)=> String(n).padStart(2,"0");
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function getMesAnoSelecionado(){
+    const v = document.getElementById("mesAno").value; // YYYY-MM
+    if(!v) return null;
+    const [y,m] = v.split("-");
+    return { y, m };
+  }
+  function idSeguro(str){
+    return str
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g,"-")
+      .replace(/[^a-z0-9\-]/g,"")
+      .slice(0, 80);
+  }
+
+  /* ===================== REALTIME ===================== */
+  function ligarRealtime(){
+    onSnapshot(refDiarios, (snap) => {
+      LISTA = snap.docs.map(d => d.data());
+      LISTA.sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
+      carregarDiario();
+      atualizarPainel();
+    });
+
+    onSnapshot(refNomes, (snap) => {
+      NOMES = snap.docs.map(d => d.data().nome).sort((a,b)=> a.localeCompare(b, "pt-BR"));
+      renderChipsDiario();
+    });
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if(!user){
+      mostrarApp(false);
+      return;
+    }
+    mostrarApp(true);
+    ligarRealtime();
+    initUI();
   });
 
-  atualizarBotaoVerMais(lista.length);
-}
+  /* ===================== CHIPS ===================== */
+  window.renderChipsDiario = function(){
+    const wrap = document.getElementById("chipsDiario");
+    wrap.innerHTML = "";
 
-function atualizarBotaoVerMais(total){
-  const btn = document.getElementById("btnVerMais");
-  if(!btn) return;
+    NOMES.forEach(nome => {
+      const box = document.createElement("div");
+      box.className = "chip-box";
 
-  if(total <= LIMITE_REGISTROS){
-    btn.style.display = "none";
-    return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip" + (selecaoDiaria.includes(nome) ? " active" : "");
+      btn.innerText = nome;
+
+      btn.onclick = () => {
+        if (selecaoDiaria.includes(nome)) {
+          selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
+        } else {
+          selecaoDiaria.push(nome);
+        }
+        renderChipsDiario();
+      };
+
+      const remover = document.createElement("span");
+      remover.className = "remove";
+      remover.title = "Excluir nome";
+      remover.innerText = "✖";
+
+      remover.onclick = (e) => {
+        e.stopPropagation();
+        excluirNome(nome);
+      };
+
+      box.appendChild(btn);
+      box.appendChild(remover);
+      wrap.appendChild(box);
+    });
+  };
+
+  window.adicionarNome = async function(){
+    const input = document.getElementById("novoNome");
+    const nome = input.value.trim();
+
+    if(!nome){
+      alert("Digite um nome.");
+      return;
+    }
+
+    const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
+    if(existe){
+      alert("Esse nome já existe.");
+      return;
+    }
+
+    await setDoc(doc(db, "contratos", "ferroport", "nomes", idSeguro(nome)), { nome });
+
+    input.value = "";
+  };
+
+  async function excluirNome(nome){
+    if(!confirm(`Deseja excluir "${nome}"?`)) return;
+    await deleteDoc(doc(db, "contratos", "ferroport", "nomes", idSeguro(nome)));
+    selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
   }
 
-  btn.style.display = "inline-block";
-  btn.innerText = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
-}
+  /* ===================== CRUD DIÁRIO ===================== */
+  window.salvarDiario = async function(){
+    const data = document.getElementById("dataDia").value;
 
-function toggleVerMais(){
-  mostrarTodosRegistros = !mostrarTodosRegistros;
-  carregarDiario();
-}
+    if(!data) return alert("Selecione a data.");
+    if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
 
-function editarRegistro(dataISO){
-  let lista = getLista();
-  const reg = lista.find(x => x.dataISO === dataISO);
+    const item = {
+      dataISO: data,
+      dataBR: formatarDataBR(data),
+      pessoas: [...selecaoDiaria]
+    };
 
-  if(!reg){
-    alert("Registro não encontrado.");
-    return;
-  }
-
-  document.getElementById("dataDia").value = reg.dataISO;
-  selecaoDiaria = [...reg.pessoas];
-  renderChipsDiario();
-
-  document.getElementById("cardPresenca").scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function apagarRegistro(dataISO){
-  if(!confirm("Deseja apagar somente este dia registrado?")) return;
-
-  let lista = getLista();
-  lista = lista.filter(x => x.dataISO !== dataISO);
-  setLista(lista);
-
-  carregarDiario();
-  atualizarPainel();
-
-  if(document.getElementById("dataDia").value === dataISO){
+    await setDoc(doc(db, "contratos", "ferroport", "diarios", data), item);
     limparDiario();
+  };
+
+  window.editarRegistro = function(dataISO){
+    const reg = LISTA.find(x => x.dataISO === dataISO);
+    if(!reg) return alert("Registro não encontrado.");
+
+    document.getElementById("dataDia").value = reg.dataISO;
+    selecaoDiaria = [...reg.pessoas];
+    renderChipsDiario();
+
+    document.getElementById("cardPresenca").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  window.apagarRegistro = async function(dataISO){
+    if(!confirm("Deseja apagar somente este dia registrado?")) return;
+    await deleteDoc(doc(db, "contratos", "ferroport", "diarios", dataISO));
+    if(document.getElementById("dataDia").value === dataISO){
+      limparDiario();
+    }
+  };
+
+  window.limparDiario = function(){
+    document.getElementById("dataDia").value = "";
+    selecaoDiaria = [];
+    renderChipsDiario();
+  };
+
+  window.apagarDiarios = async function(){
+    if(!confirm("Deseja apagar todos os registros?")) return;
+
+    const snap = await getDocs(refDiarios);
+    for(const d of snap.docs){
+      await deleteDoc(d.ref);
+    }
+  };
+
+  window.exportarDiarioCSV = function(){
+    if(LISTA.length === 0){
+      alert("Não há registros para exportar.");
+      return;
+    }
+
+    const ordenado = [...LISTA].sort((a,b) => a.dataISO.localeCompare(b.dataISO));
+
+    let csv = "Data;Pessoas\n";
+    ordenado.forEach(r => {
+      csv += `${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
+    });
+
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "presencas_ferroport.csv";
+    link.click();
+  };
+
+  /* ===================== VER MAIS (LISTA) ===================== */
+  function atualizarBotaoVerMais(total){
+    const btn = document.getElementById("btnVerMais");
+    if(!btn) return;
+
+    if(total <= LIMITE_REGISTROS){
+      btn.style.display = "none";
+      return;
+    }
+
+    btn.style.display = "inline-block";
+    btn.innerText = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
   }
-}
 
-function limparDiario(){
-  document.getElementById("dataDia").value = "";
-  selecaoDiaria = [];
-  renderChipsDiario();
-}
-
-function apagarDiarios(){
-  if(confirm("Deseja apagar todos os registros?")){
-    localStorage.removeItem(KEY_DIARIOS);
+  window.toggleVerMais = function(){
+    mostrarTodosRegistros = !mostrarTodosRegistros;
     carregarDiario();
+  };
+
+  /* ===================== TABELA DIÁRIA ===================== */
+  function carregarDiario(){
+    const tbody = document.getElementById("tabelaDiario");
+    if(!tbody) return;
+    tbody.innerHTML = "";
+
+    // mais recentes primeiro
+    const lista = [...LISTA].sort((a,b) => b.dataISO.localeCompare(a.dataISO));
+    const exibida = mostrarTodosRegistros ? lista : lista.slice(0, LIMITE_REGISTROS);
+
+    exibida.forEach(r => {
+      tbody.innerHTML += `
+        <tr>
+          <td><strong>${r.dataBR}</strong></td>
+          <td>${(r.pessoas || []).join("<br>")}</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn small secondary" type="button" onclick="editarRegistro('${r.dataISO}')">✏ Editar</button>
+              <button class="btn small danger" type="button" onclick="apagarRegistro('${r.dataISO}')">🗑 Apagar</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    atualizarBotaoVerMais(lista.length);
+  }
+
+  /* ===================== PAINEL DO GESTOR ===================== */
+  window.atualizarPainel = function(){
+    const sel = getMesAnoSelecionado();
+
+    if(!sel){
+      const hoje = new Date();
+      const pad = (n)=> String(n).padStart(2,"0");
+      document.getElementById("mesAno").value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
+      return atualizarPainel();
+    }
+
+    const prefixo = `${sel.y}-${sel.m}`;
+    const registrosMes = LISTA.filter(r => r.dataISO.startsWith(prefixo));
+
+    document.getElementById("kpiDias").innerText = registrosMes.length;
+
+    const contagem = new Map();
+    registrosMes.forEach(r => {
+      const unicos = Array.from(new Set(r.pessoas || []));
+      unicos.forEach(p => contagem.set(p, (contagem.get(p) || 0) + 1));
+    });
+
+    document.getElementById("kpiTecnicos").innerText = contagem.size;
+
+    const ranking = Array.from(contagem.entries())
+      .map(([nome, dias]) => ({ nome, dias }))
+      .sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
+
+    const tbodyRank = document.getElementById("tabelaRanking");
+    tbodyRank.innerHTML = ranking.length
+      ? ranking.map((x, i) => `
+          <tr>
+            <td>${i+1}</td>
+            <td>${x.nome}</td>
+            <td><strong>${x.dias}</strong></td>
+          </tr>
+        `).join("")
+      : `<tr><td colspan="3" class="muted">Sem registros neste mês.</td></tr>`;
+
+    const tbodyMes = document.getElementById("tabelaMes");
+    tbodyMes.innerHTML = registrosMes.length
+      ? [...registrosMes]
+          .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
+          .map(r => `
+            <tr>
+              <td><strong>${r.dataBR}</strong></td>
+              <td>${(r.pessoas || []).join("<br>")}</td>
+            </tr>
+          `).join("")
+      : `<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>`;
+
+    // impressão (sempre completo)
+    document.getElementById("printRanking").innerHTML = ranking.length
+      ? ranking.map((x, i) => `
+          <tr>
+            <td>${i+1}</td>
+            <td>${x.nome}</td>
+            <td><strong>${x.dias}</strong></td>
+          </tr>
+        `).join("")
+      : `<tr><td colspan="3">Sem registros neste mês.</td></tr>`;
+
+    document.getElementById("printMes").innerHTML = registrosMes.length
+      ? [...registrosMes]
+          .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
+          .map(r => `
+            <tr>
+              <td><strong>${r.dataBR}</strong></td>
+              <td>${(r.pessoas || []).join(", ")}</td>
+            </tr>
+          `).join("")
+      : `<tr><td colspan="2">Sem registros neste mês.</td></tr>`;
+
+    const mesBR = `${sel.m}/${sel.y}`;
+    document.getElementById("reportPeriodo").innerText = `Período: ${mesBR}`;
+    document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
+  };
+
+  window.gerarPDF = function(){
+    atualizarPainel();
+    setTimeout(() => window.print(), 50);
+  };
+
+  function initUI(){
+    // data padrão hoje
+    document.getElementById("dataDia").value = hojeISO();
+
+    // mês atual
+    const d = new Date();
+    const pad = (n)=> String(n).padStart(2,"0");
+    document.getElementById("mesAno").value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+
+    document.getElementById("mesAno").addEventListener("change", atualizarPainel);
     atualizarPainel();
   }
-}
-
-function exportarDiarioCSV(){
-  let lista = getLista();
-
-  if(lista.length === 0){
-    alert("Não há registros para exportar.");
-    return;
-  }
-
-  let csv = "Data;Pessoas\n";
-  lista.forEach(r => {
-    csv += `${r.dataBR};"${r.pessoas.join(", ")}"\n`;
-  });
-
-  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "presencas_ferroport.csv";
-  link.click();
-}
-
-/* ===================== PAINEL DO GESTOR ===================== */
-function atualizarPainel(){
-  const sel = getMesAnoSelecionado();
-  const lista = getLista();
-
-  if(!sel){
-    const hoje = new Date();
-    const pad = (n)=> String(n).padStart(2,"0");
-    document.getElementById("mesAno").value = `${hoje.getFullYear()}-${String(pad(hoje.getMonth()+1))}`;
-    return atualizarPainel();
-  }
-
-  const prefixo = `${sel.y}-${sel.m}`;
-  const registrosMes = lista.filter(r => r.dataISO.startsWith(prefixo));
-
-  document.getElementById("kpiDias").innerText = registrosMes.length;
-
-  const contagem = new Map();
-  registrosMes.forEach(r => {
-    const unicos = Array.from(new Set(r.pessoas));
-    unicos.forEach(p => contagem.set(p, (contagem.get(p) || 0) + 1));
-  });
-
-  document.getElementById("kpiTecnicos").innerText = contagem.size;
-
-  const ranking = Array.from(contagem.entries())
-    .map(([nome, dias]) => ({ nome, dias }))
-    .sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
-
-  const tbodyRank = document.getElementById("tabelaRanking");
-  tbodyRank.innerHTML = ranking.length
-    ? ranking.map((x, i) => `
-        <tr>
-          <td>${i+1}</td>
-          <td>${x.nome}</td>
-          <td><strong>${x.dias}</strong></td>
-        </tr>
-      `).join("")
-    : `<tr><td colspan="3" class="muted">Sem registros neste mês.</td></tr>`;
-
-  const tbodyMes = document.getElementById("tabelaMes");
-  tbodyMes.innerHTML = registrosMes.length
-    ? registrosMes
-        .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
-        .map(r => `
-          <tr>
-            <td><strong>${r.dataBR}</strong></td>
-            <td>${r.pessoas.join("<br>")}</td>
-          </tr>
-        `).join("")
-    : `<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>`;
-
-  document.getElementById("printRanking").innerHTML = ranking.length
-    ? ranking.map((x, i) => `
-        <tr>
-          <td>${i+1}</td>
-          <td>${x.nome}</td>
-          <td><strong>${x.dias}</strong></td>
-        </tr>
-      `).join("")
-    : `<tr><td colspan="3">Sem registros neste mês.</td></tr>`;
-
-  document.getElementById("printMes").innerHTML = registrosMes.length
-    ? registrosMes
-        .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
-        .map(r => `
-          <tr>
-            <td><strong>${r.dataBR}</strong></td>
-            <td>${r.pessoas.join(", ")}</td>
-          </tr>
-        `).join("")
-    : `<tr><td colspan="2">Sem registros neste mês.</td></tr>`;
-
-  const mesBR = `${sel.m}/${sel.y}`;
-  document.getElementById("reportPeriodo").innerText = `Período: ${mesBR}`;
-  document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
-}
-
-function gerarPDF(){
-  atualizarPainel();
-  setTimeout(() => window.print(), 50);
-}
-
-/* ===================== INIT ===================== */
-(function init(){
-  document.getElementById("dataDia").value = hojeISO();
-
-  salvarNomes();
-  renderChipsDiario();
-  carregarDiario();
-
-  const d = new Date();
-  const pad = (n)=> String(n).padStart(2,"0");
-  document.getElementById("mesAno").value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-
-  atualizarPainel();
-  document.getElementById("mesAno").addEventListener("change", atualizarPainel);
-})();
 </script>
 
 </body>
