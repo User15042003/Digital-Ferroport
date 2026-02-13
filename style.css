@@ -373,7 +373,9 @@ th{ background:#f0f0f0; }
     margin:0 auto;
   }
 
-  .report-box{ break-inside: avoid; }
+  .report-box{
+    break-inside: avoid;
+  }
 
   .report-table{
     width:100%;
