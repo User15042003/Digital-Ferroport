@@ -63,9 +63,7 @@
       <div class="brand-subtitle" id="userBadge">Logado como: —</div>
     </div>
 
-    <!-- ✅ BOTÃO TEMA + CONTRATO + ROLE + SAIR -->
     <div class="top-actions">
-
       <button class="btn secondary small" type="button" id="btnTema" onclick="toggleTema()">🌙 Tema</button>
 
       <div class="field inline">
@@ -162,7 +160,7 @@
       </div>
     </div>
 
-    <!-- ✅ DASHBOARD VISUAL (APENAS TOP 10) -->
+    <!-- ✅ DASHBOARD VISUAL -->
     <div class="dash">
       <div class="dash-box">
         <div class="dash-title">📊 Dias por técnico (Top 10)</div>
@@ -177,17 +175,14 @@
             <div class="insight-label">Maior frequência</div>
             <div class="insight-value" id="insightTopNome">—</div>
           </div>
-
           <div class="insight">
             <div class="insight-label">Dias do Top 1</div>
             <div class="insight-value" id="insightTopDias">0</div>
           </div>
-
           <div class="insight">
             <div class="insight-label">Média presenças/dia</div>
             <div class="insight-value" id="insightMediaDia">0</div>
           </div>
-
           <div class="insight">
             <div class="insight-label">Média dias/técnico</div>
             <div class="insight-value" id="insightMediaTec">0</div>
@@ -356,18 +351,21 @@
   let unsubDiarios = null;
   let unsubNomes = null;
 
-  // ===================== TEMA (CLARO / ESCURO) - FIX =====================
+  // ===================== TEMA (CLARO / ESCURO) =====================
   const KEY_TEMA = "tema_site";
 
   function aplicarTema(theme){
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem(KEY_TEMA, theme);
 
+    const txt = theme === "dark" ? "☀️ Tema" : "🌙 Tema";
     const btn = document.getElementById("btnTema");
-    if(btn) btn.textContent = theme === "dark" ? "☀️ Tema" : "🌙 Tema";
-
     const btnLogin = document.getElementById("btnTemaLogin");
-    if(btnLogin) btnLogin.textContent = theme === "dark" ? "☀️ Tema" : "🌙 Tema";
+    if(btn) btn.textContent = txt;
+    if(btnLogin) btnLogin.textContent = txt;
+
+    // redesenha gráfico pra pegar as cores do tema
+    setTimeout(() => atualizarPainel(), 10);
   }
 
   window.toggleTema = function(){
@@ -380,11 +378,17 @@
     aplicarTema(salvo);
   });
 
-  /* ===================== CHART (SEM LIB) - MAIOR ===================== */
+  /* ===================== CANVAS / CHART ===================== */
+  function cssVar(name, fallback){
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
   function fitCanvasToCSS(canvas){
     const dpr = window.devicePixelRatio || 1;
-    const cssW = canvas.clientWidth || canvas.getBoundingClientRect().width || 600;
-    const cssH = canvas.clientHeight || canvas.getBoundingClientRect().height || 280;
+    const rect = canvas.getBoundingClientRect();
+    const cssW = rect.width || 600;
+    const cssH = rect.height || 280;
 
     canvas.width  = Math.floor(cssW * dpr);
     canvas.height = Math.floor(cssH * dpr);
@@ -405,6 +409,7 @@
     ctx.closePath();
   }
 
+  // ✅ Gráfico melhor: valor dentro da barra (se couber)
   function drawBarChart(canvasId, items){
     const canvas = document.getElementById(canvasId);
     if(!canvas) return;
@@ -412,10 +417,11 @@
     const { ctx, w, h } = fitCanvasToCSS(canvas);
     ctx.clearRect(0,0,w,h);
 
-    const muted = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim() || "#6B7280";
-    const textColor = getComputedStyle(document.documentElement).getPropertyValue("--text").trim() || "#1E2328";
-    const red = getComputedStyle(document.documentElement).getPropertyValue("--digital-red").trim() || "#CB3344";
-    const border = getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#E6E8EE";
+    const muted = cssVar("--muted", "#6B7280");
+    const textColor = cssVar("--text", "#1E2328");
+    const red = cssVar("--digital-red", "#CB3344");
+    const barBg = cssVar("--bar-bg", "#E6E8EE");
+    const insideText = cssVar("--text-invert", "#ffffff");
 
     if(!items || items.length === 0){
       ctx.fillStyle = muted;
@@ -430,8 +436,8 @@
     const innerH = h - padT - padB;
 
     const maxV = Math.max(...items.map(x=>x.value), 1);
-    const rowH = Math.max(26, Math.floor(innerH / items.length));
-    const barH = Math.max(14, rowH - 10);
+    const rowH = Math.max(28, Math.floor(innerH / items.length));
+    const barH = Math.max(14, rowH - 12);
 
     ctx.font = "12px Arial";
     ctx.textBaseline = "middle";
@@ -439,6 +445,7 @@
     items.forEach((it, i) => {
       const y = padT + i*rowH + rowH/2;
 
+      // label
       ctx.fillStyle = textColor;
       ctx.textAlign = "left";
       const label = it.label.length > 26 ? it.label.slice(0,26) + "…" : it.label;
@@ -446,20 +453,32 @@
 
       const labelW = 190;
       const barX = padL + labelW;
-      const barMaxW = Math.max(110, innerW - labelW - 34);
+      const barMaxW = Math.max(140, innerW - labelW - 20);
       const barW = (it.value / maxV) * barMaxW;
 
-      ctx.fillStyle = border;
+      // fundo
+      ctx.fillStyle = barBg;
       roundRect(ctx, barX, y - barH/2, barMaxW, barH, 999);
       ctx.fill();
 
+      // barra
       ctx.fillStyle = red;
       roundRect(ctx, barX, y - barH/2, Math.max(6, barW), barH, 999);
       ctx.fill();
 
-      ctx.fillStyle = muted;
-      ctx.textAlign = "right";
-      ctx.fillText(String(it.value), barX + barMaxW + 28, y);
+      // valor: dentro se couber, senão fora
+      const valueText = String(it.value);
+      const textW = ctx.measureText(valueText).width;
+
+      if(barW >= textW + 16){
+        ctx.fillStyle = insideText;
+        ctx.textAlign = "right";
+        ctx.fillText(valueText, barX + barW - 8, y);
+      } else {
+        ctx.fillStyle = muted;
+        ctx.textAlign = "left";
+        ctx.fillText(valueText, barX + barW + 8, y);
+      }
     });
   }
 
@@ -578,7 +597,7 @@
 
   function setContrato(novo){
     contratoAtual = novo;
-    localStorage.setItem(KEY_CONTRATO, contratoAtual);
+    localStorage.setItem("contrato_atual", contratoAtual);
     setRefsContrato();
     ligarRealtime();
 
@@ -851,7 +870,6 @@
 
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
 
-    // ✅ redesenha o gráfico quando mudar tamanho/tema
     window.addEventListener("resize", () => atualizarPainel());
   }
 
@@ -878,12 +896,7 @@
     atualizarPainel();
   });
 
-  // primeira carga refs
   setRefsContrato();
-
-  // contrato salvo no select (quando app abrir)
-  const contratoSel = document.getElementById("contratoSelect");
-  if(contratoSel) contratoSel.value = contratoAtual;
 </script>
 
 </body>
