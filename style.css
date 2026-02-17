@@ -235,7 +235,7 @@ select{
   margin-top:12px;
 }
 
-/* ===================== DASHBOARD VISUAL ===================== */
+/* ===================== DASHBOARD (GRAFICOS MAIORES) ===================== */
 .dash{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -245,21 +245,53 @@ select{
 
 .dash-box{
   border:1px solid var(--border);
-  border-radius:12px;
-  padding:12px;
+  border-radius:16px;
+  padding:14px;
   background:var(--card);
+  min-height:360px;
+  display:flex;
+  flex-direction:column;
 }
 
 .dash-title{
   font-weight:800;
-  font-size:13px;
+  font-size:14px;
   margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
 
-canvas{
+.dash-canvas{
   width:100%;
-  max-width:100%;
-  display:block;
+  flex:1;
+  min-height:240px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:rgba(255,255,255,.02);
+}
+
+.insights{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+  margin-top:6px;
+  flex:1;
+}
+.insight{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  background:rgba(255,255,255,.02);
+}
+.insight-label{
+  font-size:12px;
+  color:var(--muted);
+}
+.insight-value{
+  margin-top:6px;
+  font-size:18px;
+  font-weight:800;
 }
 
 /* ===================== CAMPOS ===================== */
@@ -478,6 +510,7 @@ th{
   .grid-3{ grid-template-columns: 1fr; }
   .split{ grid-template-columns: 1fr; }
   .dash{ grid-template-columns: 1fr; }
+  .dash-box{ min-height:340px; }
 }
 
 @media (max-width: 800px){
