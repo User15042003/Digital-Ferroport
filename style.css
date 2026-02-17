@@ -13,17 +13,14 @@
 
   --digital-red:#CB3344;
 
-  /* Botões e superfícies */
   --btn-secondary:#36393B;
   --btn-secondary-text:#ffffff;
 
-  /* Tabela / barras / chips */
   --th-bg:#f0f2f5;
   --bar-bg:#E6E8EE;
   --chip-bg:#ffffff;
 }
 
-/* ===================== DARK MODE (tudo muda junto) ===================== */
 :root[data-theme="dark"]{
   --bg:#0f1115;
   --card:#151923;
@@ -47,6 +44,9 @@
 }
 
 *{ box-sizing:border-box; }
+
+/* ✅ iOS: não dar zoom ao focar input */
+html{ -webkit-text-size-adjust:100%; }
 
 body{
   margin:0;
@@ -124,6 +124,14 @@ body{
 
 .center{ text-align:center; }
 .tiny{ font-size:11px; }
+
+/* ✅ iOS zoom fix no login */
+.login-card input,
+.login-card select,
+.login-card textarea,
+.login-card button{
+  font-size:16px;
+}
 
 /* ===================== TOPO ===================== */
 .topbar{
@@ -267,6 +275,7 @@ body{
   border:1px solid var(--border);
   border-radius:12px;
   background:rgba(255,255,255,.02);
+  display:block; /* ✅ evita espaços/corte estranho */
 }
 
 .insights{
@@ -332,7 +341,7 @@ input:focus, select:focus{
 .kpi-label{ font-size:12px; color:var(--muted); }
 .kpi-value{ font-size:22px; font-weight:800; margin-top:4px; }
 
-/* ===================== BARRA (tabela ranking) ===================== */
+/* ===================== BARRA ===================== */
 .bar{
   height:10px;
   border-radius:999px;
@@ -456,7 +465,6 @@ th{
 
 .table-compact th, .table-compact td{ padding:8px; }
 
-/* ✅ Ver mais */
 .ver-mais-wrap{
   text-align:center;
   margin-top:12px;
@@ -492,7 +500,8 @@ th{
   .grid-3{ grid-template-columns: 1fr; }
   .split{ grid-template-columns: 1fr; }
   .dash{ grid-template-columns: 1fr; }
-  .dash-box{ min-height:340px; }
+  .dash-box{ min-height:auto; }
+  .dash-canvas{ min-height: 380px; }
 }
 
 @media (max-width: 800px){
@@ -514,17 +523,3 @@ th{
   .logo{ height:50px; }
   .logo.emive{ height:75px; }
 }
-html{ -webkit-text-size-adjust:100%; }
-
-.login-card input,
-.login-card select,
-.login-card textarea,
-.login-card button{
-  font-size:16px;
-}
-@media (max-width: 900px){
-  .dash-box{ min-height: auto; }
-  .dash-canvas{ min-height: 380px; } /* evita cortar */
-}
-
-
