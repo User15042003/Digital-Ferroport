@@ -35,6 +35,7 @@
     <div class="actions center">
       <button class="btn" id="btnEntrar" type="button" onclick="login()">Entrar</button>
       <button class="btn secondary" type="button" onclick="esqueciSenha()">Esqueci minha senha</button>
+      <button class="btn secondary small" type="button" id="btnTemaLogin" onclick="toggleTema()">🌙 Tema</button>
     </div>
 
     <div class="login-status" id="loginStatus" style="display:none;">
@@ -161,18 +162,39 @@
       </div>
     </div>
 
-    <!-- ✅ DASHBOARD VISUAL -->
+    <!-- ✅ DASHBOARD VISUAL (APENAS TOP 10) -->
     <div class="dash">
       <div class="dash-box">
         <div class="dash-title">📊 Dias por técnico (Top 10)</div>
-        <canvas id="chartRanking" height="220"></canvas>
+        <canvas id="chartRanking" class="dash-canvas"></canvas>
         <p class="muted small">Mostra quem trabalhou mais dias no mês selecionado.</p>
       </div>
 
       <div class="dash-box">
-        <div class="dash-title">📈 Presenças por dia (no mês)</div>
-        <canvas id="chartDias" height="220"></canvas>
-        <p class="muted small">Total de presenças registradas por dia.</p>
+        <div class="dash-title">📌 Insights rápidos</div>
+        <div class="insights">
+          <div class="insight">
+            <div class="insight-label">Maior frequência</div>
+            <div class="insight-value" id="insightTopNome">—</div>
+          </div>
+
+          <div class="insight">
+            <div class="insight-label">Dias do Top 1</div>
+            <div class="insight-value" id="insightTopDias">0</div>
+          </div>
+
+          <div class="insight">
+            <div class="insight-label">Média presenças/dia</div>
+            <div class="insight-value" id="insightMediaDia">0</div>
+          </div>
+
+          <div class="insight">
+            <div class="insight-label">Média dias/técnico</div>
+            <div class="insight-value" id="insightMediaTec">0</div>
+          </div>
+        </div>
+
+        <p class="muted small">Resumo automático com base no mês selecionado.</p>
       </div>
     </div>
   </section>
@@ -334,36 +356,44 @@
   let unsubDiarios = null;
   let unsubNomes = null;
 
-  // ===================== TEMA (CLARO / ESCURO) =====================
-  const KEY_TEMA = "tema_site"; // "light" | "dark"
+  // ===================== TEMA (CLARO / ESCURO) - FIX =====================
+  const KEY_TEMA = "tema_site";
+
   function aplicarTema(theme){
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem(KEY_TEMA, theme);
 
     const btn = document.getElementById("btnTema");
-    if(btn){
-      btn.textContent = theme === "dark" ? "☀️ Tema" : "🌙 Tema";
-    }
+    if(btn) btn.textContent = theme === "dark" ? "☀️ Tema" : "🌙 Tema";
+
+    const btnLogin = document.getElementById("btnTemaLogin");
+    if(btnLogin) btnLogin.textContent = theme === "dark" ? "☀️ Tema" : "🌙 Tema";
   }
+
   window.toggleTema = function(){
     const atual = document.documentElement.getAttribute("data-theme") || "light";
     aplicarTema(atual === "dark" ? "light" : "dark");
   };
-  (function(){
+
+  window.addEventListener("DOMContentLoaded", () => {
     const salvo = localStorage.getItem(KEY_TEMA) || "light";
     aplicarTema(salvo);
-  })();
+  });
 
-  /* ===================== CHARTS (SEM LIB) ===================== */
+  /* ===================== CHART (SEM LIB) - MAIOR ===================== */
   function fitCanvasToCSS(canvas){
-    const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.max(300, Math.floor(rect.width * dpr));
-    canvas.height = Math.floor((canvas.getAttribute("height") || 220) * dpr);
+    const cssW = canvas.clientWidth || canvas.getBoundingClientRect().width || 600;
+    const cssH = canvas.clientHeight || canvas.getBoundingClientRect().height || 280;
+
+    canvas.width  = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    return ctx;
+    return { ctx, w: cssW, h: cssH };
   }
+
   function roundRect(ctx, x, y, w, h, r){
     const rr = Math.min(r, h/2, w/2);
     ctx.beginPath();
@@ -374,123 +404,63 @@
     ctx.arcTo(x, y, x+w, y, rr);
     ctx.closePath();
   }
+
   function drawBarChart(canvasId, items){
     const canvas = document.getElementById(canvasId);
     if(!canvas) return;
 
-    const ctx = fitCanvasToCSS(canvas);
-    const w = canvas.getBoundingClientRect().width;
-    const h = (canvas.getBoundingClientRect().height || 220);
-
-    const padL = 10, padR = 10, padT = 10, padB = 10;
-    const innerW = w - padL - padR;
-    const innerH = h - padT - padB;
-
+    const { ctx, w, h } = fitCanvasToCSS(canvas);
     ctx.clearRect(0,0,w,h);
 
+    const muted = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim() || "#6B7280";
+    const textColor = getComputedStyle(document.documentElement).getPropertyValue("--text").trim() || "#1E2328";
+    const red = getComputedStyle(document.documentElement).getPropertyValue("--digital-red").trim() || "#CB3344";
+    const border = getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#E6E8EE";
+
     if(!items || items.length === 0){
-      ctx.fillStyle = "#6B7280";
+      ctx.fillStyle = muted;
       ctx.font = "14px Arial";
       ctx.textAlign = "center";
       ctx.fillText("Sem dados para este mês.", w/2, h/2);
       return;
     }
 
+    const padL = 12, padR = 12, padT = 14, padB = 14;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+
     const maxV = Math.max(...items.map(x=>x.value), 1);
-    const rowH = Math.max(18, Math.floor(innerH / items.length));
-    const barH = Math.max(10, rowH - 10);
+    const rowH = Math.max(26, Math.floor(innerH / items.length));
+    const barH = Math.max(14, rowH - 10);
 
     ctx.font = "12px Arial";
-    ctx.textAlign = "left";
     ctx.textBaseline = "middle";
 
     items.forEach((it, i) => {
       const y = padT + i*rowH + rowH/2;
 
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--text").trim() || "#1E2328";
-      const label = it.label.length > 18 ? it.label.slice(0,18) + "…" : it.label;
+      ctx.fillStyle = textColor;
+      ctx.textAlign = "left";
+      const label = it.label.length > 26 ? it.label.slice(0,26) + "…" : it.label;
       ctx.fillText(label, padL, y);
 
-      const labelW = 140;
+      const labelW = 190;
       const barX = padL + labelW;
-      const barMaxW = Math.max(50, innerW - labelW);
+      const barMaxW = Math.max(110, innerW - labelW - 34);
       const barW = (it.value / maxV) * barMaxW;
 
-      ctx.fillStyle = "rgba(0,0,0,.08)";
+      ctx.fillStyle = border;
       roundRect(ctx, barX, y - barH/2, barMaxW, barH, 999);
       ctx.fill();
 
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--digital-red").trim() || "#CB3344";
+      ctx.fillStyle = red;
       roundRect(ctx, barX, y - barH/2, Math.max(6, barW), barH, 999);
       ctx.fill();
 
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim() || "#6B7280";
+      ctx.fillStyle = muted;
       ctx.textAlign = "right";
-      ctx.fillText(String(it.value), barX + barMaxW, y);
-      ctx.textAlign = "left";
+      ctx.fillText(String(it.value), barX + barMaxW + 28, y);
     });
-  }
-  function drawLineChart(canvasId, points){
-    const canvas = document.getElementById(canvasId);
-    if(!canvas) return;
-
-    const ctx = fitCanvasToCSS(canvas);
-    const w = canvas.getBoundingClientRect().width;
-    const h = (canvas.getBoundingClientRect().height || 220);
-
-    ctx.clearRect(0,0,w,h);
-
-    if(!points || points.length === 0){
-      ctx.fillStyle = "#6B7280";
-      ctx.font = "14px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("Sem dados para este mês.", w/2, h/2);
-      return;
-    }
-
-    const pad = 18;
-    const innerW = w - pad*2;
-    const innerH = h - pad*2;
-
-    const maxV = Math.max(...points.map(p=>p.value), 1);
-
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--border").trim() || "#E6E8EE";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(pad, pad + innerH);
-    ctx.lineTo(pad + innerW, pad + innerH);
-    ctx.stroke();
-
-    const color = getComputedStyle(document.documentElement).getPropertyValue("--digital-dark").trim() || "#36393B";
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-
-    points.forEach((p, i) => {
-      const x = pad + (i/(points.length-1 || 1)) * innerW;
-      const y = pad + innerH - ((p.value)/(maxV || 1))*innerH;
-      if(i===0) ctx.moveTo(x,y);
-      else ctx.lineTo(x,y);
-    });
-    ctx.stroke();
-
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--digital-red").trim() || "#CB3344";
-    points.forEach((p, i) => {
-      const x = pad + (i/(points.length-1 || 1)) * innerW;
-      const y = pad + innerH - ((p.value)/(maxV || 1))*innerH;
-      ctx.beginPath();
-      ctx.arc(x,y,3,0,Math.PI*2);
-      ctx.fill();
-    });
-
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim() || "#6B7280";
-    ctx.font = "11px Arial";
-    ctx.textAlign = "center";
-    const step = Math.ceil(points.length / 4);
-    for(let i=0; i<points.length; i+=step){
-      const x = pad + (i/(points.length-1 || 1)) * innerW;
-      ctx.fillText(points[i].label, x, h - 6);
-    }
   }
 
   /* ===================== FIREBASE / DADOS ===================== */
@@ -601,7 +571,7 @@
     });
 
     unsubNomes = onSnapshot(refNomes, (snap) => {
-      NOMES = snap.docs.map(d => d.data().nome).sort((a,b)=> a.localeCompare(b, "pt-BR"));
+      NOMES = snap.docs.map(d => d.data().nome).sort((a,b) => a.localeCompare(b, "pt-BR"));
       renderChipsDiario();
     });
   }
@@ -613,7 +583,6 @@
     ligarRealtime();
 
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
-
     selecaoDiaria = [];
     renderChipsDiario();
     limparDiario(true);
@@ -793,9 +762,11 @@
     const prefixo = `${sel.y}-${sel.m}`;
     const registrosMes = LISTA.filter(r => r.dataISO.startsWith(prefixo));
 
-    document.getElementById("kpiDias").innerText = registrosMes.length;
-    document.getElementById("kpiPresencas").innerText =
-      registrosMes.reduce((acc,r)=> acc + ((r.pessoas||[]).length), 0);
+    const diasRegistrados = registrosMes.length;
+    const totalPresencas = registrosMes.reduce((acc,r)=> acc + ((r.pessoas||[]).length), 0);
+
+    document.getElementById("kpiDias").innerText = diasRegistrados;
+    document.getElementById("kpiPresencas").innerText = totalPresencas;
 
     const contagem = new Map();
     registrosMes.forEach(r => Array.from(new Set(r.pessoas||[])).forEach(p => contagem.set(p,(contagem.get(p)||0)+1)));
@@ -845,14 +816,20 @@
     document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
 
-    // ✅ DASHBOARD VISUAL
+    // ✅ DASHBOARD VISUAL (Top 10)
     const top10 = ranking.slice(0, 10).map(x => ({ label: x.nome, value: x.dias }));
     drawBarChart("chartRanking", top10);
 
-    const porDia = registrosMes
-      .sort((a,b)=> a.dataISO.localeCompare(b.dataISO))
-      .map(r => ({ label: (r.dataBR || "").slice(0,5), value: (r.pessoas || []).length }));
-    drawLineChart("chartDias", porDia);
+    // ✅ INSIGHTS
+    const topNome = ranking[0]?.nome || "—";
+    const topDias = ranking[0]?.dias || 0;
+    const mediaDia = diasRegistrados ? (totalPresencas / diasRegistrados) : 0;
+    const mediaTec = contagem.size ? (diasRegistrados / contagem.size) : 0;
+
+    document.getElementById("insightTopNome").textContent = topNome;
+    document.getElementById("insightTopDias").textContent = String(topDias);
+    document.getElementById("insightMediaDia").textContent = mediaDia.toFixed(1);
+    document.getElementById("insightMediaTec").textContent = mediaTec.toFixed(1);
   };
 
   window.gerarPDF = function(){
@@ -873,6 +850,9 @@
     document.getElementById("mesAno").addEventListener("change", atualizarPainel);
 
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
+
+    // ✅ redesenha o gráfico quando mudar tamanho/tema
+    window.addEventListener("resize", () => atualizarPainel());
   }
 
   onAuthStateChanged(auth, (user) => {
@@ -896,13 +876,14 @@
     ligarRealtime();
     initUI();
     atualizarPainel();
-
-    window.addEventListener("resize", () => atualizarPainel());
   });
 
-  // primeira carga
+  // primeira carga refs
   setRefsContrato();
-  document.getElementById("contratoSelect").value = contratoAtual;
+
+  // contrato salvo no select (quando app abrir)
+  const contratoSel = document.getElementById("contratoSelect");
+  if(contratoSel) contratoSel.value = contratoAtual;
 </script>
 
 </body>
