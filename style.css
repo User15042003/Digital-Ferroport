@@ -21,6 +21,7 @@
   --chip-bg:#ffffff;
 }
 
+/* ===================== DARK MODE ===================== */
 :root[data-theme="dark"]{
   --bg:#0f1115;
   --card:#151923;
@@ -45,7 +46,6 @@
 
 *{ box-sizing:border-box; }
 
-/* ✅ iOS: não dar zoom ao focar input */
 html{ -webkit-text-size-adjust:100%; }
 
 body{
@@ -125,12 +125,60 @@ body{
 .center{ text-align:center; }
 .tiny{ font-size:11px; }
 
-/* ✅ iOS zoom fix no login */
+/* ✅ evita zoom no iPhone ao tocar nos campos do login */
 .login-card input,
 .login-card select,
 .login-card textarea,
 .login-card button{
   font-size:16px;
+}
+
+/* ===================== INPUT COM ÍCONE (CÂMERA) ===================== */
+.input-icon{
+  position:relative;
+}
+.input-icon input{
+  padding-right:46px; /* espaço pro botão */
+}
+
+.icon-btn{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
+  border-radius:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+}
+
+.icon-btn:hover{
+  border-color: rgba(203,51,68,.55);
+  box-shadow: 0 0 0 3px rgba(203,51,68,.12);
+}
+
+.cam-icon{
+  display:inline-flex;
+  width:20px;
+  height:20px;
+}
+.cam-icon svg{
+  width:20px;
+  height:20px;
+  fill:currentColor;
+}
+.cam-icon svg .stroke{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
 }
 
 /* ===================== TOPO ===================== */
@@ -216,7 +264,6 @@ body{
 .card-head{ margin-bottom:10px; }
 .muted{ color:var(--muted); }
 .small{ font-size:12px; }
-
 .h3{ margin:8px 0 10px; font-size:14px; }
 
 /* ===================== GRIDS ===================== */
@@ -275,7 +322,6 @@ body{
   border:1px solid var(--border);
   border-radius:12px;
   background:rgba(255,255,255,.02);
-  display:block; /* ✅ evita espaços/corte estranho */
 }
 
 .insights{
@@ -361,7 +407,6 @@ input:focus, select:focus{
   flex-wrap:wrap;
   gap:10px;
 }
-
 .chip-box{ position:relative; display:inline-block; }
 
 .chip{
@@ -430,7 +475,6 @@ input:focus, select:focus{
   background:var(--btn-secondary);
   color:var(--btn-secondary-text);
 }
-
 .btn.danger{ background:#dc3545; }
 
 .btn.small{
@@ -465,6 +509,7 @@ th{
 
 .table-compact th, .table-compact td{ padding:8px; }
 
+/* ✅ Ver mais */
 .ver-mais-wrap{
   text-align:center;
   margin-top:12px;
@@ -501,7 +546,6 @@ th{
   .split{ grid-template-columns: 1fr; }
   .dash{ grid-template-columns: 1fr; }
   .dash-box{ min-height:auto; }
-  .dash-canvas{ min-height: 380px; }
 }
 
 @media (max-width: 800px){
