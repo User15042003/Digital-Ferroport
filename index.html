@@ -9,8 +9,33 @@
 
 <body>
 
+<!-- ✅ Boot error: nunca fica tela branca -->
+<div id="bootError" style="display:none; padding:16px; margin:16px auto; max-width:900px; border:1px solid #ff4d4f; border-radius:12px; background:#fff1f0; color:#5c0011; font-family:Arial;">
+  <b>Erro ao carregar o site:</b>
+  <div id="bootErrorMsg" style="margin-top:8px; white-space:pre-wrap;"></div>
+</div>
+
+<script>
+  window.addEventListener("error", (e) => {
+    const box = document.getElementById("bootError");
+    const msg = document.getElementById("bootErrorMsg");
+    box.style.display = "block";
+    msg.textContent =
+      (e?.message || "Erro desconhecido") +
+      (e?.filename ? ("\n" + e.filename + ":" + e.lineno) : "");
+  });
+
+  window.addEventListener("unhandledrejection", (e) => {
+    const box = document.getElementById("bootError");
+    const msg = document.getElementById("bootErrorMsg");
+    box.style.display = "block";
+    msg.textContent = String(e?.reason || e);
+  });
+</script>
+
 <!-- ===================== LOGIN ===================== -->
-<section class="login-page" id="loginBox" style="display:none;">
+<!-- ✅ Login visível por padrão (evita tela branca se JS falhar) -->
+<section class="login-page" id="loginBox">
   <div class="login-card">
     <div class="login-logos">
       <img src="logo-digital.png" alt="Logo Digital" class="logo">
@@ -70,8 +95,7 @@
         <label>Contrato</label>
         <select id="contratoSelect">
           <option value="ferroport">Ferroport</option>
-          <option value="PTA Inveco">PTA Inveco</option>
-          
+          <option value="pta-inveco">PTA Inveco</option>
         </select>
       </div>
 
@@ -364,7 +388,6 @@
     if(btn) btn.textContent = txt;
     if(btnLogin) btnLogin.textContent = txt;
 
-    // redesenha gráfico pra pegar as cores do tema
     setTimeout(() => atualizarPainel(), 10);
   }
 
@@ -409,89 +432,14 @@
     ctx.closePath();
   }
 
-  // ✅ Gráfico melhor: valor dentro da barra (se couber)
-function drawBarChart(canvasId, items){
-  const canvas = document.getElementById(canvasId);
-  if(!canvas) return;
-
-  // ✅ Define altura automática (evita cortar no mobile)
-  const rows = (items && items.length) ? items.length : 1;
-  const autoH = Math.max(260, rows * 34 + 50); // 10 itens => ~390px
-  canvas.style.height = autoH + "px";
-
-  const { ctx, w, h } = fitCanvasToCSS(canvas);
-  ctx.clearRect(0,0,w,h);
-
-  const muted = cssVar("--muted", "#6B7280");
-  const textColor = cssVar("--text", "#1E2328");
-  const red = cssVar("--digital-red", "#CB3344");
-  const barBg = cssVar("--bar-bg", "#E6E8EE");
-  const insideText = cssVar("--text-invert", "#ffffff");
-
-  if(!items || items.length === 0){
-    ctx.fillStyle = muted;
-    ctx.font = "14px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Sem dados para este mês.", w/2, h/2);
-    return;
-  }
-
-  const padL = 12, padR = 12, padT = 14, padB = 14;
-  const innerW = w - padL - padR;
-  const innerH = h - padT - padB;
-
-  const maxV = Math.max(...items.map(x=>x.value), 1);
-  const rowH = Math.max(30, Math.floor(innerH / items.length));
-  const barH = Math.max(14, rowH - 14);
-
-  // ✅ Label responsivo: no mobile ocupa menos espaço
-  const labelW = Math.max(110, Math.min(190, Math.floor(innerW * 0.42)));
-
-  ctx.font = "12px Arial";
-  ctx.textBaseline = "middle";
-
-  items.forEach((it, i) => {
-    const y = padT + i*rowH + rowH/2;
-
-    // label (corta mais no mobile)
-    ctx.fillStyle = textColor;
-    ctx.textAlign = "left";
-
-    const maxChars = (w < 420) ? 18 : 26;
-    const label = it.label.length > maxChars ? it.label.slice(0,maxChars) + "…" : it.label;
-    ctx.fillText(label, padL, y);
-
-    const barX = padL + labelW;
-    const barMaxW = Math.max(120, innerW - labelW - 20);
-    const barW = (it.value / maxV) * barMaxW;
-
-    // fundo
-    ctx.fillStyle = barBg;
-    roundRect(ctx, barX, y - barH/2, barMaxW, barH, 999);
-    ctx.fill();
-
-    // barra
-    ctx.fillStyle = red;
-    roundRect(ctx, barX, y - barH/2, Math.max(6, barW), barH, 999);
-    ctx.fill();
-
-    // valor dentro se couber, senão fora
-    const valueText = String(it.value);
-    const textW = ctx.measureText(valueText).width;
-
-    if(barW >= textW + 16){
-      ctx.fillStyle = insideText;
-      ctx.textAlign = "right";
-      ctx.fillText(valueText, barX + barW - 8, y);
-    } else {
-      ctx.fillStyle = muted;
-      ctx.textAlign = "left";
-      ctx.fillText(valueText, barX + barW + 8, y);
-    }
-  });
-}
+  // ✅ FUNÇÃO ÚNICA (corrigida) — antes estava duplicada e quebrava o site
+  function drawBarChart(canvasId, items){
     const canvas = document.getElementById(canvasId);
     if(!canvas) return;
+
+    const rows = (items && items.length) ? items.length : 1;
+    const autoH = Math.max(260, rows * 34 + 50);
+    canvas.style.height = autoH + "px";
 
     const { ctx, w, h } = fitCanvasToCSS(canvas);
     ctx.clearRect(0,0,w,h);
@@ -515,8 +463,10 @@ function drawBarChart(canvasId, items){
     const innerH = h - padT - padB;
 
     const maxV = Math.max(...items.map(x=>x.value), 1);
-    const rowH = Math.max(28, Math.floor(innerH / items.length));
-    const barH = Math.max(14, rowH - 12);
+    const rowH = Math.max(30, Math.floor(innerH / items.length));
+    const barH = Math.max(14, rowH - 14);
+
+    const labelW = Math.max(110, Math.min(190, Math.floor(innerW * 0.42)));
 
     ctx.font = "12px Arial";
     ctx.textBaseline = "middle";
@@ -524,28 +474,25 @@ function drawBarChart(canvasId, items){
     items.forEach((it, i) => {
       const y = padT + i*rowH + rowH/2;
 
-      // label
       ctx.fillStyle = textColor;
       ctx.textAlign = "left";
-      const label = it.label.length > 26 ? it.label.slice(0,26) + "…" : it.label;
+
+      const maxChars = (w < 420) ? 18 : 26;
+      const label = it.label.length > maxChars ? it.label.slice(0,maxChars) + "…" : it.label;
       ctx.fillText(label, padL, y);
 
-      const labelW = 190;
       const barX = padL + labelW;
-      const barMaxW = Math.max(140, innerW - labelW - 20);
+      const barMaxW = Math.max(120, innerW - labelW - 20);
       const barW = (it.value / maxV) * barMaxW;
 
-      // fundo
       ctx.fillStyle = barBg;
       roundRect(ctx, barX, y - barH/2, barMaxW, barH, 999);
       ctx.fill();
 
-      // barra
       ctx.fillStyle = red;
       roundRect(ctx, barX, y - barH/2, Math.max(6, barW), barH, 999);
       ctx.fill();
 
-      // valor: dentro se couber, senão fora
       const valueText = String(it.value);
       const textW = ctx.measureText(valueText).width;
 
@@ -651,7 +598,10 @@ function drawBarChart(canvasId, items){
       .replace(/\s+/g,"-").replace(/[^a-z0-9\-]/g,"").slice(0,80);
   }
   function nomeContratoBonito(slug){
-    return ({ "ferroport":"Ferroport", "porto-sudeste":"Porto Sudeste", "vale":"Vale" }[slug] || slug);
+    return ({
+      "ferroport":"Ferroport",
+      "pta-inveco":"PTA Inveco"
+    }[slug] || slug);
   }
 
   function desligarRealtime(){
@@ -914,11 +864,9 @@ function drawBarChart(canvasId, items){
     document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
 
-    // ✅ DASHBOARD VISUAL (Top 10)
     const top10 = ranking.slice(0, 10).map(x => ({ label: x.nome, value: x.dias }));
     drawBarChart("chartRanking", top10);
 
-    // ✅ INSIGHTS
     const topNome = ranking[0]?.nome || "—";
     const topDias = ranking[0]?.dias || 0;
     const mediaDia = diasRegistrados ? (totalPresencas / diasRegistrados) : 0;
@@ -980,5 +928,3 @@ function drawBarChart(canvasId, items){
 
 </body>
 </html>
-
-
