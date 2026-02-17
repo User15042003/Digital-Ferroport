@@ -46,14 +46,15 @@
 
 *{ box-sizing:border-box; }
 
-html{ -webkit-text-size-adjust:100%; }
-
 body{
   margin:0;
   font-family:Arial, sans-serif;
   background:var(--bg);
   color:var(--text);
 }
+
+/* ===== evita zoom no iOS ao digitar ===== */
+html{ -webkit-text-size-adjust:100%; }
 
 /* ===================== LOGIN ===================== */
 .login-page{
@@ -125,29 +126,28 @@ body{
 .center{ text-align:center; }
 .tiny{ font-size:11px; }
 
-/* ✅ evita zoom no iPhone ao tocar nos campos do login */
 .login-card input,
 .login-card select,
 .login-card textarea,
 .login-card button{
-  font-size:16px;
+  font-size:16px; /* evita zoom iOS */
 }
 
-/* ===================== INPUT COM ÍCONE (CÂMERA) ===================== */
+/* ===================== ÍCONE AO LADO DA SENHA ===================== */
 .input-icon{
   position:relative;
+  width:100%;
 }
 .input-icon input{
-  padding-right:46px; /* espaço pro botão */
+  padding-right:52px;
 }
-
 .icon-btn{
   position:absolute;
-  right:8px;
+  right:10px;
   top:50%;
   transform:translateY(-50%);
-  width:38px;
-  height:38px;
+  width:40px;
+  height:40px;
   border:1px solid var(--border);
   background:var(--card);
   color:var(--text);
@@ -158,22 +158,12 @@ body{
   justify-content:center;
   padding:0;
 }
-
 .icon-btn:hover{
   border-color: rgba(203,51,68,.55);
   box-shadow: 0 0 0 3px rgba(203,51,68,.12);
 }
-
-.cam-icon{
-  display:inline-flex;
-  width:20px;
-  height:20px;
-}
-.cam-icon svg{
-  width:20px;
-  height:20px;
-  fill:currentColor;
-}
+.cam-icon{ display:flex; width:20px; height:20px; }
+.cam-icon svg{ width:20px; height:20px; fill:currentColor; }
 .cam-icon svg .stroke{
   fill:none;
   stroke:currentColor;
@@ -273,14 +263,12 @@ body{
   gap:14px;
   align-items:start;
 }
-
 .grid-3{
   display:grid;
   grid-template-columns: 220px 1fr 260px;
   gap:14px;
   align-items:start;
 }
-
 .split{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -295,7 +283,6 @@ body{
   gap:14px;
   margin-top:14px;
 }
-
 .dash-box{
   border:1px solid var(--border);
   border-radius:16px;
@@ -305,7 +292,6 @@ body{
   display:flex;
   flex-direction:column;
 }
-
 .dash-title{
   font-weight:800;
   font-size:14px;
@@ -314,7 +300,6 @@ body{
   align-items:center;
   gap:8px;
 }
-
 .dash-canvas{
   width:100%;
   flex:1;
@@ -323,7 +308,6 @@ body{
   border-radius:12px;
   background:rgba(255,255,255,.02);
 }
-
 .insights{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -408,7 +392,6 @@ input:focus, select:focus{
   gap:10px;
 }
 .chip-box{ position:relative; display:inline-block; }
-
 .chip{
   border:1px solid var(--border);
   border-radius:30px;
@@ -428,7 +411,6 @@ input:focus, select:focus{
   color:#fff;
   border-color:var(--digital-red);
 }
-
 .remove{
   position:absolute;
   top:-6px;
@@ -488,6 +470,13 @@ input:focus, select:focus{
   cursor:not-allowed;
 }
 
+.row-actions{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
 /* ===================== TABELAS ===================== */
 table{
   width:100%;
@@ -501,12 +490,10 @@ th, td{
   text-align:center;
   vertical-align:top;
 }
-
 th{
   background:var(--th-bg);
   color:var(--text);
 }
-
 .table-compact th, .table-compact td{ padding:8px; }
 
 /* ✅ Ver mais */
@@ -525,7 +512,6 @@ th{
 /* ===================== PDF / IMPRESSÃO ===================== */
 .print-only{ display:none; }
 .no-print{ display:block; }
-
 .report{ padding:22px; }
 
 @media print{
@@ -535,7 +521,6 @@ th{
     margin:0;
     padding:0;
   }
-
   .no-print{ display:none !important; }
   .print-only{ display:block !important; }
 }
@@ -546,6 +531,7 @@ th{
   .split{ grid-template-columns: 1fr; }
   .dash{ grid-template-columns: 1fr; }
   .dash-box{ min-height:auto; }
+  .dash-canvas{ min-height:380px; } /* evita cortar */
 }
 
 @media (max-width: 800px){
