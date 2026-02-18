@@ -140,6 +140,8 @@ body{
   padding-right:48px;
   width:100%;
 }
+
+/* ✅ fix centralização do botão */
 .icon-btn{
   position:absolute;
   right:8px;
