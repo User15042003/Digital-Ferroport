@@ -20,7 +20,6 @@
 </script>
 
 <!-- ===================== LOGIN ===================== -->
-<!-- ✅ REMOVIDO display:none (evita tela branca) -->
 <section class="login-page" id="loginBox">
   <div class="login-card">
     <div class="login-logos">
@@ -579,9 +578,25 @@
     return ({ "ferroport":"Ferroport", "pta-inveco":"PTA INVECO" }[slug] || slug);
   }
 
+  // ✅ NORMALIZA o array (se vier "ferroport\npta-inveco" ou "ferroport,pta-inveco")
+  function normalizarAllowedContracts(raw){
+    if(!Array.isArray(raw)) return [];
+    const out = [];
+    raw.forEach(v => {
+      if(typeof v !== "string") return;
+      // quebra por quebra de linha, vírgula, ponto e vírgula, barra vertical
+      v.split(/[\n\r,;|]+/g)
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean)
+        .forEach(s => out.push(s));
+    });
+    // remove duplicados
+    return Array.from(new Set(out));
+  }
+
   // ===================== PERMISSÕES (users/{uid}) =====================
   async function carregarPermissoesUsuario(user){
-    const ref = doc(db, "users", user.uid);
+    const ref = doc(db, "users", user.uid); // coleção precisa ser "users" minúsculo
     const snap = await getDoc(ref);
 
     if(!snap.exists()){
@@ -591,7 +606,7 @@
     }
 
     const data = snap.data();
-    allowedContracts = Array.isArray(data.allowedContracts) ? data.allowedContracts : [];
+    allowedContracts = normalizarAllowedContracts(data.allowedContracts);
     isAdmin = String(data.role || "").toLowerCase() === "gestor";
   }
 
@@ -601,7 +616,10 @@
 
     sel.innerHTML = "";
 
-    if(!allowedContracts.length){
+    // só mostra contratos que existem no sistema E estão liberados
+    const liberados = CONTRATOS.filter(c => allowedContracts.includes(c.value));
+
+    if(!liberados.length){
       const opt = document.createElement("option");
       opt.value = "";
       opt.textContent = "Sem acesso";
@@ -610,23 +628,23 @@
       return;
     }
 
-    sel.disabled = false;
+    liberados.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.value;
+      opt.textContent = c.label;
+      sel.appendChild(opt);
+    });
 
-    CONTRATOS
-      .filter(c => allowedContracts.includes(c.value))
-      .forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c.value;
-        opt.textContent = c.label;
-        sel.appendChild(opt);
-      });
-
-    if(!allowedContracts.includes(contratoAtual)){
-      contratoAtual = allowedContracts[0];
+    // garante contratoAtual válido
+    if(!allowedContracts.includes(contratoAtual) || !liberados.some(x => x.value === contratoAtual)){
+      contratoAtual = liberados[0].value;
       localStorage.setItem(KEY_CONTRATO, contratoAtual);
     }
 
     sel.value = contratoAtual;
+
+    // se só tem 1 contrato, trava o select
+    sel.disabled = liberados.length === 1;
   }
 
   // ===================== CANVAS / CHART (Ferroport) =====================
@@ -883,6 +901,8 @@
   }
 
   function setContrato(novo){
+    if(!novo) return;
+
     // ✅ trava contrato não permitido
     if(!allowedContracts.includes(novo)){
       alert("Você não tem permissão para acessar este contrato.");
@@ -1376,7 +1396,6 @@
 
     await carregarPermissoesUsuario(user);
 
-    // sem permissão => sai e mostra msg
     if(!allowedContracts.length){
       mostrarApp(false);
       const msg = document.getElementById("loginMsg");
@@ -1385,21 +1404,18 @@
       return;
     }
 
-    // ✅ monta contratos liberados e garante contratoAtual válido
     montarSelectContratos();
 
     document.getElementById("userBadge").textContent = `Logado como: ${user.email || "—"}`;
     aplicarPermissoesUI();
     mostrarApp(true);
 
+    // ✅ só agora que sabemos o contrato permitido
     setRefsContrato();
     ligarRealtime();
     initUI();
     atualizarPainel();
   });
-
-  // boot
-  setRefsContrato();
 </script>
 
 </body>
