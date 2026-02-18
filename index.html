@@ -98,7 +98,7 @@
         <label>Contrato</label>
         <select id="contratoSelect">
           <option value="ferroport">Ferroport</option>
-          <option value="pta-inveco">PTA Inveco</option>
+          <option value="pta-inveco">PTA INVECO</option>
         </select>
       </div>
 
@@ -131,11 +131,11 @@
             <div class="kpi-value" id="kpiDias">0</div>
           </div>
           <div class="kpi">
-            <div class="kpi-label">Técnicos no mês</div>
+            <div class="kpi-label">Pessoas/Condutores no mês</div>
             <div class="kpi-value" id="kpiTecnicos">0</div>
           </div>
           <div class="kpi">
-            <div class="kpi-label">Presenças (total)</div>
+            <div class="kpi-label">Presenças/Registros (total)</div>
             <div class="kpi-value" id="kpiPresencas">0</div>
           </div>
         </div>
@@ -153,12 +153,12 @@
 
     <div class="split">
       <div>
-        <h3 class="h3">Ranking (dias trabalhados no mês)</h3>
+        <h3 class="h3">Ranking (dias no mês)</h3>
         <table class="table-compact">
           <thead>
             <tr>
               <th>#</th>
-              <th>Técnico</th>
+              <th>Técnico/Condutor</th>
               <th>Dias</th>
               <th style="width:38%;">Progresso</th>
             </tr>
@@ -173,7 +173,7 @@
           <thead>
             <tr>
               <th>Data</th>
-              <th>Pessoas</th>
+              <th>Pessoas/Condutor</th>
             </tr>
           </thead>
           <tbody id="tabelaMes"></tbody>
@@ -190,9 +190,9 @@
     <!-- ✅ DASHBOARD VISUAL -->
     <div class="dash">
       <div class="dash-box">
-        <div class="dash-title">📊 Dias por técnico (Top 10)</div>
+        <div class="dash-title">📊 Dias por técnico/condutor (Top 10)</div>
         <canvas id="chartRanking" class="dash-canvas"></canvas>
-        <p class="muted small">Mostra quem trabalhou mais dias no mês selecionado.</p>
+        <p class="muted small">Mostra quem teve mais dias no mês selecionado.</p>
       </div>
 
       <div class="dash-box">
@@ -207,11 +207,11 @@
             <div class="insight-value" id="insightTopDias">0</div>
           </div>
           <div class="insight">
-            <div class="insight-label">Média presenças/dia</div>
+            <div class="insight-label">Média registros/dia</div>
             <div class="insight-value" id="insightMediaDia">0</div>
           </div>
           <div class="insight">
-            <div class="insight-label">Média dias/técnico</div>
+            <div class="insight-label">Média dias/pessoa</div>
             <div class="insight-value" id="insightMediaTec">0</div>
           </div>
         </div>
@@ -224,42 +224,95 @@
   <!-- ====== FORMULÁRIO DIÁRIO ====== -->
   <section class="card" id="cardPresenca">
     <div class="card-head">
-      <h2>Presença por dia</h2>
-      <p class="muted">Selecione a data e marque quem esteve no contrato.</p>
+      <h2 id="tituloPresenca">Presença por dia</h2>
+      <p class="muted" id="subtituloPresenca">Selecione a data e marque quem esteve no contrato.</p>
     </div>
 
-    <div class="grid-2">
-      <div class="field">
-        <label>Data</label>
-        <input id="dataDia" type="date" />
-      </div>
-
-      <div class="field">
-        <label>Pessoas</label>
-        <div class="chips" id="chipsDiario"></div>
-
-        <div class="add-nome">
-          <input type="text" id="novoNome" placeholder="Adicionar técnico (ex: João Silva)">
-          <button class="btn" type="button" onclick="adicionarNome()">+ Adicionar</button>
+    <!-- ✅ FORM PADRÃO (presença) -->
+    <div id="formPadrao">
+      <div class="grid-2">
+        <div class="field">
+          <label>Data</label>
+          <input id="dataDia" type="date" />
         </div>
 
-        <p class="muted small">Os nomes ficam salvos no banco (tempo real).</p>
-        <p class="muted small" id="permMsg" style="display:none;">Você está como Técnico: algumas ações ficam bloqueadas.</p>
+        <div class="field">
+          <label>Pessoas</label>
+          <div class="chips" id="chipsDiario"></div>
+
+          <div class="add-nome">
+            <input type="text" id="novoNome" placeholder="Adicionar técnico (ex: João Silva)">
+            <button class="btn" type="button" onclick="adicionarNome()">+ Adicionar</button>
+          </div>
+
+          <p class="muted small">Os nomes ficam salvos no banco (tempo real).</p>
+          <p class="muted small" id="permMsg" style="display:none;">Você está como Técnico: algumas ações ficam bloqueadas.</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="button" onclick="salvarDiario()">💾 Salvar dia</button>
+        <button class="btn secondary" type="button" onclick="limparDiario()">🧹 Limpar</button>
+        <button class="btn danger" id="btnApagarTudo" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
+        <button class="btn" type="button" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
       </div>
     </div>
 
-    <div class="actions">
-      <button class="btn" type="button" onclick="salvarDiario()">💾 Salvar dia</button>
-      <button class="btn secondary" type="button" onclick="limparDiario()">🧹 Limpar</button>
-      <button class="btn danger" id="btnApagarTudo" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
-      <button class="btn" type="button" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
+    <!-- ✅ FORM PTA INVECO -->
+    <div id="formPTA" style="display:none;">
+      <div class="grid-3">
+        <div class="field">
+          <label>Data</label>
+          <input id="ptaData" type="date" />
+        </div>
+
+        <div class="field">
+          <label>Nome do Condutor</label>
+          <input id="ptaCondutor" type="text" placeholder="Ex: Alex" />
+        </div>
+
+        <div class="field">
+          <label>Local da Atividade</label>
+          <input id="ptaLocal" type="text" placeholder="Ex: Vast / Ferroport / GNA" />
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:12px;">
+        <div class="field">
+          <label>Km Inicial</label>
+          <input id="ptaKmInicial" type="text" inputmode="decimal" placeholder="Ex: 79.754" />
+        </div>
+
+        <div class="field">
+          <label>Km Final</label>
+          <input id="ptaKmFinal" type="text" inputmode="decimal" placeholder="Ex: 79.779" />
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:12px;">
+        <label>Descrição da Atividade</label>
+        <input id="ptaDescricao" type="text" placeholder="Ex: Chave deixada com Luan no fim do dia" />
+      </div>
+
+      <div class="field" style="margin-top:12px;">
+        <label>Assinatura</label>
+        <input id="ptaAssinatura" type="text" placeholder="Nome / rubrica (texto)" />
+        <p class="muted small">Assinatura por enquanto em texto (se quiser, depois faço assinatura desenhada).</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="button" onclick="salvarDiario()">💾 Salvar dia</button>
+        <button class="btn secondary" type="button" onclick="limparDiario()">🧹 Limpar</button>
+        <button class="btn danger" id="btnApagarTudoPTA" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
+        <button class="btn" type="button" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
+      </div>
     </div>
   </section>
 
   <!-- ====== LISTA DE REGISTROS ====== -->
   <section class="card no-print">
     <div class="card-head">
-      <h2>Presenças registradas</h2>
+      <h2>Registros</h2>
       <p class="muted">Se salvar a mesma data novamente, o sistema atualiza. Use “Editar” para carregar um registro.</p>
     </div>
 
@@ -267,7 +320,12 @@
       <thead>
         <tr>
           <th>Data</th>
-          <th>Pessoas</th>
+          <th id="thCol2">Pessoas</th>
+          <th id="thCol3" style="display:none;">Km Inicial</th>
+          <th id="thCol4" style="display:none;">Km Final</th>
+          <th id="thCol5" style="display:none;">Local</th>
+          <th id="thCol6" style="display:none;">Descrição</th>
+          <th id="thCol7" style="display:none;">Assinatura</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -298,7 +356,7 @@
     </div>
 
     <div class="report-titles">
-      <div class="report-title">Relatório de Presença — <span id="reportContrato">—</span></div>
+      <div class="report-title">Relatório — <span id="reportContrato">—</span></div>
       <div class="report-subtitle" id="reportPeriodo">Período: —</div>
       <div class="report-subtitle" id="reportGeradoEm">Gerado em: —</div>
     </div>
@@ -306,12 +364,12 @@
 
   <div class="report-grid">
     <div class="report-box">
-      <div class="box-title">Ranking — Dias trabalhados</div>
+      <div class="box-title">Ranking — Dias</div>
       <table class="report-table">
         <thead>
           <tr>
             <th>#</th>
-            <th>Técnico</th>
+            <th>Técnico/Condutor</th>
             <th>Dias</th>
           </tr>
         </thead>
@@ -325,7 +383,7 @@
         <thead>
           <tr>
             <th>Data</th>
-            <th>Pessoas</th>
+            <th>Registro</th>
           </tr>
         </thead>
         <tbody id="printMes"></tbody>
@@ -420,6 +478,51 @@
     }
   };
 
+  // ===================== CONTRATO / MODO PTA =====================
+  function isPTA(){
+    return contratoAtual === "pta-inveco";
+  }
+
+  function aplicarModoContratoUI(){
+    const formPadrao = document.getElementById("formPadrao");
+    const formPTA = document.getElementById("formPTA");
+    const titulo = document.getElementById("tituloPresenca");
+    const subtitulo = document.getElementById("subtituloPresenca");
+
+    const thCol2 = document.getElementById("thCol2");
+    const thCol3 = document.getElementById("thCol3");
+    const thCol4 = document.getElementById("thCol4");
+    const thCol5 = document.getElementById("thCol5");
+    const thCol6 = document.getElementById("thCol6");
+    const thCol7 = document.getElementById("thCol7");
+
+    if(isPTA()){
+      if(formPadrao) formPadrao.style.display = "none";
+      if(formPTA) formPTA.style.display = "block";
+      if(titulo) titulo.textContent = "Controle de Uso — PTA INVECO";
+      if(subtitulo) subtitulo.textContent = "Preencha os dados do veículo por dia (condutor, km, local, descrição e assinatura).";
+
+      if(thCol2) thCol2.textContent = "Condutor";
+      if(thCol3) thCol3.style.display = "";
+      if(thCol4) thCol4.style.display = "";
+      if(thCol5) thCol5.style.display = "";
+      if(thCol6) thCol6.style.display = "";
+      if(thCol7) thCol7.style.display = "";
+    } else {
+      if(formPadrao) formPadrao.style.display = "block";
+      if(formPTA) formPTA.style.display = "none";
+      if(titulo) titulo.textContent = "Presença por dia";
+      if(subtitulo) subtitulo.textContent = "Selecione a data e marque quem esteve no contrato.";
+
+      if(thCol2) thCol2.textContent = "Pessoas";
+      if(thCol3) thCol3.style.display = "none";
+      if(thCol4) thCol4.style.display = "none";
+      if(thCol5) thCol5.style.display = "none";
+      if(thCol6) thCol6.style.display = "none";
+      if(thCol7) thCol7.style.display = "none";
+    }
+  }
+
   /* ===================== CANVAS / CHART ===================== */
   function cssVar(name, fallback){
     const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -451,7 +554,6 @@
     ctx.closePath();
   }
 
-  // ✅ Gráfico responsivo e sem cortar no mobile
   function drawBarChart(canvasId, items){
     const canvas = document.getElementById(canvasId);
     if(!canvas) return;
@@ -584,12 +686,14 @@
     const pill = document.getElementById("rolePill");
     const permMsg = document.getElementById("permMsg");
     const btnApagarTudo = document.getElementById("btnApagarTudo");
+    const btnApagarTudoPTA = document.getElementById("btnApagarTudoPTA");
 
     pill.textContent = isAdmin ? "Gestor" : "Técnico";
     pill.classList.toggle("admin", isAdmin);
 
-    btnApagarTudo.style.display = isAdmin ? "inline-block" : "none";
-    permMsg.style.display = isAdmin ? "none" : "block";
+    if(btnApagarTudo) btnApagarTudo.style.display = isAdmin ? "inline-block" : "none";
+    if(btnApagarTudoPTA) btnApagarTudoPTA.style.display = isAdmin ? "inline-block" : "none";
+    if(permMsg) permMsg.style.display = isAdmin ? "none" : "block";
   }
 
   function formatarDataBR(dataISO){
@@ -619,9 +723,7 @@
   function nomeContratoBonito(slug){
     return ({
       "ferroport":"Ferroport",
-      "pta-inveco":"PTA Inveco",
-      "porto-sudeste":"Porto Sudeste",
-      "vale":"Vale"
+      "pta-inveco":"PTA INVECO"
     }[slug] || slug);
   }
 
@@ -652,6 +754,11 @@
     ligarRealtime();
 
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
+
+    // ✅ aplica modo PTA/padrão
+    aplicarModoContratoUI();
+
+    // reseta
     selecaoDiaria = [];
     renderChipsDiario();
     limparDiario(true);
@@ -662,6 +769,7 @@
 
   window.renderChipsDiario = function(){
     const wrap = document.getElementById("chipsDiario");
+    if(!wrap) return;
     wrap.innerHTML = "";
 
     NOMES.forEach(nome => {
@@ -695,7 +803,7 @@
 
   window.adicionarNome = async function(){
     const input = document.getElementById("novoNome");
-    const nome = input.value.trim();
+    const nome = (input?.value || "").trim();
     if(!nome) return alert("Digite um nome.");
 
     const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
@@ -713,11 +821,35 @@
   }
 
   window.salvarDiario = async function(){
+    if(isPTA()){
+      const data = document.getElementById("ptaData").value;
+      const condutor = document.getElementById("ptaCondutor").value.trim();
+      const kmInicial = document.getElementById("ptaKmInicial").value.trim();
+      const kmFinal = document.getElementById("ptaKmFinal").value.trim();
+      const local = document.getElementById("ptaLocal").value.trim();
+      const descricao = document.getElementById("ptaDescricao").value.trim();
+      const assinatura = document.getElementById("ptaAssinatura").value.trim();
+
+      if(!data) return alert("Selecione a data.");
+      if(!condutor) return alert("Informe o nome do condutor.");
+
+      const item = {
+        tipo: "pta",
+        dataISO: data,
+        dataBR: formatarDataBR(data),
+        condutor, kmInicial, kmFinal, local, descricao, assinatura
+      };
+
+      await setDoc(doc(db, "contratos", contratoAtual, "diarios", data), item);
+      limparDiario();
+      return;
+    }
+
     const data = document.getElementById("dataDia").value;
     if(!data) return alert("Selecione a data.");
     if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
 
-    const item = { dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
+    const item = { tipo:"presenca", dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
     await setDoc(doc(db, "contratos", contratoAtual, "diarios", data), item);
     limparDiario();
   };
@@ -726,9 +858,20 @@
     const reg = LISTA.find(x => x.dataISO === dataISO);
     if(!reg) return alert("Registro não encontrado.");
 
-    document.getElementById("dataDia").value = reg.dataISO;
-    selecaoDiaria = [...(reg.pessoas || [])];
-    renderChipsDiario();
+    if(isPTA()){
+      document.getElementById("ptaData").value = reg.dataISO || "";
+      document.getElementById("ptaCondutor").value = reg.condutor || "";
+      document.getElementById("ptaKmInicial").value = reg.kmInicial || "";
+      document.getElementById("ptaKmFinal").value = reg.kmFinal || "";
+      document.getElementById("ptaLocal").value = reg.local || "";
+      document.getElementById("ptaDescricao").value = reg.descricao || "";
+      document.getElementById("ptaAssinatura").value = reg.assinatura || "";
+    } else {
+      document.getElementById("dataDia").value = reg.dataISO;
+      selecaoDiaria = [...(reg.pessoas || [])];
+      renderChipsDiario();
+    }
+
     document.getElementById("cardPresenca").scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -736,10 +879,21 @@
     if(!isAdmin) return alert("Somente gestor pode apagar registros.");
     if(!confirm("Deseja apagar somente este dia registrado?")) return;
     await deleteDoc(doc(db, "contratos", contratoAtual, "diarios", dataISO));
-    if(document.getElementById("dataDia").value === dataISO) limparDiario();
+    limparDiario();
   };
 
   window.limparDiario = function(silencioso=false){
+    if(isPTA()){
+      document.getElementById("ptaData").value = "";
+      document.getElementById("ptaCondutor").value = "";
+      document.getElementById("ptaKmInicial").value = "";
+      document.getElementById("ptaKmFinal").value = "";
+      document.getElementById("ptaLocal").value = "";
+      document.getElementById("ptaDescricao").value = "";
+      document.getElementById("ptaAssinatura").value = "";
+      return;
+    }
+
     document.getElementById("dataDia").value = "";
     selecaoDiaria = [];
     renderChipsDiario();
@@ -756,8 +910,23 @@
 
   window.exportarDiarioCSV = function(){
     if(LISTA.length === 0) return alert("Não há registros para exportar.");
-
     const ordenado = [...LISTA].sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
+
+    if(isPTA()){
+      let csv = "Contrato;Data;Nome do Condutor;Km Inicial;Km Final;Local da Atividade;Descrição da Atividade;Assinatura\n";
+      ordenado.forEach(r => {
+        const desc = (r.descricao || "").replaceAll('"','""');
+        csv += `${nomeContratoBonito(contratoAtual)};${r.dataBR || ""};${r.condutor || ""};${r.kmInicial || ""};${r.kmFinal || ""};${r.local || ""};"${desc}";${r.assinatura || ""}\n`;
+      });
+
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `controle_uso_${contratoAtual}.csv`;
+      link.click();
+      return;
+    }
+
     let csv = "Contrato;Data;Pessoas\n";
     ordenado.forEach(r => {
       csv += `${nomeContratoBonito(contratoAtual)};${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
@@ -795,6 +964,8 @@
   };
 
   function carregarDiario(){
+    aplicarModoContratoUI();
+
     const tbody = document.getElementById("tabelaDiario");
     tbody.innerHTML = "";
 
@@ -802,6 +973,27 @@
     const exibida = mostrarTodosRegistros ? lista : lista.slice(0, LIMITE_REGISTROS);
 
     exibida.forEach(r => {
+      if(isPTA()){
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${r.dataBR || ""}</strong></td>
+            <td>${r.condutor || ""}</td>
+            <td>${r.kmInicial || ""}</td>
+            <td>${r.kmFinal || ""}</td>
+            <td>${r.local || ""}</td>
+            <td>${r.descricao || ""}</td>
+            <td>${r.assinatura || ""}</td>
+            <td>
+              <div class="row-actions">
+                <button class="btn small secondary" type="button" onclick="editarRegistro('${r.dataISO}')">✏ Editar</button>
+                <button class="btn small danger" type="button" onclick="apagarRegistro('${r.dataISO}')" ${isAdmin ? "" : "disabled"}>🗑 Apagar</button>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
       tbody.innerHTML += `
         <tr>
           <td><strong>${r.dataBR}</strong></td>
@@ -829,16 +1021,30 @@
     }
 
     const prefixo = `${sel.y}-${sel.m}`;
-    const registrosMes = LISTA.filter(r => r.dataISO.startsWith(prefixo));
+    const registrosMes = LISTA.filter(r => (r.dataISO || "").startsWith(prefixo));
 
     const diasRegistrados = registrosMes.length;
-    const totalPresencas = registrosMes.reduce((acc,r)=> acc + ((r.pessoas||[]).length), 0);
+
+    // ✅ totalPresencas: no PTA conta 1 por dia; no padrão soma pessoas
+    const totalPresencas = isPTA()
+      ? diasRegistrados
+      : registrosMes.reduce((acc,r)=> acc + ((r.pessoas||[]).length), 0);
 
     document.getElementById("kpiDias").innerText = diasRegistrados;
     document.getElementById("kpiPresencas").innerText = totalPresencas;
 
+    // ✅ contagem: no PTA por condutor; no padrão por pessoas
     const contagem = new Map();
-    registrosMes.forEach(r => Array.from(new Set(r.pessoas||[])).forEach(p => contagem.set(p,(contagem.get(p)||0)+1)));
+    if(isPTA()){
+      registrosMes.forEach(r => {
+        const c = (r.condutor || "").trim();
+        if(!c) return;
+        contagem.set(c, (contagem.get(c)||0) + 1);
+      });
+    } else {
+      registrosMes.forEach(r => Array.from(new Set(r.pessoas||[])).forEach(p => contagem.set(p,(contagem.get(p)||0)+1)));
+    }
+
     document.getElementById("kpiTecnicos").innerText = contagem.size;
 
     const ranking = Array.from(contagem.entries()).map(([nome,dias])=>({nome,dias}))
@@ -856,27 +1062,29 @@
         `).join("")
       : `<tr><td colspan="4" class="muted">Sem registros neste mês.</td></tr>`;
 
-    const ordenados = [...registrosMes].sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
+    // tabela mês (padrão simples)
+    const ordenados = [...registrosMes].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
     const exibidaMes = mostrarTodosMes ? ordenados : ordenados.slice(0, LIMITE_MES);
 
     document.getElementById("tabelaMes").innerHTML = exibidaMes.length
       ? exibidaMes.map(r=>`
           <tr>
-            <td><strong>${r.dataBR}</strong></td>
-            <td>${(r.pessoas||[]).join("<br>")}</td>
+            <td><strong>${r.dataBR || ""}</strong></td>
+            <td>${isPTA() ? (r.condutor || "") : (r.pessoas||[]).join("<br>")}</td>
           </tr>
         `).join("")
       : `<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>`;
 
     atualizarBotaoVerMaisMes(registrosMes.length);
 
+    // print
     document.getElementById("printRanking").innerHTML = ranking.length
       ? ranking.map((x,i)=>`<tr><td>${i+1}</td><td>${x.nome}</td><td><strong>${x.dias}</strong></td></tr>`).join("")
       : `<tr><td colspan="3">Sem registros neste mês.</td></tr>`;
 
     document.getElementById("printMes").innerHTML = registrosMes.length
-      ? [...registrosMes].sort((a,b)=>a.dataISO.localeCompare(b.dataISO)).map(r=>`
-          <tr><td><strong>${r.dataBR}</strong></td><td>${(r.pessoas||[]).join(", ")}</td></tr>
+      ? [...registrosMes].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||"")).map(r=>`
+          <tr><td><strong>${r.dataBR || ""}</strong></td><td>${isPTA() ? (r.condutor || "") : (r.pessoas||[]).join(", ")}</td></tr>
         `).join("")
       : `<tr><td colspan="2">Sem registros neste mês.</td></tr>`;
 
@@ -885,9 +1093,11 @@
     document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
 
+    // gráfico
     const top10 = ranking.slice(0, 10).map(x => ({ label: x.nome, value: x.dias }));
     drawBarChart("chartRanking", top10);
 
+    // insights
     const topNome = ranking[0]?.nome || "—";
     const topDias = ranking[0]?.dias || 0;
     const mediaDia = diasRegistrados ? (totalPresencas / diasRegistrados) : 0;
@@ -910,6 +1120,8 @@
     selContrato.addEventListener("change", ()=> setContrato(selContrato.value));
 
     document.getElementById("dataDia").value = hojeISO();
+    const ptaData = document.getElementById("ptaData");
+    if(ptaData) ptaData.value = hojeISO();
 
     const d = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
@@ -917,6 +1129,8 @@
     document.getElementById("mesAno").addEventListener("change", atualizarPainel);
 
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
+
+    aplicarModoContratoUI();
     window.addEventListener("resize", () => atualizarPainel());
   }
 
