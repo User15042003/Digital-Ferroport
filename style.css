@@ -137,11 +137,17 @@ body{
   align-items:center;
 }
 .input-icon input{
-  padding-right:44px; /* espaço do ícone */
+  width:100%;
+  padding-right:48px; /* espaço do ícone */
 }
+
+/* ✅ FIX: centraliza o botão do ícone verticalmente */
 .icon-btn{
   position:absolute;
   right:8px;
+  top:50%;
+  transform:translateY(-50%);
+
   height:34px;
   width:34px;
   border-radius:10px;
@@ -170,6 +176,31 @@ body{
 .cam-icon svg .stroke{
   stroke:currentColor;
   stroke-linecap:round;
+}
+
+/* ===================== UX: estados desabilitados ===================== */
+select:disabled,
+input:disabled,
+button:disabled{
+  opacity:.65;
+  cursor:not-allowed;
+}
+
+/* deixa bem claro quando o select de contrato está travado */
+#contratoSelect:disabled{
+  background:var(--card-2);
+  border-color:var(--border);
+  filter:grayscale(.15);
+}
+
+/* mensagem de login */
+#loginMsg{
+  margin-top:10px;
+  line-height:1.35;
+}
+#loginMsg.error{
+  color:#dc3545;
+  font-weight:700;
 }
 
 /* ===================== TOPO ===================== */
