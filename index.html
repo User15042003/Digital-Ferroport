@@ -329,11 +329,10 @@
 </section>
 
 <!-- ===========================================================
-     ✅ SCRIPT FINAL (com FAILSAFE + seu código)
+     ✅ SCRIPT FINAL (com FAILSAFE + gráfico ajustado)
 =========================================================== -->
 <script>
 (function(){
-  // ✅ nunca mais tela branca sem mostrar o erro
   function showFatal(err){
     console.error(err);
     document.body.innerHTML =
@@ -370,7 +369,6 @@
         { value: "pta-inveco", label: "PTA INVECO" }
       ];
 
-      // ✅ evita erro de "already exists"
       if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
       const auth = firebase.auth();
@@ -379,10 +377,6 @@
       let LISTA = [];
       let NOMES = [];
       let selecaoDiaria = [];
-
-      let PTA_LISTA = [];
-      let mostrarTodosPTA = false;
-      const LIMITE_PTA = 6;
 
       let mostrarTodosRegistros = false;
       const LIMITE_REGISTROS = 5;
@@ -398,11 +392,9 @@
 
       let refDiarios = null;
       let refNomes = null;
-      let refPTA = null;
 
       let unsubDiarios = null;
       let unsubNomes = null;
-      let unsubPTA = null;
 
       // ===================== TEMA =====================
       const KEY_TEMA = "tema_site";
@@ -424,8 +416,7 @@
       }
       window.toggleTema = toggleTema;
 
-      const salvo = localStorage.getItem(KEY_TEMA) || "light";
-      aplicarTema(salvo);
+      aplicarTema(localStorage.getItem(KEY_TEMA) || "light");
 
       function toggleSenha(inputId, btn){
         const input = document.getElementById(inputId);
@@ -481,7 +472,7 @@
         return dataISO.startsWith(`${y}-${m}-`);
       }
 
-      // ===================== RANKING + GRÁFICO (CANVAS) =====================
+      // ===================== RANKING =====================
       function contarDiasPorTecnico(itensMes){
         const map = new Map();
         itensMes.forEach(item => {
@@ -494,6 +485,7 @@
           .sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
       }
 
+      // ===================== ✅ GRÁFICO AJUSTADO =====================
       function desenharGraficoTop10(canvasId, data){
         const canvas = document.getElementById(canvasId);
         if(!canvas) return;
@@ -503,16 +495,26 @@
         if(w < 50 || h < 50) return;
 
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = Math.floor(w * dpr);
+        canvas.width  = Math.floor(w * dpr);
         canvas.height = Math.floor(h * dpr);
 
         const ctx = canvas.getContext("2d");
         ctx.setTransform(dpr,0,0,dpr,0,0);
         ctx.clearRect(0,0,w,h);
 
+        const styles = getComputedStyle(document.documentElement);
+        const text   = styles.getPropertyValue("--text").trim() || "#111";
+        const muted  = styles.getPropertyValue("--muted").trim() || "#666";
+        const border = styles.getPropertyValue("--border").trim() || "#ddd";
+        const bar    = styles.getPropertyValue("--digital-red").trim() || "#CB3344";
+        const bg     = styles.getPropertyValue("--card-2").trim() || "#f7f7f7";
+
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
         if(!data || data.length === 0){
           ctx.font = "14px Arial";
-          ctx.fillStyle = "#888";
+          ctx.fillStyle = muted;
           ctx.fillText("Sem dados no mês selecionado.", 12, 24);
           return;
         }
@@ -520,44 +522,90 @@
         const top = data.slice(0,10);
         const max = Math.max(...top.map(x => x.dias), 1);
 
-        const padL = 150, padR = 18, padT = 18, padB = 18;
-        const plotW = w - padL - padR;
-        const rowH = Math.max(24, Math.floor((h - padT - padB) / top.length));
-        const barH = Math.floor(rowH * 0.55);
+        const fontLabel = "12px Arial";
+        const fontValue = "12px Arial";
 
-        const styles = getComputedStyle(document.documentElement);
-        const text = styles.getPropertyValue("--text").trim() || "#111";
-        const muted = styles.getPropertyValue("--muted").trim() || "#666";
-        const border = styles.getPropertyValue("--border").trim() || "#ddd";
-        const bar = styles.getPropertyValue("--digital-red").trim() || "#CB3344";
+        ctx.font = fontLabel;
+        const maxNameW = Math.min(
+          240,
+          Math.max(...top.map(x => ctx.measureText(String(x.nome)).width)) + 18
+        );
 
+        const padL = Math.max(110, Math.min(maxNameW, Math.floor(w * 0.55)));
+        const padR = 26;
+        const padT = 18;
+        const padB = 18;
+
+        const plotW = Math.max(60, w - padL - padR);
+        const rowH  = Math.max(26, Math.floor((h - padT - padB) / top.length));
+        const barH  = Math.floor(rowH * 0.55);
+
+        // grade suave
         ctx.strokeStyle = border;
         ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(padL, padT);
-        ctx.lineTo(padL, h - padB);
-        ctx.stroke();
+        ctx.globalAlpha = 0.35;
+        for(let i=0;i<=4;i++){
+          const x = padL + (plotW * (i/4));
+          ctx.beginPath();
+          ctx.moveTo(x, padT);
+          ctx.lineTo(x, h - padB);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
 
-        ctx.font = "12px Arial";
         ctx.textBaseline = "middle";
 
         top.forEach((item, i) => {
           const y = padT + i * rowH + rowH/2;
 
+          // nome com reticências se necessário
+          ctx.font = fontLabel;
           ctx.fillStyle = muted;
-          const nome = item.nome.length > 22 ? item.nome.slice(0,22) + "…" : item.nome;
+
+          let nome = String(item.nome || "");
+          const maxAllowed = padL - 16;
+          while(nome.length > 1 && ctx.measureText(nome + "…").width > maxAllowed){
+            nome = nome.slice(0, -1);
+          }
+          if(nome !== String(item.nome || "")) nome += "…";
           ctx.fillText(nome, 12, y);
 
+          // barra
           const bw = Math.max(2, (item.dias / max) * plotW);
           const x0 = padL;
           const y0 = Math.round(y - barH/2);
 
+          const r = Math.min(8, Math.floor(barH/2));
           ctx.fillStyle = bar;
-          ctx.fillRect(x0, y0, bw, barH);
+          roundRectFill(ctx, x0, y0, bw, barH, r);
 
-          ctx.fillStyle = text;
-          ctx.fillText(String(item.dias), x0 + bw + 8, y);
+          // valor
+          const value = String(item.dias);
+          ctx.font = fontValue;
+          const valueW = ctx.measureText(value).width;
+
+          const inside = bw > (valueW + 14);
+          if(inside){
+            ctx.fillStyle = "#fff";
+            ctx.fillText(value, x0 + bw - valueW - 8, y);
+          }else{
+            ctx.fillStyle = text;
+            const xVal = Math.min(w - padR + 2, x0 + bw + 8);
+            ctx.fillText(value, xVal, y);
+          }
         });
+
+        function roundRectFill(ctx, x, y, width, height, radius){
+          const rr = Math.max(0, Math.min(radius, width/2, height/2));
+          ctx.beginPath();
+          ctx.moveTo(x + rr, y);
+          ctx.arcTo(x + width, y, x + width, y + height, rr);
+          ctx.arcTo(x + width, y + height, x, y + height, rr);
+          ctx.arcTo(x, y + height, x, y, rr);
+          ctx.arcTo(x, y, x + width, y, rr);
+          ctx.closePath();
+          ctx.fill();
+        }
       }
 
       // ===================== PERMISSÕES =====================
@@ -606,23 +654,17 @@
       function setRefsContrato(){
         refDiarios = db.collection("contratos").doc(contratoAtual).collection("diarios");
         refNomes   = db.collection("contratos").doc(contratoAtual).collection("nomes");
-        refPTA     = db.collection("contratos").doc(contratoAtual).collection("ptauso");
       }
 
       function desligarRealtime(){
         if(typeof unsubDiarios === "function") unsubDiarios();
         if(typeof unsubNomes === "function") unsubNomes();
-        if(typeof unsubPTA === "function") unsubPTA();
-        unsubDiarios = unsubNomes = unsubPTA = null;
+        unsubDiarios = unsubNomes = null;
       }
 
       function ligarRealtime(){
         desligarRealtime();
 
-        // ⚠️ IMPORTANTE:
-        // orderBy("dataISO") só funciona se TODOS docs tiverem dataISO
-        // e se você criar o índice quando necessário.
-        // Se der erro, troque para onSnapshot sem orderBy.
         unsubDiarios = refDiarios.onSnapshot(
           (snap) => {
             LISTA = snap.docs.map(d => d.data());
@@ -645,104 +687,9 @@
             alert("Erro nomes:\n\n" + (err?.message || err));
           }
         );
-
-        unsubPTA = refPTA.onSnapshot(
-          (snap) => {
-            PTA_LISTA = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-              .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
-            carregarPTA();
-            atualizarPainel();
-          },
-          (err) => console.error("Erro PTA:", err)
-        );
       }
 
-      function mostrarBlocosContrato(){
-        const isPTA = contratoAtual === "pta-inveco";
-        const a = document.getElementById("blocoPTA");
-        const b = document.getElementById("blocoFerroport");
-        const c = document.getElementById("cardPresenca");
-        const d = document.getElementById("cardListaFerroport");
-        const e = document.getElementById("printPTA");
-        const f = document.getElementById("printFerroport");
-        if(a) a.style.display = isPTA ? "block" : "none";
-        if(b) b.style.display = isPTA ? "none" : "block";
-        if(c) c.style.display = isPTA ? "none" : "block";
-        if(d) d.style.display = isPTA ? "none" : "block";
-        if(e) e.style.display = isPTA ? "block" : "none";
-        if(f) f.style.display = isPTA ? "none" : "block";
-      }
-
-      function setContrato(novo){
-        if(!allowedContracts.includes(novo)){
-          alert("Você não tem permissão para acessar este contrato.");
-          const sel = document.getElementById("contratoSelect");
-          if(sel) sel.value = contratoAtual;
-          return;
-        }
-
-        contratoAtual = novo;
-        localStorage.setItem(KEY_CONTRATO, contratoAtual);
-
-        setRefsContrato();
-        ligarRealtime();
-
-        selecaoDiaria = [];
-        renderChipsDiario();
-        limparDiario(true);
-
-        mostrarTodosMes = false;
-        mostrarTodosRegistros = false;
-        mostrarTodosPTA = false;
-
-        mostrarBlocosContrato();
-        atualizarPainel();
-      }
-
-      // ===================== AUTH =====================
-      async function login(){
-        const email = document.getElementById("loginEmail").value.trim();
-        const senha = document.getElementById("loginSenha").value.trim();
-        const msg = document.getElementById("loginMsg");
-        const status = document.getElementById("loginStatus");
-        const btn = document.getElementById("btnEntrar");
-
-        if(msg) msg.textContent = "";
-        if(status) status.style.display = "flex";
-        if(btn) btn.disabled = true;
-
-        try{
-          await auth.signInWithEmailAndPassword(email, senha);
-        }catch(e){
-          if(msg) msg.textContent = "Falha no login: " + (e?.code || e?.message || e);
-          if(status) status.style.display = "none";
-          if(btn) btn.disabled = false;
-        }
-      }
-      window.login = login;
-
-      async function esqueciSenha(){
-        const email = document.getElementById("loginEmail").value.trim();
-        const msg = document.getElementById("loginMsg");
-        if(msg) msg.textContent = "";
-
-        if(!email){
-          if(msg) msg.textContent = "Digite seu e-mail para receber o link de redefinição.";
-          return;
-        }
-
-        try{
-          await auth.sendPasswordResetEmail(email);
-          if(msg) msg.textContent = "Pronto! Enviamos um e-mail para redefinir sua senha.";
-        }catch(e){
-          if(msg) msg.textContent = "Não foi possível enviar: " + (e?.code || e?.message || e);
-        }
-      }
-      window.esqueciSenha = esqueciSenha;
-
-      async function logout(){ await auth.signOut(); }
-      window.logout = logout;
-
+      // ===================== UI =====================
       function mostrarApp(logado){
         const a = document.getElementById("loginBox");
         const b = document.getElementById("appRoot");
@@ -759,12 +706,10 @@
           pill.textContent = isAdmin ? "Gestor" : "Técnico";
           pill.classList.toggle("admin", isAdmin);
         }
-
         if(btnApagarTudo) btnApagarTudo.style.display = isAdmin ? "inline-block" : "none";
         if(permMsg) permMsg.style.display = isAdmin ? "none" : "block";
       }
 
-      // ===================== CHIPS =====================
       function renderChipsDiario(){
         const wrap = document.getElementById("chipsDiario");
         if(!wrap) return;
@@ -786,15 +731,7 @@
             renderChipsDiario();
           };
 
-          const remover = document.createElement("span");
-          remover.className = "remove";
-          remover.title = "Excluir nome (gestor)";
-          remover.innerText = "✖";
-          remover.style.display = isAdmin ? "inline-flex" : "none";
-          remover.onclick = (e) => { e.stopPropagation(); excluirNome(nome); };
-
           box.appendChild(btn);
-          box.appendChild(remover);
           wrap.appendChild(box);
         });
       }
@@ -818,14 +755,6 @@
       }
       window.adicionarNome = adicionarNome;
 
-      async function excluirNome(nome){
-        if(!isAdmin) return alert("Somente gestor pode excluir nomes.");
-        if(!confirm(`Deseja excluir "${nome}"?`)) return;
-        await refNomes.doc(idSeguro(nome)).delete();
-        selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
-      }
-
-      // ===================== DIÁRIOS =====================
       async function salvarDiario(){
         try{
           const data = document.getElementById("dataDia").value;
@@ -888,18 +817,6 @@
           };
           tdAcoes.appendChild(btnEditar);
 
-          if(isAdmin){
-            const btnExcluir = document.createElement("button");
-            btnExcluir.className = "btn danger small";
-            btnExcluir.type = "button";
-            btnExcluir.textContent = "Excluir";
-            btnExcluir.onclick = async () => {
-              if(!confirm(`Excluir o dia ${item.dataBR || item.dataISO}?`)) return;
-              await refDiarios.doc(item.dataISO).delete();
-            };
-            tdAcoes.appendChild(btnExcluir);
-          }
-
           tr.appendChild(tdData);
           tr.appendChild(tdPessoas);
           tr.appendChild(tdAcoes);
@@ -922,61 +839,11 @@
       }
       window.toggleVerMais = toggleVerMais;
 
-      async function apagarDiarios(){
-        if(!isAdmin) return alert("Somente gestor pode apagar tudo.");
-        if(!confirm("Tem certeza que deseja apagar TODOS os diários deste contrato?")) return;
-
-        const snap = await refDiarios.get();
-        const batch = db.batch();
-        snap.docs.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        alert("Todos os diários foram apagados.");
-      }
-      window.apagarDiarios = apagarDiarios;
-
-      function exportarDiarioCSV(){
-        const header = ["Data", "Pessoas"];
-        const linhas = [...LISTA]
-          .sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""))
-          .map(item => {
-            const data = item.dataBR || formatarDataBR(item.dataISO);
-            const pessoas = Array.isArray(item.pessoas) ? item.pessoas.join(" | ") : "";
-            return [`"${data}"`, `"${pessoas.replaceAll('"','""')}"`].join(",");
-          });
-
-        const csv = [header.join(","), ...linhas].join("\n");
-        const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `diario_${contratoAtual}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      }
-      window.exportarDiarioCSV = exportarDiarioCSV;
-
-      // ===================== PTA (mínimo) =====================
-      function carregarPTA(){
-        const tbody = document.getElementById("tabelaPTA");
-        if(!tbody) return;
-        tbody.innerHTML = "";
-      }
-      window.toggleVerMaisPTA = function(){ mostrarTodosPTA = !mostrarTodosPTA; carregarPTA(); };
-
-      window.salvarPTA = function(){ alert("Ainda falta implementar salvarPTA()."); };
-      window.limparPTA = function(){};
-      window.limparAssinatura = function(){};
-
-      // ===================== PAINEL =====================
       function carregarMes(itensMes){
         const tbody = document.getElementById("tabelaMes");
         if(tbody){
           tbody.innerHTML = "";
           const vis = mostrarTodosMes ? itensMes : itensMes.slice(0, LIMITE_MES);
-
           vis.forEach(item => {
             const tr = document.createElement("tr");
             tr.innerHTML =
@@ -1023,8 +890,6 @@
         document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
         document.getElementById("reportPeriodo").innerText = `Período: ${sel.m}/${sel.y}`;
         document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
-
-        if(contratoAtual !== "ferroport") return;
 
         const itensMes = [...LISTA]
           .filter(x => inMesAno(x.dataISO, sel.y, sel.m))
@@ -1077,7 +942,6 @@
         document.getElementById("insightMediaDia").textContent = String(dias ? (presencas / dias).toFixed(1) : 0);
         document.getElementById("insightMediaTec").textContent = String(ranking.length ? (dias / ranking.length).toFixed(1) : 0);
 
-        // ✅ desenha depois que layout existe
         setTimeout(() => desenharGraficoTop10("chartRanking", ranking), 0);
       }
       window.atualizarPainel = atualizarPainel;
@@ -1088,13 +952,50 @@
       }
       window.gerarPDF = gerarPDF;
 
-      // ===================== INIT =====================
-      function initUI(){
-        const selContrato = document.getElementById("contratoSelect");
-        if(selContrato){
-          selContrato.addEventListener("change", ()=> setContrato(selContrato.value));
+      async function login(){
+        const email = document.getElementById("loginEmail").value.trim();
+        const senha = document.getElementById("loginSenha").value.trim();
+        const msg = document.getElementById("loginMsg");
+        const status = document.getElementById("loginStatus");
+        const btn = document.getElementById("btnEntrar");
+
+        if(msg) msg.textContent = "";
+        if(status) status.style.display = "flex";
+        if(btn) btn.disabled = true;
+
+        try{
+          await auth.signInWithEmailAndPassword(email, senha);
+        }catch(e){
+          if(msg) msg.textContent = "Falha no login: " + (e?.code || e?.message || e);
+          if(status) status.style.display = "none";
+          if(btn) btn.disabled = false;
+        }
+      }
+      window.login = login;
+
+      async function esqueciSenha(){
+        const email = document.getElementById("loginEmail").value.trim();
+        const msg = document.getElementById("loginMsg");
+        if(msg) msg.textContent = "";
+
+        if(!email){
+          if(msg) msg.textContent = "Digite seu e-mail para receber o link de redefinição.";
+          return;
         }
 
+        try{
+          await auth.sendPasswordResetEmail(email);
+          if(msg) msg.textContent = "Pronto! Enviamos um e-mail para redefinir sua senha.";
+        }catch(e){
+          if(msg) msg.textContent = "Não foi possível enviar: " + (e?.code || e?.message || e);
+        }
+      }
+      window.esqueciSenha = esqueciSenha;
+
+      async function logout(){ await auth.signOut(); }
+      window.logout = logout;
+
+      function initUI(){
         const dataDia = document.getElementById("dataDia");
         if(dataDia) dataDia.value = hojeISO();
 
@@ -1106,11 +1007,18 @@
           mesAno.addEventListener("change", atualizarPainel);
         }
 
-        mostrarBlocosContrato();
+        const selContrato = document.getElementById("contratoSelect");
+        if(selContrato){
+          selContrato.addEventListener("change", ()=> {
+            contratoAtual = selContrato.value;
+            localStorage.setItem(KEY_CONTRATO, contratoAtual);
+            setRefsContrato();
+            ligarRealtime();
+            atualizarPainel();
+          });
+        }
 
-        window.addEventListener("resize", () => {
-          try{ atualizarPainel(); }catch(_){}
-        });
+        window.addEventListener("resize", () => { try{ atualizarPainel(); }catch(_){ } });
       }
 
       auth.onAuthStateChanged(async (user) => {
@@ -1137,7 +1045,6 @@
           }
 
           montarSelectContratos();
-
           document.getElementById("userBadge").textContent = `Logado como: ${user.email || "—"}`;
           aplicarPermissoesUI();
           mostrarApp(true);
@@ -1153,7 +1060,6 @@
         }
       });
 
-      // ✅ refs inicial
       setRefsContrato();
 
     }catch(err){
