@@ -15,7 +15,9 @@
     { value: "pta-inveco", label: "PTA INVECO" }
   ];
 
-  firebase.initializeApp(firebaseConfig);
+  // ✅ evita erro de "already exists"
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
@@ -105,7 +107,7 @@
     return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
   function getMesAnoSelecionado(){
-    const v = document.getElementById("mesAno").value;
+    const v = document.getElementById("mesAno")?.value;
     if(!v) return null;
     const [y,m] = v.split("-");
     return { y, m };
@@ -143,7 +145,6 @@
     const canvas = document.getElementById(canvasId);
     if(!canvas) return;
 
-    // Se o canvas estiver oculto/sem tamanho, não desenha ainda
     const w = canvas.clientWidth || 0;
     const h = canvas.clientHeight || 0;
     if(w < 50 || h < 50) return;
@@ -195,12 +196,10 @@
     top.forEach((item, i) => {
       const y = padT + i * rowH + rowH/2;
 
-      // Nome
       ctx.fillStyle = muted;
       const nome = item.nome.length > 22 ? item.nome.slice(0,22) + "…" : item.nome;
       ctx.fillText(nome, 12, y);
 
-      // Barra
       const bw = Math.max(2, (item.dias / max) * plotW);
       const x0 = padL;
       const y0 = Math.round(y - barH/2);
@@ -208,7 +207,6 @@
       ctx.fillStyle = bar;
       ctx.fillRect(x0, y0, bw, barH);
 
-      // Valor
       ctx.fillStyle = text;
       ctx.fillText(String(item.dias), x0 + bw + 8, y);
     });
@@ -217,12 +215,7 @@
   // ===================== PERMISSÕES =====================
   async function carregarPermissoesUsuario(user){
     const snap = await db.collection("users").doc(user.uid).get();
-    if(!snap.exists){
-      allowedContracts = [];
-      isAdmin = false;
-      return;
-    }
-    const data = snap.data() || {};
+    const data = snap.exists ? (snap.data() || {}) : {};
     allowedContracts = Array.isArray(data.allowedContracts) ? data.allowedContracts : [];
     isAdmin = String(data.role || "").toLowerCase() === "gestor";
   }
@@ -278,7 +271,7 @@
   function ligarRealtime(){
     desligarRealtime();
 
-    unsubDiarios = refDiarios.onSnapshot(
+    unsubDiarios = refDiarios.orderBy("dataISO","desc").onSnapshot(
       (snap) => {
         LISTA = snap.docs.map(d => d.data());
         carregarDiario();
@@ -304,7 +297,7 @@
     unsubPTA = refPTA.onSnapshot(
       (snap) => {
         PTA_LISTA = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-          .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||"") || (b.createdAt||0)-(a.createdAt||0));
+          .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
         carregarPTA();
         atualizarPainel();
       },
@@ -463,7 +456,7 @@
       input.value = "";
     }catch(e){
       console.error(e);
-      alert("Erro ao adicionar nome.\n\ncode: " + (e?.code || "—") + "\nmessage: " + (e?.message || e));
+      alert("Erro ao adicionar nome.\n\n" + (e?.message || e));
     }
   }
   window.adicionarNome = adicionarNome;
@@ -485,11 +478,10 @@
       const item = { dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
       await refDiarios.doc(data).set(item);
 
-      alert("Dia salvo com sucesso!");
       limparDiario();
     }catch(e){
       console.error(e);
-      alert("Erro ao salvar o dia.\n\ncode: " + (e?.code || "—") + "\nmessage: " + (e?.message || e));
+      alert("Erro ao salvar o dia.\n\n" + (e?.message || e));
     }
   }
   window.salvarDiario = salvarDiario;
@@ -554,7 +546,6 @@
       tr.appendChild(tdData);
       tr.appendChild(tdPessoas);
       tr.appendChild(tdAcoes);
-
       tbody.appendChild(tr);
     });
 
@@ -610,7 +601,7 @@
   }
   window.exportarDiarioCSV = exportarDiarioCSV;
 
-  // ===================== PTA (mínimo) =====================
+  // ===================== PTA (lista / ver mais) =====================
   function carregarPTA(){
     const tbody = document.getElementById("tabelaPTA");
     if(!tbody) return;
@@ -658,7 +649,7 @@
     const btn = document.getElementById("btnVerMaisPTA");
     if(btn){
       btn.style.display = PTA_LISTA.length > LIMITE_PTA ? "inline-block" : "none";
-      btn.textContent = mostrarTodosPTA ? "Ver menos" : "Ver mais registros";
+      btn.textContent = mostrarTodosPTA ? "Ver menos registros" : "Ver mais registros";
     }
   }
 
@@ -668,17 +659,21 @@
   }
   window.toggleVerMaisPTA = toggleVerMaisPTA;
 
-  function salvarPTA(){ alert("Função salvarPTA não foi implementada nesta versão mínima."); }
+  // (se você ainda não implementou salvarPTA, deixa assim para não quebrar)
+  function salvarPTA(){ alert("Ainda falta implementar salvarPTA()."); }
   function limparPTA(){}
   window.salvarPTA = salvarPTA;
   window.limparPTA = limparPTA;
+  function limparAssinatura(){}
+  window.limparAssinatura = limparAssinatura;
 
   // ===================== PAINEL / MÊS / PDF =====================
-  function carregarMes(sel, itensMes){
+  function carregarMes(itensMes){
     const tbody = document.getElementById("tabelaMes");
     if(tbody){
       tbody.innerHTML = "";
       const vis = mostrarTodosMes ? itensMes : itensMes.slice(0, LIMITE_MES);
+
       vis.forEach(item => {
         const tr = document.createElement("tr");
         const tdD = document.createElement("td");
@@ -730,8 +725,7 @@
     }
 
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
-    const mesBR = `${sel.m}/${sel.y}`;
-    document.getElementById("reportPeriodo").innerText = `Período: ${mesBR}`;
+    document.getElementById("reportPeriodo").innerText = `Período: ${sel.m}/${sel.y}`;
     document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
 
     if(contratoAtual !== "ferroport"){
@@ -741,7 +735,6 @@
       return;
     }
 
-    // itens do mês
     const itensMes = [...LISTA]
       .filter(x => inMesAno(x.dataISO, sel.y, sel.m))
       .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
@@ -756,10 +749,8 @@
     document.getElementById("kpiPresencas").textContent = String(presencas);
     document.getElementById("kpiTecnicos").textContent = String(setTec.size);
 
-    // tabela mês + print
-    carregarMes(sel, itensMes);
+    carregarMes(itensMes);
 
-    // ranking
     const ranking = contarDiasPorTecnico(itensMes);
 
     const tbodyRank = document.getElementById("tabelaRanking");
@@ -783,28 +774,22 @@
       });
     }
 
-    // PRINT RANKING
     const pRank = document.getElementById("printRanking");
     if(pRank){
       pRank.innerHTML = "";
-      ranking.slice(0, 30).forEach((r, idx) => {
+      ranking.slice(0, 40).forEach((r, idx) => {
         const tr = document.createElement("tr");
-        const td1 = document.createElement("td"); td1.textContent = String(idx + 1);
-        const td2 = document.createElement("td"); td2.textContent = r.nome;
-        const td3 = document.createElement("td"); td3.textContent = String(r.dias);
-        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+        tr.innerHTML = `<td>${idx+1}</td><td>${r.nome}</td><td>${r.dias}</td>`;
         pRank.appendChild(tr);
       });
     }
 
-    // insights
     const top1 = ranking[0] || { nome:"—", dias:0 };
     document.getElementById("insightTopNome").textContent = top1.nome;
     document.getElementById("insightTopDias").textContent = String(top1.dias);
     document.getElementById("insightMediaDia").textContent = String(dias ? (presencas / dias).toFixed(1) : 0);
     document.getElementById("insightMediaTec").textContent = String(ranking.length ? (dias / ranking.length).toFixed(1) : 0);
 
-    // gráfico
     desenharGraficoTop10("chartRanking", ranking);
   }
   window.atualizarPainel = atualizarPainel;
@@ -815,20 +800,29 @@
   }
   window.gerarPDF = gerarPDF;
 
+  // ===================== INIT =====================
   function initUI(){
     const selContrato = document.getElementById("contratoSelect");
-    selContrato.addEventListener("change", ()=> setContrato(selContrato.value));
+    if(selContrato){
+      selContrato.addEventListener("change", ()=> setContrato(selContrato.value));
+    }
 
-    document.getElementById("dataDia").value = hojeISO();
+    const dataDia = document.getElementById("dataDia");
+    if(dataDia) dataDia.value = hojeISO();
 
     const d = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
-    document.getElementById("mesAno").value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-    document.getElementById("mesAno").addEventListener("change", atualizarPainel);
+    const mesAno = document.getElementById("mesAno");
+    if(mesAno){
+      mesAno.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+      mesAno.addEventListener("change", atualizarPainel);
+    }
 
     mostrarBlocosContrato();
 
-    window.addEventListener("resize", () => { try{ atualizarPainel(); }catch(_){ } });
+    window.addEventListener("resize", () => {
+      try{ atualizarPainel(); }catch(_){}
+    });
   }
 
   auth.onAuthStateChanged(async (user) => {
@@ -864,8 +858,7 @@
       ligarRealtime();
       initUI();
 
-      // garante um draw inicial
-      setTimeout(() => atualizarPainel(), 50);
+      setTimeout(() => atualizarPainel(), 80);
     }catch(e){
       mostrarApp(false);
       if(msg) msg.textContent = "Erro ao carregar permissões (Rules / users). Abra o console (F12).";
@@ -874,5 +867,6 @@
     }
   });
 
+  // ✅ garante refs inicial
   setRefsContrato();
 </script>
