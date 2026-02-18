@@ -103,13 +103,6 @@ body{
 .login-card h2{ margin:0 0 8px; font-size:22px; }
 .login-card .muted{ margin:0 0 18px; }
 
-.login-card input,
-.login-card select,
-.login-card textarea,
-.login-card button{
-  font-size:16px; /* evita zoom no mobile */
-}
-
 .login-status{
   margin-top:14px;
   display:flex;
@@ -132,19 +125,27 @@ body{
 .center{ text-align:center; }
 .tiny{ font-size:11px; }
 
-/* ===================== INPUT + ÍCONE (senha) ===================== */
-.input-icon{
-  position:relative;
-  width:100%;
+/* ✅ evita zoom no iOS/Android ao tocar inputs do login */
+.login-card input,
+.login-card select,
+.login-card textarea,
+.login-card button{
+  font-size:16px;
 }
 
+/* ===================== INPUT COM ÍCONE (senha) ===================== */
+.input-icon{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
 .input-icon input{
   padding-right:44px; /* espaço pro ícone */
 }
 
 .icon-btn{
   position:absolute;
-  right:10px;
+  right:8px;
   top:50%;
   transform:translateY(-50%);
   width:34px;
@@ -152,40 +153,32 @@ body{
   border-radius:10px;
   border:1px solid var(--border);
   background:var(--card);
-  color:var(--muted);
-  display:inline-flex;
+  cursor:pointer;
+  display:flex;
   align-items:center;
   justify-content:center;
-  cursor:pointer;
   padding:0;
 }
 
 .icon-btn:hover{
-  border-color: rgba(203,51,68,.45);
-}
-
-.icon-btn:active{
-  transform:translateY(-50%) scale(.98);
+  border-color: rgba(203,51,68,.55);
 }
 
 .cam-icon{
   display:inline-flex;
-  align-items:center;
-  justify-content:center;
+  width:18px;
+  height:18px;
 }
-
 .cam-icon svg{
   width:18px;
   height:18px;
-  fill:none;
-  stroke: currentColor;
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
+  fill: var(--muted);
 }
-
 .cam-icon svg .stroke{
-  stroke: currentColor;
+  fill:none;
+  stroke: var(--muted);
+  stroke-width:2;
+  stroke-linecap:round;
 }
 
 /* ===================== TOPO ===================== */
@@ -271,6 +264,7 @@ body{
 .card-head{ margin-bottom:10px; }
 .muted{ color:var(--muted); }
 .small{ font-size:12px; }
+
 .h3{ margin:8px 0 10px; font-size:14px; }
 
 /* ===================== GRIDS ===================== */
@@ -344,8 +338,15 @@ body{
   padding:12px;
   background:var(--card);
 }
-.insight-label{ font-size:12px; color:var(--muted); }
-.insight-value{ margin-top:6px; font-size:18px; font-weight:800; }
+.insight-label{
+  font-size:12px;
+  color:var(--muted);
+}
+.insight-value{
+  margin-top:6px;
+  font-size:18px;
+  font-weight:800;
+}
 
 /* ===================== CAMPOS ===================== */
 .field label{
@@ -476,7 +477,6 @@ input:focus, select:focus{
   background:var(--btn-secondary);
   color:var(--btn-secondary-text);
 }
-
 .btn.danger{ background:#dc3545; }
 
 .btn.small{
@@ -534,6 +534,7 @@ th{
 /* ===================== PDF / IMPRESSÃO ===================== */
 .print-only{ display:none; }
 .no-print{ display:block; }
+
 .report{ padding:22px; }
 
 @media print{
@@ -543,6 +544,7 @@ th{
     margin:0;
     padding:0;
   }
+
   .no-print{ display:none !important; }
   .print-only{ display:block !important; }
 }
@@ -553,7 +555,7 @@ th{
   .split{ grid-template-columns: 1fr; }
   .dash{ grid-template-columns: 1fr; }
   .dash-box{ min-height:auto; }
-  .dash-canvas{ min-height:380px; } /* evita cortar o gráfico */
+  .dash-canvas{ min-height:380px; } /* evita cortar gráfico */
 }
 
 @media (max-width: 800px){
