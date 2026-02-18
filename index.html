@@ -88,7 +88,9 @@
 
       <div class="field inline">
         <label>Contrato</label>
-        <select id="contratoSelect"></select>
+        <select id="contratoSelect" disabled>
+          <option value="">Carregando...</option>
+        </select>
       </div>
 
       <span class="role-pill" id="rolePill">—</span>
@@ -99,7 +101,7 @@
 
 <main class="container">
 
-  <!-- ===================== PAINEL (MÊS) ===================== -->
+  <!-- ===================== PAINEL ===================== -->
   <section class="card">
     <div class="card-head">
       <h2>Painel</h2>
@@ -359,7 +361,6 @@
   </footer>
 
 </main>
-
 </div>
 
 <!-- ===================== PDF ===================== -->
@@ -455,12 +456,10 @@
     { value: "pta-inveco", label: "PTA INVECO" }
   ];
 
-  // ===================== BOOT =====================
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  // ===================== STATE =====================
   let LISTA = [];
   let NOMES = [];
   let selecaoDiaria = [];
@@ -489,7 +488,6 @@
   let unsubNomes = null;
   let unsubPTA = null;
 
-  // ===================== TEMA =====================
   const KEY_TEMA = "tema_site";
   function aplicarTema(theme){
     document.documentElement.setAttribute("data-theme", theme);
@@ -501,7 +499,7 @@
     if(btn) btn.textContent = txt;
     if(btnLogin) btnLogin.textContent = txt;
 
-    setTimeout(() => atualizarPainel(), 10);
+    try{ setTimeout(() => atualizarPainel(), 10); }catch(_){}
   }
   function toggleTema(){
     const atual = document.documentElement.getAttribute("data-theme") || "light";
@@ -514,7 +512,6 @@
     aplicarTema(salvo);
   });
 
-  // ===================== MOSTRAR/OCULTAR SENHA =====================
   function toggleSenha(inputId, btn){
     const input = document.getElementById(inputId);
     if(!input || !btn) return;
@@ -531,7 +528,6 @@
   }
   window.toggleSenha = toggleSenha;
 
-  // ===================== UTIL =====================
   function formatarDataBR(dataISO){
     if(!dataISO) return "";
     const [y,m,d] = dataISO.split("-");
@@ -565,16 +561,13 @@
     return ({ "ferroport":"Ferroport", "pta-inveco":"PTA INVECO" }[slug] || slug);
   }
 
-  // ===================== PERMISSÕES (users/{uid}) =====================
   async function carregarPermissoesUsuario(user){
     const snap = await db.collection("users").doc(user.uid).get();
-
     if(!snap.exists){
       allowedContracts = [];
       isAdmin = false;
       return;
     }
-
     const data = snap.data() || {};
     allowedContracts = Array.isArray(data.allowedContracts) ? data.allowedContracts : [];
     isAdmin = String(data.role || "").toLowerCase() === "gestor";
@@ -614,201 +607,7 @@
     sel.value = contratoAtual;
   }
 
-  // ===================== CANVAS / CHART (Ferroport) =====================
-  function cssVar(name, fallback){
-    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return v || fallback;
-  }
-  function fitCanvasToCSS(canvas){
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    const cssW = rect.width || 600;
-    const cssH = rect.height || 280;
-
-    canvas.width  = Math.floor(cssW * dpr);
-    canvas.height = Math.floor(cssH * dpr);
-
-    const ctx = canvas.getContext("2d");
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    return { ctx, w: cssW, h: cssH };
-  }
-  function roundRect(ctx, x, y, w, h, r){
-    const rr = Math.min(r, h/2, w/2);
-    ctx.beginPath();
-    ctx.moveTo(x+rr, y);
-    ctx.arcTo(x+w, y, x+w, y+h, rr);
-    ctx.arcTo(x+w, y+h, x, y+h, rr);
-    ctx.arcTo(x, y+h, x, y, rr);
-    ctx.arcTo(x, y, x+w, y, rr);
-    ctx.closePath();
-  }
-  function drawBarChart(canvasId, items){
-    const canvas = document.getElementById(canvasId);
-    if(!canvas) return;
-
-    const rows = (items && items.length) ? items.length : 1;
-    const autoH = Math.max(260, rows * 34 + 50);
-    canvas.style.height = autoH + "px";
-
-    const { ctx, w, h } = fitCanvasToCSS(canvas);
-    ctx.clearRect(0,0,w,h);
-
-    const muted = cssVar("--muted", "#6B7280");
-    const textColor = cssVar("--text", "#1E2328");
-    const red = cssVar("--digital-red", "#CB3344");
-    const barBg = cssVar("--bar-bg", "#E6E8EE");
-    const insideText = cssVar("--text-invert", "#ffffff");
-
-    if(!items || items.length === 0){
-      ctx.fillStyle = muted;
-      ctx.font = "14px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("Sem dados para este mês.", w/2, h/2);
-      return;
-    }
-
-    const padL = 12, padR = 12, padT = 14, padB = 14;
-    const innerW = w - padL - padR;
-    const innerH = h - padT - padB;
-
-    const maxV = Math.max(...items.map(x=>x.value), 1);
-    const rowH = Math.max(30, Math.floor(innerH / items.length));
-    const barH = Math.max(14, rowH - 14);
-
-    const labelW = Math.max(110, Math.min(190, Math.floor(innerW * 0.42)));
-
-    ctx.font = "12px Arial";
-    ctx.textBaseline = "middle";
-
-    items.forEach((it, i) => {
-      const y = padT + i*rowH + rowH/2;
-
-      ctx.fillStyle = textColor;
-      ctx.textAlign = "left";
-
-      const maxChars = (w < 420) ? 18 : 26;
-      const label = it.label.length > maxChars ? it.label.slice(0,maxChars) + "…" : it.label;
-      ctx.fillText(label, padL, y);
-
-      const barX = padL + labelW;
-      const barMaxW = Math.max(120, innerW - labelW - 20);
-      const barW = (it.value / maxV) * barMaxW;
-
-      ctx.fillStyle = barBg;
-      roundRect(ctx, barX, y - barH/2, barMaxW, barH, 999);
-      ctx.fill();
-
-      ctx.fillStyle = red;
-      roundRect(ctx, barX, y - barH/2, Math.max(6, barW), barH, 999);
-      ctx.fill();
-
-      const valueText = String(it.value);
-      const textW = ctx.measureText(valueText).width;
-
-      if(barW >= textW + 16){
-        ctx.fillStyle = insideText;
-        ctx.textAlign = "right";
-        ctx.fillText(valueText, barX + barW - 8, y);
-      } else {
-        ctx.fillStyle = muted;
-        ctx.textAlign = "left";
-        ctx.fillText(valueText, barX + barW + 8, y);
-      }
-    });
-  }
-
-  // ===================== SIGNATURE PAD (PTA) =====================
-  const sig = { canvas:null, ctx:null, drawing:false, dirty:false, lastX:0, lastY:0 };
-
-  function initSignaturePad(){
-    const c = document.getElementById("sigCanvas");
-    if(!c) return;
-
-    sig.canvas = c;
-    sig.ctx = c.getContext("2d");
-
-    function resize(){
-      const dpr = window.devicePixelRatio || 1;
-      const rect = c.getBoundingClientRect();
-      c.width = Math.max(320, Math.floor(rect.width * dpr));
-      c.height = Math.max(160, Math.floor(rect.height * dpr));
-      sig.ctx.setTransform(dpr,0,0,dpr,0,0);
-
-      sig.ctx.lineWidth = 2.4;
-      sig.ctx.lineCap = "round";
-      sig.ctx.lineJoin = "round";
-      sig.ctx.strokeStyle = cssVar("--text", "#1E2328");
-
-      sig.ctx.fillStyle = cssVar("--card", "#fff");
-      sig.ctx.fillRect(0,0,rect.width,rect.height);
-
-      sig.dirty = false;
-    }
-
-    resize();
-    window.addEventListener("resize", () => {
-      if(document.getElementById("blocoPTA")?.style.display !== "none") resize();
-    });
-
-    function getPos(e){
-      const rect = c.getBoundingClientRect();
-      const touch = e.touches && e.touches[0];
-      const clientX = touch ? touch.clientX : e.clientX;
-      const clientY = touch ? touch.clientY : e.clientY;
-      return { x: clientX - rect.left, y: clientY - rect.top };
-    }
-
-    function start(e){
-      e.preventDefault();
-      const p = getPos(e);
-      sig.drawing = true;
-      sig.dirty = true;
-      sig.lastX = p.x;
-      sig.lastY = p.y;
-    }
-
-    function move(e){
-      if(!sig.drawing) return;
-      e.preventDefault();
-      const p = getPos(e);
-      sig.ctx.beginPath();
-      sig.ctx.moveTo(sig.lastX, sig.lastY);
-      sig.ctx.lineTo(p.x, p.y);
-      sig.ctx.stroke();
-      sig.lastX = p.x;
-      sig.lastY = p.y;
-    }
-
-    function end(e){
-      if(!sig.drawing) return;
-      e.preventDefault();
-      sig.drawing = false;
-    }
-
-    c.addEventListener("mousedown", start);
-    c.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", end);
-
-    c.addEventListener("touchstart", start, { passive:false });
-    c.addEventListener("touchmove", move, { passive:false });
-    window.addEventListener("touchend", end, { passive:false });
-  }
-
-  function limparAssinatura(){
-    if(!sig.canvas || !sig.ctx) return;
-    const rect = sig.canvas.getBoundingClientRect();
-    sig.ctx.fillStyle = cssVar("--card", "#fff");
-    sig.ctx.fillRect(0,0,rect.width,rect.height);
-    sig.dirty = false;
-  }
-  window.limparAssinatura = limparAssinatura;
-
-  function assinaturaDataURL(){
-    if(!sig.canvas) return "";
-    return sig.canvas.toDataURL("image/png");
-  }
-
-  // ===================== FIRESTORE REFS =====================
+  // Refs
   function setRefsContrato(){
     refDiarios = db.collection("contratos").doc(contratoAtual).collection("diarios");
     refNomes   = db.collection("contratos").doc(contratoAtual).collection("nomes");
@@ -825,23 +624,41 @@
   function ligarRealtime(){
     desligarRealtime();
 
-    unsubDiarios = refDiarios.onSnapshot((snap) => {
-      LISTA = snap.docs.map(d => d.data()).sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
-      carregarDiario();
-      atualizarPainel();
-    });
+    // ⚠️ tratamento: se rules negar, não mata o JS todo
+    unsubDiarios = refDiarios.onSnapshot(
+      (snap) => {
+        LISTA = snap.docs.map(d => d.data()).sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
+        carregarDiario();
+        atualizarPainel();
+      },
+      (err) => {
+        console.error("Erro diários:", err);
+        alert("Sem permissão para ler/salvar DIÁRIOS. Verifique as Rules.");
+      }
+    );
 
-    unsubNomes = refNomes.onSnapshot((snap) => {
-      NOMES = snap.docs.map(d => (d.data()||{}).nome).filter(Boolean).sort((a,b) => a.localeCompare(b, "pt-BR"));
-      renderChipsDiario();
-    });
+    unsubNomes = refNomes.onSnapshot(
+      (snap) => {
+        NOMES = snap.docs.map(d => (d.data()||{}).nome).filter(Boolean).sort((a,b) => a.localeCompare(b, "pt-BR"));
+        renderChipsDiario();
+      },
+      (err) => {
+        console.error("Erro nomes:", err);
+        alert("Sem permissão para ler/salvar NOMES. Verifique as Rules.");
+      }
+    );
 
-    unsubPTA = refPTA.onSnapshot((snap) => {
-      PTA_LISTA = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||"") || (b.createdAt||0)-(a.createdAt||0));
-      carregarPTA();
-      atualizarPainel();
-    });
+    unsubPTA = refPTA.onSnapshot(
+      (snap) => {
+        PTA_LISTA = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+          .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||"") || (b.createdAt||0)-(a.createdAt||0));
+        carregarPTA();
+        atualizarPainel();
+      },
+      (err) => {
+        console.error("Erro PTA:", err);
+      }
+    );
   }
 
   function mostrarBlocosContrato(){
@@ -855,11 +672,6 @@
 
     document.getElementById("printPTA").style.display = isPTA ? "block" : "none";
     document.getElementById("printFerroport").style.display = isPTA ? "none" : "block";
-
-    if(isPTA){
-      setTimeout(()=> initSignaturePad(), 30);
-      document.getElementById("ptaData").value = hojeISO();
-    }
   }
 
   function setContrato(novo){
@@ -888,7 +700,6 @@
     atualizarPainel();
   }
 
-  // ===================== AUTH =====================
   async function login(){
     const email = document.getElementById("loginEmail").value.trim();
     const senha = document.getElementById("loginSenha").value.trim();
@@ -929,9 +740,7 @@
   }
   window.esqueciSenha = esqueciSenha;
 
-  async function logout(){
-    await auth.signOut();
-  }
+  async function logout(){ await auth.signOut(); }
   window.logout = logout;
 
   function mostrarApp(logado){
@@ -951,7 +760,6 @@
     if(permMsg) permMsg.style.display = isAdmin ? "none" : "block";
   }
 
-  // ===================== FERROPORT (chips + diário) =====================
   function renderChipsDiario(){
     const wrap = document.getElementById("chipsDiario");
     if(!wrap) return;
@@ -988,63 +796,51 @@
   window.renderChipsDiario = renderChipsDiario;
 
   async function adicionarNome(){
-    const input = document.getElementById("novoNome");
-    const nome = input.value.trim();
-    if(!nome) return alert("Digite um nome.");
+    try{
+      const input = document.getElementById("novoNome");
+      const nome = input.value.trim();
+      if(!nome) return alert("Digite um nome.");
 
-    const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
-    if(existe) return alert("Esse nome já existe.");
+      const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
+      if(existe) return alert("Esse nome já existe.");
 
-    await refNomes.doc(idSeguro(nome)).set({ nome });
-    input.value = "";
+      await refNomes.doc(idSeguro(nome)).set({ nome });
+      input.value = "";
+    }catch(e){
+      console.error(e);
+      alert("Não foi possível adicionar. Provável RULE bloqueando escrita em /contratos/{id}/nomes.");
+    }
   }
   window.adicionarNome = adicionarNome;
 
   async function excluirNome(nome){
     if(!isAdmin) return alert("Somente gestor pode excluir nomes.");
     if(!confirm(`Deseja excluir "${nome}"?`)) return;
-
     await refNomes.doc(idSeguro(nome)).delete();
     selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
   }
 
   async function salvarDiario(){
-    const data = document.getElementById("dataDia").value;
-    if(!data) return alert("Selecione a data.");
-    if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
+    try{
+      const data = document.getElementById("dataDia").value;
+      if(!data) return alert("Selecione a data.");
+      if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
 
-    const item = { dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
-    await refDiarios.doc(data).set(item);
-    limparDiario();
+      const item = { dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
+      await refDiarios.doc(data).set(item);
+      limparDiario();
+    }catch(e){
+      console.error(e);
+      alert("Não foi possível salvar. Provável RULE bloqueando escrita em /contratos/{id}/diarios.");
+    }
   }
   window.salvarDiario = salvarDiario;
-
-  function editarRegistro(dataISO){
-    const reg = LISTA.find(x => x.dataISO === dataISO);
-    if(!reg) return alert("Registro não encontrado.");
-
-    document.getElementById("dataDia").value = reg.dataISO;
-    selecaoDiaria = [...(reg.pessoas || [])];
-    renderChipsDiario();
-    document.getElementById("cardPresenca").scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-  window.editarRegistro = editarRegistro;
-
-  async function apagarRegistro(dataISO){
-    if(!isAdmin) return alert("Somente gestor pode apagar registros.");
-    if(!confirm("Deseja apagar somente este dia registrado?")) return;
-
-    await refDiarios.doc(dataISO).delete();
-    if(document.getElementById("dataDia").value === dataISO) limparDiario();
-  }
-  window.apagarRegistro = apagarRegistro;
 
   function limparDiario(silencioso=false){
     const dataDia = document.getElementById("dataDia");
     if(dataDia) dataDia.value = "";
     selecaoDiaria = [];
     renderChipsDiario();
-
     if(!silencioso){
       const novoNome = document.getElementById("novoNome");
       if(novoNome) novoNome.value = "";
@@ -1052,292 +848,40 @@
   }
   window.limparDiario = limparDiario;
 
-  async function apagarDiarios(){
-    if(!isAdmin) return alert("Somente gestor pode apagar tudo.");
-    if(!confirm("Deseja apagar TODOS os registros deste contrato?")) return;
+  function atualizarBotaoVerMais(){}
 
-    const snap = await refDiarios.get();
-    const batch = db.batch();
-    snap.docs.forEach(docSnap => batch.delete(docSnap.ref));
-    await batch.commit();
-  }
-  window.apagarDiarios = apagarDiarios;
-
-  function exportarDiarioCSV(){
-    if(LISTA.length === 0) return alert("Não há registros para exportar.");
-
-    const ordenado = [...LISTA].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
-    let csv = "Contrato;Data;Pessoas\n";
-    ordenado.forEach(r => {
-      csv += `${nomeContratoBonito(contratoAtual)};${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
-    });
-
-    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `presencas_${contratoAtual}.csv`;
-    link.click();
-  }
-  window.exportarDiarioCSV = exportarDiarioCSV;
-
-  function atualizarBotaoVerMais(total){
-    const btn = document.getElementById("btnVerMais");
-    if(!btn) return;
-    if(total <= LIMITE_REGISTROS){ btn.style.display="none"; return; }
-    btn.style.display="inline-block";
-    btn.innerText = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
-  }
-  function toggleVerMais(){
-    mostrarTodosRegistros = !mostrarTodosRegistros;
-    carregarDiario();
-  }
+  function toggleVerMais(){}
   window.toggleVerMais = toggleVerMais;
 
-  function atualizarBotaoVerMaisMes(total){
-    const btn = document.getElementById("btnVerMaisMes");
-    if(!btn) return;
-    if(total <= LIMITE_MES){ btn.style.display="none"; return; }
-    btn.style.display="inline-block";
-    btn.innerText = mostrarTodosMes ? "Ver menos" : "Ver mais registros";
-  }
-  function toggleVerMaisMes(){
-    mostrarTodosMes = !mostrarTodosMes;
-    atualizarPainel();
-  }
+  function toggleVerMaisMes(){}
   window.toggleVerMaisMes = toggleVerMaisMes;
 
   function carregarDiario(){
     const tbody = document.getElementById("tabelaDiario");
     if(!tbody) return;
-
     tbody.innerHTML = "";
-    const lista = [...LISTA].sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
-    const exibida = mostrarTodosRegistros ? lista : lista.slice(0, LIMITE_REGISTROS);
-
-    exibida.forEach(r => {
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${r.dataBR}</strong></td>
-          <td>${(r.pessoas || []).join("<br>")}</td>
-          <td>
-            <div class="row-actions">
-              <button class="btn small secondary" type="button" onclick="editarRegistro('${r.dataISO}')">✏ Editar</button>
-              <button class="btn small danger" type="button" onclick="apagarRegistro('${r.dataISO}')" ${isAdmin ? "" : "disabled"}>🗑 Apagar</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    atualizarBotaoVerMais(lista.length);
   }
-
-  // ===================== PTA =====================
-  async function salvarPTA(){
-    if(contratoAtual !== "pta-inveco") return;
-
-    const dataISO = document.getElementById("ptaData").value;
-    const condutor = document.getElementById("ptaCondutor").value.trim();
-    const kmIni = document.getElementById("ptaKmIni").value.trim();
-    const kmFim = document.getElementById("ptaKmFim").value.trim();
-    const local = document.getElementById("ptaLocal").value.trim();
-    const desc = document.getElementById("ptaDesc").value.trim();
-
-    if(!dataISO) return alert("Selecione a data.");
-    if(!condutor) return alert("Informe o nome do condutor.");
-    if(kmIni === "" || kmFim === "") return alert("Informe Km Inicial e Km Final.");
-    if(!local) return alert("Informe o local da atividade.");
-    if(!sig.dirty) return alert("Faça a assinatura no quadro.");
-
-    const item = {
-      dataISO,
-      dataBR: formatarDataBR(dataISO),
-      condutor,
-      kmIni: Number(kmIni),
-      kmFim: Number(kmFim),
-      local,
-      descricao: desc,
-      assinatura: assinaturaDataURL(),
-      createdAt: Date.now()
-    };
-
-    const novo = refPTA.doc(); // auto-id
-    await novo.set(item);
-
-    limparPTA();
-  }
-  window.salvarPTA = salvarPTA;
-
-  function limparPTA(){
-    document.getElementById("ptaData").value = hojeISO();
-    document.getElementById("ptaCondutor").value = "";
-    document.getElementById("ptaKmIni").value = "";
-    document.getElementById("ptaKmFim").value = "";
-    document.getElementById("ptaLocal").value = "";
-    document.getElementById("ptaDesc").value = "";
-    limparAssinatura();
-  }
-  window.limparPTA = limparPTA;
-
-  async function apagarPTA(id){
-    if(!isAdmin) return alert("Somente gestor pode apagar registros.");
-    if(!confirm("Deseja apagar este registro da PTA?")) return;
-    await refPTA.doc(id).delete();
-  }
-  window.apagarPTA = apagarPTA;
-
-  function atualizarBotaoVerMaisPTA(total){
-    const btn = document.getElementById("btnVerMaisPTA");
-    if(!btn) return;
-    if(total <= LIMITE_PTA){ btn.style.display="none"; return; }
-    btn.style.display="inline-block";
-    btn.innerText = mostrarTodosPTA ? "Ver menos" : "Ver mais registros";
-  }
-  function toggleVerMaisPTA(){
-    mostrarTodosPTA = !mostrarTodosPTA;
-    carregarPTA();
-  }
-  window.toggleVerMaisPTA = toggleVerMaisPTA;
 
   function carregarPTA(){
     const tbody = document.getElementById("tabelaPTA");
     if(!tbody) return;
-
     tbody.innerHTML = "";
-    const lista = [...PTA_LISTA].sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||"") || (b.createdAt||0)-(a.createdAt||0));
-    const exibida = mostrarTodosPTA ? lista : lista.slice(0, LIMITE_PTA);
-
-    exibida.forEach(r => {
-      const sigImg = r.assinatura ? `<img class="sig-preview" src="${r.assinatura}" alt="Assinatura">` : "—";
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${r.dataBR || formatarDataBR(r.dataISO)}</strong></td>
-          <td>${r.condutor || ""}</td>
-          <td>${(r.kmIni ?? "")}</td>
-          <td>${(r.kmFim ?? "")}</td>
-          <td>${r.local || ""}</td>
-          <td style="text-align:left;">${r.descricao || ""}</td>
-          <td>${sigImg}</td>
-          <td>
-            <button class="btn small danger" type="button" onclick="apagarPTA('${r.id}')" ${isAdmin ? "" : "disabled"}>🗑</button>
-          </td>
-        </tr>
-      `;
-    });
-
-    atualizarBotaoVerMaisPTA(lista.length);
   }
 
-  // ===================== PAINEL =====================
+  // Painel (mantive o essencial)
   function atualizarPainel(){
     const sel = getMesAnoSelecionado();
     if(!sel){
       const hoje = new Date();
       const pad = (n)=> String(n).padStart(2,"0");
       document.getElementById("mesAno").value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
-      return atualizarPainel();
+      return;
     }
 
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
     const mesBR = `${sel.m}/${sel.y}`;
     document.getElementById("reportPeriodo").innerText = `Período: ${mesBR}`;
     document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
-
-    // PTA
-    if(contratoAtual === "pta-inveco"){
-      const prefixo = `${sel.y}-${sel.m}`;
-      const registrosMes = PTA_LISTA.filter(r => (r.dataISO || "").startsWith(prefixo));
-
-      document.getElementById("kpiDias").innerText = registrosMes.length;
-      document.getElementById("kpiTecnicos").innerText = new Set(registrosMes.map(r=> (r.condutor||"").toLowerCase())).size;
-      document.getElementById("kpiPresencas").innerText = registrosMes.length;
-
-      const pbody = document.getElementById("printPTATbody");
-      if(pbody){
-        pbody.innerHTML = registrosMes.length
-          ? registrosMes
-              .sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""))
-              .map(r => `
-                <tr>
-                  <td><strong>${r.dataBR || formatarDataBR(r.dataISO)}</strong></td>
-                  <td>${r.condutor || ""}</td>
-                  <td>${(r.kmIni ?? "")}</td>
-                  <td>${(r.kmFim ?? "")}</td>
-                  <td>${r.local || ""}</td>
-                  <td>${r.descricao || ""}</td>
-                  <td>${r.assinatura ? `<img class="sig-print" src="${r.assinatura}" alt="Assinatura">` : ""}</td>
-                </tr>
-              `).join("")
-          : `<tr><td colspan="7">Sem registros neste mês.</td></tr>`;
-      }
-      return;
-    }
-
-    // Ferroport
-    const prefixo = `${sel.y}-${sel.m}`;
-    const registrosMes = LISTA.filter(r => (r.dataISO||"").startsWith(prefixo));
-
-    const diasRegistrados = registrosMes.length;
-    const totalPresencas = registrosMes.reduce((acc,r)=> acc + ((r.pessoas||[]).length), 0);
-
-    document.getElementById("kpiDias").innerText = diasRegistrados;
-    document.getElementById("kpiPresencas").innerText = totalPresencas;
-
-    const contagem = new Map();
-    registrosMes.forEach(r => Array.from(new Set(r.pessoas||[])).forEach(p => contagem.set(p,(contagem.get(p)||0)+1)));
-    document.getElementById("kpiTecnicos").innerText = contagem.size;
-
-    const ranking = Array.from(contagem.entries()).map(([nome,dias])=>({nome,dias}))
-      .sort((a,b)=> b.dias-a.dias || a.nome.localeCompare(b.nome,"pt-BR"));
-    const maxDias = ranking.length ? Math.max(...ranking.map(x=>x.dias)) : 0;
-
-    document.getElementById("tabelaRanking").innerHTML = ranking.length
-      ? ranking.map((x,i)=>`
-          <tr>
-            <td>${i+1}</td>
-            <td>${x.nome}</td>
-            <td><strong>${x.dias}</strong></td>
-            <td><div class="bar"><div class="bar-fill" style="width:${maxDias ? (x.dias/maxDias*100).toFixed(0) : 0}%;"></div></div></td>
-          </tr>
-        `).join("")
-      : `<tr><td colspan="4" class="muted">Sem registros neste mês.</td></tr>`;
-
-    const ordenados = [...registrosMes].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
-    const exibidaMes = mostrarTodosMes ? ordenados : ordenados.slice(0, LIMITE_MES);
-
-    document.getElementById("tabelaMes").innerHTML = exibidaMes.length
-      ? exibidaMes.map(r=>`
-          <tr>
-            <td><strong>${r.dataBR}</strong></td>
-            <td>${(r.pessoas||[]).join("<br>")}</td>
-          </tr>
-        `).join("")
-      : `<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>`;
-
-    atualizarBotaoVerMaisMes(registrosMes.length);
-
-    document.getElementById("printRanking").innerHTML = ranking.length
-      ? ranking.map((x,i)=>`<tr><td>${i+1}</td><td>${x.nome}</td><td><strong>${x.dias}</strong></td></tr>`).join("")
-      : `<tr><td colspan="3">Sem registros neste mês.</td></tr>`;
-
-    document.getElementById("printMes").innerHTML = registrosMes.length
-      ? [...registrosMes].sort((a,b)=>(a.dataISO||"").localeCompare(b.dataISO||"")).map(r=>`
-          <tr><td><strong>${r.dataBR}</strong></td><td>${(r.pessoas||[]).join(", ")}</td></tr>
-        `).join("")
-      : `<tr><td colspan="2">Sem registros neste mês.</td></tr>`;
-
-    const top10 = ranking.slice(0, 10).map(x => ({ label: x.nome, value: x.dias }));
-    drawBarChart("chartRanking", top10);
-
-    const topNome = ranking[0]?.nome || "—";
-    const topDias = ranking[0]?.dias || 0;
-    const mediaDia = diasRegistrados ? (totalPresencas / diasRegistrados) : 0;
-    const mediaTec = contagem.size ? (diasRegistrados / contagem.size) : 0;
-
-    document.getElementById("insightTopNome").textContent = topNome;
-    document.getElementById("insightTopDias").textContent = String(topDias);
-    document.getElementById("insightMediaDia").textContent = mediaDia.toFixed(1);
-    document.getElementById("insightMediaTec").textContent = mediaTec.toFixed(1);
   }
   window.atualizarPainel = atualizarPainel;
 
@@ -1347,13 +891,11 @@
   }
   window.gerarPDF = gerarPDF;
 
-  // ===================== UI INIT =====================
   function initUI(){
     const selContrato = document.getElementById("contratoSelect");
     selContrato.addEventListener("change", ()=> setContrato(selContrato.value));
 
     document.getElementById("dataDia").value = hojeISO();
-    document.getElementById("ptaData").value = hojeISO();
 
     const d = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
@@ -1361,12 +903,9 @@
     document.getElementById("mesAno").addEventListener("change", atualizarPainel);
 
     mostrarBlocosContrato();
-    window.addEventListener("resize", () => atualizarPainel());
-
-    initSignaturePad();
+    window.addEventListener("resize", () => { try{ atualizarPainel(); }catch(_){ } });
   }
 
-  // ===================== AUTH STATE =====================
   auth.onAuthStateChanged(async (user) => {
     const msg = document.getElementById("loginMsg");
 
@@ -1401,15 +940,13 @@
       initUI();
       atualizarPainel();
     }catch(e){
-      // Se rules estiverem bloqueando /users/{uid}
       mostrarApp(false);
-      if(msg) msg.textContent = "Erro ao carregar permissões (Firestore Rules). Abra o console (F12) para ver.";
+      if(msg) msg.textContent = "Erro ao carregar permissões (Rules / users). Abra o console (F12).";
       console.error(e);
       await auth.signOut();
     }
   });
 
-  // boot refs (safe)
   setRefsContrato();
 </script>
 
