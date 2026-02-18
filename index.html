@@ -9,16 +9,6 @@
 
 <body>
 
-<!-- ✅ fallback: se o Firebase/JS falhar, pelo menos o login aparece -->
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const login = document.getElementById("loginBox");
-    const app = document.getElementById("appRoot");
-    if (login) login.style.display = "flex";
-    if (app) app.style.display = "none";
-  });
-</script>
-
 <!-- ===================== LOGIN ===================== -->
 <section class="login-page" id="loginBox">
   <div class="login-card">
@@ -38,15 +28,12 @@
 
       <div class="field">
         <label>Senha</label>
-
         <div class="input-icon">
           <input id="loginSenha" type="password" placeholder="••••••••" autocomplete="current-password">
-
           <button class="icon-btn" type="button"
             onclick="toggleSenha('loginSenha', this)"
             aria-label="Mostrar/ocultar senha"
             title="Mostrar/ocultar senha">
-
             <span class="cam-icon cam-closed">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 7a3 3 0 0 1 3-3h6l2 2h2a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7z"></path>
@@ -54,14 +41,12 @@
                 <path d="M3 3l18 18" class="stroke"></path>
               </svg>
             </span>
-
             <span class="cam-icon cam-open" style="display:none;">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 7a3 3 0 0 1 3-3h6l2 2h2a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7z"></path>
                 <path d="M9.5 12a2.5 2.5 0 1 0 5 0a2.5 2.5 0 0 0-5 0z"></path>
               </svg>
             </span>
-
           </button>
         </div>
       </div>
@@ -155,7 +140,7 @@
       </div>
     </div>
 
-    <!-- ✅ Ferroport -->
+    <!-- Ferroport -->
     <div id="blocoFerroport">
       <div class="split">
         <div>
@@ -225,7 +210,7 @@
       </div>
     </div>
 
-    <!-- ✅ PTA -->
+    <!-- PTA -->
     <div id="blocoPTA" style="display:none;">
       <h3 class="h3">Controle de Uso — PTA INVECO</h3>
       <p class="muted small">Preencha os campos e assine com o dedo/mouse. O registro fica salvo no banco.</p>
@@ -310,7 +295,7 @@
     </div>
   </section>
 
-  <!-- ===================== FERROPORT: FORM DIÁRIO ===================== -->
+  <!-- Ferroport form -->
   <section class="card" id="cardPresenca">
     <div class="card-head">
       <h2>Presença por dia (Ferroport)</h2>
@@ -448,11 +433,13 @@
   </div>
 </section>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+<!-- ===================== Firebase (SEM module) ===================== -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+<script>
+  // ===================== CONFIG =====================
   const firebaseConfig = {
     apiKey: "AIzaSyBzgChouE4W25XnD-vFybJrKVN9yl3R0IQ",
     authDomain: "ferroportluannogueira.firebaseapp.com",
@@ -468,10 +455,12 @@
     { value: "pta-inveco", label: "PTA INVECO" }
   ];
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+  // ===================== BOOT =====================
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
 
+  // ===================== STATE =====================
   let LISTA = [];
   let NOMES = [];
   let selecaoDiaria = [];
@@ -514,17 +503,19 @@
 
     setTimeout(() => atualizarPainel(), 10);
   }
-  window.toggleTema = function(){
+  function toggleTema(){
     const atual = document.documentElement.getAttribute("data-theme") || "light";
     aplicarTema(atual === "dark" ? "light" : "dark");
-  };
+  }
+  window.toggleTema = toggleTema;
+
   window.addEventListener("DOMContentLoaded", () => {
     const salvo = localStorage.getItem(KEY_TEMA) || "light";
     aplicarTema(salvo);
   });
 
   // ===================== MOSTRAR/OCULTAR SENHA =====================
-  window.toggleSenha = function(inputId, btn){
+  function toggleSenha(inputId, btn){
     const input = document.getElementById(inputId);
     if(!input || !btn) return;
 
@@ -537,23 +528,24 @@
       closed.style.display = mostrando ? "inline-flex" : "none";
       open.style.display = mostrando ? "none" : "inline-flex";
     }
-  };
+  }
+  window.toggleSenha = toggleSenha;
 
   // ===================== UTIL =====================
   function formatarDataBR(dataISO){
     if(!dataISO) return "";
     const [y,m,d] = dataISO.split("-");
-    return \`\${d}/\${m}/\${y}\`;
+    return `${d}/${m}/${y}`;
   }
   function hojeISO(){
     const d = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
-    return \`\${d.getFullYear()}-\${pad(d.getMonth()+1)}-\${pad(d.getDate())}\`;
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
   function agoraBR(){
     const d = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
-    return \`\${pad(d.getDate())}/\${pad(d.getMonth()+1)}/\${d.getFullYear()} \${pad(d.getHours())}:\${pad(d.getMinutes())}\`;
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
   function getMesAnoSelecionado(){
     const v = document.getElementById("mesAno").value;
@@ -564,37 +556,27 @@
   function idSeguro(str){
     return String(str || "")
       .toLowerCase()
-      .normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")
-      .replace(/\\s+/g,"-")
-      .replace(/[^a-z0-9\\-]/g,"")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/\s+/g,"-")
+      .replace(/[^a-z0-9\-]/g,"")
       .slice(0,80);
   }
   function nomeContratoBonito(slug){
     return ({ "ferroport":"Ferroport", "pta-inveco":"PTA INVECO" }[slug] || slug);
   }
 
-  // ===================== PERMISSÕES =====================
+  // ===================== PERMISSÕES (users/{uid}) =====================
   async function carregarPermissoesUsuario(user){
-    // tenta "users" e "Users" (pra não travar)
-    const refLower = doc(db, "users", user.uid);
-    const refUpper = doc(db, "Users", user.uid);
+    const snap = await db.collection("users").doc(user.uid).get();
 
-    let snap = await getDoc(refLower);
-    if(!snap.exists()) snap = await getDoc(refUpper);
-
-    if(!snap.exists()){
+    if(!snap.exists){
       allowedContracts = [];
       isAdmin = false;
       return;
     }
 
-    const data = snap.data();
-
-    const arr = Array.isArray(data.allowedContracts) ? data.allowedContracts
-              : Array.isArray(data.allowedContract) ? data.allowedContract
-              : [];
-
-    allowedContracts = arr.map(s => String(s).trim().toLowerCase());
+    const data = snap.data() || {};
+    allowedContracts = Array.isArray(data.allowedContracts) ? data.allowedContracts : [];
     isAdmin = String(data.role || "").toLowerCase() === "gestor";
   }
 
@@ -604,9 +586,7 @@
 
     sel.innerHTML = "";
 
-    const liberados = CONTRATOS.filter(c => allowedContracts.includes(c.value));
-
-    if(!liberados.length){
+    if(!allowedContracts.length){
       const opt = document.createElement("option");
       opt.value = "";
       opt.textContent = "Sem acesso";
@@ -617,15 +597,17 @@
 
     sel.disabled = false;
 
-    liberados.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.value;
-      opt.textContent = c.label;
-      sel.appendChild(opt);
-    });
+    CONTRATOS
+      .filter(c => allowedContracts.includes(c.value))
+      .forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.value;
+        opt.textContent = c.label;
+        sel.appendChild(opt);
+      });
 
     if(!allowedContracts.includes(contratoAtual)){
-      contratoAtual = liberados[0].value;
+      contratoAtual = allowedContracts[0];
       localStorage.setItem(KEY_CONTRATO, contratoAtual);
     }
 
@@ -812,47 +794,49 @@
     window.addEventListener("touchend", end, { passive:false });
   }
 
-  window.limparAssinatura = function(){
+  function limparAssinatura(){
     if(!sig.canvas || !sig.ctx) return;
     const rect = sig.canvas.getBoundingClientRect();
     sig.ctx.fillStyle = cssVar("--card", "#fff");
     sig.ctx.fillRect(0,0,rect.width,rect.height);
     sig.dirty = false;
-  };
+  }
+  window.limparAssinatura = limparAssinatura;
 
   function assinaturaDataURL(){
     if(!sig.canvas) return "";
     return sig.canvas.toDataURL("image/png");
   }
 
-  // ===================== FIREBASE / REFS =====================
+  // ===================== FIRESTORE REFS =====================
   function setRefsContrato(){
-    refDiarios = collection(db, "contratos", contratoAtual, "diarios");
-    refNomes   = collection(db, "contratos", contratoAtual, "nomes");
-    refPTA     = collection(db, "contratos", contratoAtual, "ptauso");
+    refDiarios = db.collection("contratos").doc(contratoAtual).collection("diarios");
+    refNomes   = db.collection("contratos").doc(contratoAtual).collection("nomes");
+    refPTA     = db.collection("contratos").doc(contratoAtual).collection("ptauso");
   }
 
   function desligarRealtime(){
     if(typeof unsubDiarios === "function") unsubDiarios();
     if(typeof unsubNomes === "function") unsubNomes();
     if(typeof unsubPTA === "function") unsubPTA();
+    unsubDiarios = unsubNomes = unsubPTA = null;
   }
 
   function ligarRealtime(){
     desligarRealtime();
 
-    unsubDiarios = onSnapshot(refDiarios, (snap) => {
-      LISTA = snap.docs.map(d => d.data()).sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
+    unsubDiarios = refDiarios.onSnapshot((snap) => {
+      LISTA = snap.docs.map(d => d.data()).sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
       carregarDiario();
       atualizarPainel();
     });
 
-    unsubNomes = onSnapshot(refNomes, (snap) => {
-      NOMES = snap.docs.map(d => d.data().nome).sort((a,b) => a.localeCompare(b, "pt-BR"));
+    unsubNomes = refNomes.onSnapshot((snap) => {
+      NOMES = snap.docs.map(d => (d.data()||{}).nome).filter(Boolean).sort((a,b) => a.localeCompare(b, "pt-BR"));
       renderChipsDiario();
     });
 
-    unsubPTA = onSnapshot(refPTA, (snap) => {
+    unsubPTA = refPTA.onSnapshot((snap) => {
       PTA_LISTA = snap.docs.map(d => ({ id: d.id, ...d.data() }))
         .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||"") || (b.createdAt||0)-(a.createdAt||0));
       carregarPTA();
@@ -905,7 +889,7 @@
   }
 
   // ===================== AUTH =====================
-  window.login = async function(){
+  async function login(){
     const email = document.getElementById("loginEmail").value.trim();
     const senha = document.getElementById("loginSenha").value.trim();
     const msg = document.getElementById("loginMsg");
@@ -917,15 +901,16 @@
     btn.disabled = true;
 
     try{
-      await signInWithEmailAndPassword(auth, email, senha);
+      await auth.signInWithEmailAndPassword(email, senha);
     }catch(e){
       msg.textContent = "Falha no login: " + (e?.code || e?.message || e);
       status.style.display = "none";
       btn.disabled = false;
     }
-  };
+  }
+  window.login = login;
 
-  window.esqueciSenha = async function(){
+  async function esqueciSenha(){
     const email = document.getElementById("loginEmail").value.trim();
     const msg = document.getElementById("loginMsg");
     msg.textContent = "";
@@ -936,16 +921,18 @@
     }
 
     try{
-      await sendPasswordResetEmail(auth, email);
+      await auth.sendPasswordResetEmail(email);
       msg.textContent = "Pronto! Enviamos um e-mail para redefinir sua senha.";
     }catch(e){
       msg.textContent = "Não foi possível enviar: " + (e?.code || e?.message || e);
     }
-  };
+  }
+  window.esqueciSenha = esqueciSenha;
 
-  window.logout = async function(){
-    await signOut(auth);
-  };
+  async function logout(){
+    await auth.signOut();
+  }
+  window.logout = logout;
 
   function mostrarApp(logado){
     document.getElementById("loginBox").style.display = logado ? "none" : "flex";
@@ -964,8 +951,8 @@
     if(permMsg) permMsg.style.display = isAdmin ? "none" : "block";
   }
 
-  // ===================== FERROPORT =====================
-  window.renderChipsDiario = function(){
+  // ===================== FERROPORT (chips + diário) =====================
+  function renderChipsDiario(){
     const wrap = document.getElementById("chipsDiario");
     if(!wrap) return;
     wrap.innerHTML = "";
@@ -997,9 +984,10 @@
       box.appendChild(remover);
       wrap.appendChild(box);
     });
-  };
+  }
+  window.renderChipsDiario = renderChipsDiario;
 
-  window.adicionarNome = async function(){
+  async function adicionarNome(){
     const input = document.getElementById("novoNome");
     const nome = input.value.trim();
     if(!nome) return alert("Digite um nome.");
@@ -1007,28 +995,31 @@
     const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
     if(existe) return alert("Esse nome já existe.");
 
-    await setDoc(doc(db, "contratos", contratoAtual, "nomes", idSeguro(nome)), { nome });
+    await refNomes.doc(idSeguro(nome)).set({ nome });
     input.value = "";
-  };
+  }
+  window.adicionarNome = adicionarNome;
 
   async function excluirNome(nome){
     if(!isAdmin) return alert("Somente gestor pode excluir nomes.");
-    if(!confirm(\`Deseja excluir "\${nome}"?\`)) return;
-    await deleteDoc(doc(db, "contratos", contratoAtual, "nomes", idSeguro(nome)));
+    if(!confirm(`Deseja excluir "${nome}"?`)) return;
+
+    await refNomes.doc(idSeguro(nome)).delete();
     selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
   }
 
-  window.salvarDiario = async function(){
+  async function salvarDiario(){
     const data = document.getElementById("dataDia").value;
     if(!data) return alert("Selecione a data.");
     if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
 
     const item = { dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
-    await setDoc(doc(db, "contratos", contratoAtual, "diarios", data), item);
+    await refDiarios.doc(data).set(item);
     limparDiario();
-  };
+  }
+  window.salvarDiario = salvarDiario;
 
-  window.editarRegistro = function(dataISO){
+  function editarRegistro(dataISO){
     const reg = LISTA.find(x => x.dataISO === dataISO);
     if(!reg) return alert("Registro não encontrado.");
 
@@ -1036,49 +1027,58 @@
     selecaoDiaria = [...(reg.pessoas || [])];
     renderChipsDiario();
     document.getElementById("cardPresenca").scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  }
+  window.editarRegistro = editarRegistro;
 
-  window.apagarRegistro = async function(dataISO){
+  async function apagarRegistro(dataISO){
     if(!isAdmin) return alert("Somente gestor pode apagar registros.");
     if(!confirm("Deseja apagar somente este dia registrado?")) return;
-    await deleteDoc(doc(db, "contratos", contratoAtual, "diarios", dataISO));
-    if(document.getElementById("dataDia").value === dataISO) limparDiario();
-  };
 
-  window.limparDiario = function(silencioso=false){
+    await refDiarios.doc(dataISO).delete();
+    if(document.getElementById("dataDia").value === dataISO) limparDiario();
+  }
+  window.apagarRegistro = apagarRegistro;
+
+  function limparDiario(silencioso=false){
     const dataDia = document.getElementById("dataDia");
     if(dataDia) dataDia.value = "";
     selecaoDiaria = [];
     renderChipsDiario();
+
     if(!silencioso){
       const novoNome = document.getElementById("novoNome");
       if(novoNome) novoNome.value = "";
     }
-  };
+  }
+  window.limparDiario = limparDiario;
 
-  window.apagarDiarios = async function(){
+  async function apagarDiarios(){
     if(!isAdmin) return alert("Somente gestor pode apagar tudo.");
     if(!confirm("Deseja apagar TODOS os registros deste contrato?")) return;
 
-    const snap = await getDocs(refDiarios);
-    for(const d of snap.docs) await deleteDoc(d.ref);
-  };
+    const snap = await refDiarios.get();
+    const batch = db.batch();
+    snap.docs.forEach(docSnap => batch.delete(docSnap.ref));
+    await batch.commit();
+  }
+  window.apagarDiarios = apagarDiarios;
 
-  window.exportarDiarioCSV = function(){
+  function exportarDiarioCSV(){
     if(LISTA.length === 0) return alert("Não há registros para exportar.");
 
-    const ordenado = [...LISTA].sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
-    let csv = "Contrato;Data;Pessoas\\n";
+    const ordenado = [...LISTA].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
+    let csv = "Contrato;Data;Pessoas\n";
     ordenado.forEach(r => {
-      csv += \`\${nomeContratoBonito(contratoAtual)};\${r.dataBR};"\${(r.pessoas || []).join(", ")}"\\n\`;
+      csv += `${nomeContratoBonito(contratoAtual)};${r.dataBR};"${(r.pessoas || []).join(", ")}"\n`;
     });
 
     const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = \`presencas_\${contratoAtual}.csv\`;
+    link.download = `presencas_${contratoAtual}.csv`;
     link.click();
-  };
+  }
+  window.exportarDiarioCSV = exportarDiarioCSV;
 
   function atualizarBotaoVerMais(total){
     const btn = document.getElementById("btnVerMais");
@@ -1087,10 +1087,11 @@
     btn.style.display="inline-block";
     btn.innerText = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
   }
-  window.toggleVerMais = function(){
+  function toggleVerMais(){
     mostrarTodosRegistros = !mostrarTodosRegistros;
     carregarDiario();
-  };
+  }
+  window.toggleVerMais = toggleVerMais;
 
   function atualizarBotaoVerMaisMes(total){
     const btn = document.getElementById("btnVerMaisMes");
@@ -1099,39 +1100,40 @@
     btn.style.display="inline-block";
     btn.innerText = mostrarTodosMes ? "Ver menos" : "Ver mais registros";
   }
-  window.toggleVerMaisMes = function(){
+  function toggleVerMaisMes(){
     mostrarTodosMes = !mostrarTodosMes;
     atualizarPainel();
-  };
+  }
+  window.toggleVerMaisMes = toggleVerMaisMes;
 
   function carregarDiario(){
     const tbody = document.getElementById("tabelaDiario");
     if(!tbody) return;
 
     tbody.innerHTML = "";
-    const lista = [...LISTA].sort((a,b)=> b.dataISO.localeCompare(a.dataISO));
+    const lista = [...LISTA].sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
     const exibida = mostrarTodosRegistros ? lista : lista.slice(0, LIMITE_REGISTROS);
 
     exibida.forEach(r => {
-      tbody.innerHTML += \`
+      tbody.innerHTML += `
         <tr>
-          <td><strong>\${r.dataBR}</strong></td>
-          <td>\${(r.pessoas || []).join("<br>")}</td>
+          <td><strong>${r.dataBR}</strong></td>
+          <td>${(r.pessoas || []).join("<br>")}</td>
           <td>
             <div class="row-actions">
-              <button class="btn small secondary" type="button" onclick="editarRegistro('\${r.dataISO}')">✏ Editar</button>
-              <button class="btn small danger" type="button" onclick="apagarRegistro('\${r.dataISO}')" \${isAdmin ? "" : "disabled"}>🗑 Apagar</button>
+              <button class="btn small secondary" type="button" onclick="editarRegistro('${r.dataISO}')">✏ Editar</button>
+              <button class="btn small danger" type="button" onclick="apagarRegistro('${r.dataISO}')" ${isAdmin ? "" : "disabled"}>🗑 Apagar</button>
             </div>
           </td>
         </tr>
-      \`;
+      `;
     });
 
     atualizarBotaoVerMais(lista.length);
   }
 
   // ===================== PTA =====================
-  window.salvarPTA = async function(){
+  async function salvarPTA(){
     if(contratoAtual !== "pta-inveco") return;
 
     const dataISO = document.getElementById("ptaData").value;
@@ -1147,8 +1149,6 @@
     if(!local) return alert("Informe o local da atividade.");
     if(!sig.dirty) return alert("Faça a assinatura no quadro.");
 
-    const assinatura = assinaturaDataURL();
-
     const item = {
       dataISO,
       dataBR: formatarDataBR(dataISO),
@@ -1157,17 +1157,18 @@
       kmFim: Number(kmFim),
       local,
       descricao: desc,
-      assinatura,
+      assinatura: assinaturaDataURL(),
       createdAt: Date.now()
     };
 
-    const novoDoc = doc(refPTA);
-    await setDoc(novoDoc, item);
+    const novo = refPTA.doc(); // auto-id
+    await novo.set(item);
 
     limparPTA();
-  };
+  }
+  window.salvarPTA = salvarPTA;
 
-  window.limparPTA = function(){
+  function limparPTA(){
     document.getElementById("ptaData").value = hojeISO();
     document.getElementById("ptaCondutor").value = "";
     document.getElementById("ptaKmIni").value = "";
@@ -1175,13 +1176,15 @@
     document.getElementById("ptaLocal").value = "";
     document.getElementById("ptaDesc").value = "";
     limparAssinatura();
-  };
+  }
+  window.limparPTA = limparPTA;
 
-  window.apagarPTA = async function(id){
+  async function apagarPTA(id){
     if(!isAdmin) return alert("Somente gestor pode apagar registros.");
     if(!confirm("Deseja apagar este registro da PTA?")) return;
-    await deleteDoc(doc(db, "contratos", contratoAtual, "ptauso", id));
-  };
+    await refPTA.doc(id).delete();
+  }
+  window.apagarPTA = apagarPTA;
 
   function atualizarBotaoVerMaisPTA(total){
     const btn = document.getElementById("btnVerMaisPTA");
@@ -1190,11 +1193,11 @@
     btn.style.display="inline-block";
     btn.innerText = mostrarTodosPTA ? "Ver menos" : "Ver mais registros";
   }
-
-  window.toggleVerMaisPTA = function(){
+  function toggleVerMaisPTA(){
     mostrarTodosPTA = !mostrarTodosPTA;
     carregarPTA();
-  };
+  }
+  window.toggleVerMaisPTA = toggleVerMaisPTA;
 
   function carregarPTA(){
     const tbody = document.getElementById("tabelaPTA");
@@ -1205,43 +1208,44 @@
     const exibida = mostrarTodosPTA ? lista : lista.slice(0, LIMITE_PTA);
 
     exibida.forEach(r => {
-      const sigImg = r.assinatura ? \`<img class="sig-preview" src="\${r.assinatura}" alt="Assinatura">\` : "—";
-      tbody.innerHTML += \`
+      const sigImg = r.assinatura ? `<img class="sig-preview" src="${r.assinatura}" alt="Assinatura">` : "—";
+      tbody.innerHTML += `
         <tr>
-          <td><strong>\${r.dataBR || formatarDataBR(r.dataISO)}</strong></td>
-          <td>\${r.condutor || ""}</td>
-          <td>\${(r.kmIni ?? "")}</td>
-          <td>\${(r.kmFim ?? "")}</td>
-          <td>\${r.local || ""}</td>
-          <td style="text-align:left;">\${r.descricao || ""}</td>
-          <td>\${sigImg}</td>
+          <td><strong>${r.dataBR || formatarDataBR(r.dataISO)}</strong></td>
+          <td>${r.condutor || ""}</td>
+          <td>${(r.kmIni ?? "")}</td>
+          <td>${(r.kmFim ?? "")}</td>
+          <td>${r.local || ""}</td>
+          <td style="text-align:left;">${r.descricao || ""}</td>
+          <td>${sigImg}</td>
           <td>
-            <button class="btn small danger" type="button" onclick="apagarPTA('\${r.id}')" \${isAdmin ? "" : "disabled"}>🗑</button>
+            <button class="btn small danger" type="button" onclick="apagarPTA('${r.id}')" ${isAdmin ? "" : "disabled"}>🗑</button>
           </td>
         </tr>
-      \`;
+      `;
     });
 
     atualizarBotaoVerMaisPTA(lista.length);
   }
 
   // ===================== PAINEL =====================
-  window.atualizarPainel = function(){
+  function atualizarPainel(){
     const sel = getMesAnoSelecionado();
     if(!sel){
       const hoje = new Date();
       const pad = (n)=> String(n).padStart(2,"0");
-      document.getElementById("mesAno").value = \`\${hoje.getFullYear()}-\${pad(hoje.getMonth()+1)}\`;
+      document.getElementById("mesAno").value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
       return atualizarPainel();
     }
 
     document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
-    const mesBR = \`\${sel.m}/\${sel.y}\`;
-    document.getElementById("reportPeriodo").innerText = \`Período: \${mesBR}\`;
-    document.getElementById("reportGeradoEm").innerText = \`Gerado em: \${agoraBR()}\`;
+    const mesBR = `${sel.m}/${sel.y}`;
+    document.getElementById("reportPeriodo").innerText = `Período: ${mesBR}`;
+    document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
 
+    // PTA
     if(contratoAtual === "pta-inveco"){
-      const prefixo = \`\${sel.y}-\${sel.m}\`;
+      const prefixo = `${sel.y}-${sel.m}`;
       const registrosMes = PTA_LISTA.filter(r => (r.dataISO || "").startsWith(prefixo));
 
       document.getElementById("kpiDias").innerText = registrosMes.length;
@@ -1253,25 +1257,25 @@
         pbody.innerHTML = registrosMes.length
           ? registrosMes
               .sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""))
-              .map(r => \`
+              .map(r => `
                 <tr>
-                  <td><strong>\${r.dataBR || formatarDataBR(r.dataISO)}</strong></td>
-                  <td>\${r.condutor || ""}</td>
-                  <td>\${(r.kmIni ?? "")}</td>
-                  <td>\${(r.kmFim ?? "")}</td>
-                  <td>\${r.local || ""}</td>
-                  <td>\${r.descricao || ""}</td>
-                  <td>\${r.assinatura ? \`<img class="sig-print" src="\${r.assinatura}" alt="Assinatura">\` : ""}</td>
+                  <td><strong>${r.dataBR || formatarDataBR(r.dataISO)}</strong></td>
+                  <td>${r.condutor || ""}</td>
+                  <td>${(r.kmIni ?? "")}</td>
+                  <td>${(r.kmFim ?? "")}</td>
+                  <td>${r.local || ""}</td>
+                  <td>${r.descricao || ""}</td>
+                  <td>${r.assinatura ? `<img class="sig-print" src="${r.assinatura}" alt="Assinatura">` : ""}</td>
                 </tr>
-              \`).join("")
-          : \`<tr><td colspan="7">Sem registros neste mês.</td></tr>\`;
+              `).join("")
+          : `<tr><td colspan="7">Sem registros neste mês.</td></tr>`;
       }
-
       return;
     }
 
-    const prefixo = \`\${sel.y}-\${sel.m}\`;
-    const registrosMes = LISTA.filter(r => r.dataISO.startsWith(prefixo));
+    // Ferroport
+    const prefixo = `${sel.y}-${sel.m}`;
+    const registrosMes = LISTA.filter(r => (r.dataISO||"").startsWith(prefixo));
 
     const diasRegistrados = registrosMes.length;
     const totalPresencas = registrosMes.reduce((acc,r)=> acc + ((r.pessoas||[]).length), 0);
@@ -1288,39 +1292,39 @@
     const maxDias = ranking.length ? Math.max(...ranking.map(x=>x.dias)) : 0;
 
     document.getElementById("tabelaRanking").innerHTML = ranking.length
-      ? ranking.map((x,i)=>\`
+      ? ranking.map((x,i)=>`
           <tr>
-            <td>\${i+1}</td>
-            <td>\${x.nome}</td>
-            <td><strong>\${x.dias}</strong></td>
-            <td><div class="bar"><div class="bar-fill" style="width:\${maxDias ? (x.dias/maxDias*100).toFixed(0) : 0}%;"></div></div></td>
+            <td>${i+1}</td>
+            <td>${x.nome}</td>
+            <td><strong>${x.dias}</strong></td>
+            <td><div class="bar"><div class="bar-fill" style="width:${maxDias ? (x.dias/maxDias*100).toFixed(0) : 0}%;"></div></div></td>
           </tr>
-        \`).join("")
-      : \`<tr><td colspan="4" class="muted">Sem registros neste mês.</td></tr>\`;
+        `).join("")
+      : `<tr><td colspan="4" class="muted">Sem registros neste mês.</td></tr>`;
 
-    const ordenados = [...registrosMes].sort((a,b)=> a.dataISO.localeCompare(b.dataISO));
+    const ordenados = [...registrosMes].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
     const exibidaMes = mostrarTodosMes ? ordenados : ordenados.slice(0, LIMITE_MES);
 
     document.getElementById("tabelaMes").innerHTML = exibidaMes.length
-      ? exibidaMes.map(r=>\`
+      ? exibidaMes.map(r=>`
           <tr>
-            <td><strong>\${r.dataBR}</strong></td>
-            <td>\${(r.pessoas||[]).join("<br>")}</td>
+            <td><strong>${r.dataBR}</strong></td>
+            <td>${(r.pessoas||[]).join("<br>")}</td>
           </tr>
-        \`).join("")
-      : \`<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>\`;
+        `).join("")
+      : `<tr><td colspan="2" class="muted">Sem registros neste mês.</td></tr>`;
 
     atualizarBotaoVerMaisMes(registrosMes.length);
 
     document.getElementById("printRanking").innerHTML = ranking.length
-      ? ranking.map((x,i)=>\`<tr><td>\${i+1}</td><td>\${x.nome}</td><td><strong>\${x.dias}</strong></td></tr>\`).join("")
-      : \`<tr><td colspan="3">Sem registros neste mês.</td></tr>\`;
+      ? ranking.map((x,i)=>`<tr><td>${i+1}</td><td>${x.nome}</td><td><strong>${x.dias}</strong></td></tr>`).join("")
+      : `<tr><td colspan="3">Sem registros neste mês.</td></tr>`;
 
     document.getElementById("printMes").innerHTML = registrosMes.length
-      ? [...registrosMes].sort((a,b)=>a.dataISO.localeCompare(b.dataISO)).map(r=>\`
-          <tr><td><strong>\${r.dataBR}</strong></td><td>\${(r.pessoas||[]).join(", ")}</td></tr>
-        \`).join("")
-      : \`<tr><td colspan="2">Sem registros neste mês.</td></tr>\`;
+      ? [...registrosMes].sort((a,b)=>(a.dataISO||"").localeCompare(b.dataISO||"")).map(r=>`
+          <tr><td><strong>${r.dataBR}</strong></td><td>${(r.pessoas||[]).join(", ")}</td></tr>
+        `).join("")
+      : `<tr><td colspan="2">Sem registros neste mês.</td></tr>`;
 
     const top10 = ranking.slice(0, 10).map(x => ({ label: x.nome, value: x.dias }));
     drawBarChart("chartRanking", top10);
@@ -1334,13 +1338,16 @@
     document.getElementById("insightTopDias").textContent = String(topDias);
     document.getElementById("insightMediaDia").textContent = mediaDia.toFixed(1);
     document.getElementById("insightMediaTec").textContent = mediaTec.toFixed(1);
-  };
+  }
+  window.atualizarPainel = atualizarPainel;
 
-  window.gerarPDF = function(){
+  function gerarPDF(){
     atualizarPainel();
     setTimeout(()=> window.print(), 50);
-  };
+  }
+  window.gerarPDF = gerarPDF;
 
+  // ===================== UI INIT =====================
   function initUI(){
     const selContrato = document.getElementById("contratoSelect");
     selContrato.addEventListener("change", ()=> setContrato(selContrato.value));
@@ -1350,7 +1357,7 @@
 
     const d = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
-    document.getElementById("mesAno").value = \`\${d.getFullYear()}-\${pad(d.getMonth()+1)}\`;
+    document.getElementById("mesAno").value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
     document.getElementById("mesAno").addEventListener("change", atualizarPainel);
 
     mostrarBlocosContrato();
@@ -1359,40 +1366,50 @@
     initSignaturePad();
   }
 
-  onAuthStateChanged(auth, async (user) => {
+  // ===================== AUTH STATE =====================
+  auth.onAuthStateChanged(async (user) => {
+    const msg = document.getElementById("loginMsg");
+
     if(!user){
       mostrarApp(false);
       desligarRealtime();
-      document.getElementById("loginStatus").style.display = "none";
+      const status = document.getElementById("loginStatus");
+      if(status) status.style.display = "none";
       const btn = document.getElementById("btnEntrar");
       if(btn) btn.disabled = false;
       return;
     }
 
-    await carregarPermissoesUsuario(user);
+    try{
+      await carregarPermissoesUsuario(user);
 
-    if(!allowedContracts.length){
-      // mantém no app (pra ver "Sem acesso"), mas desabilita
+      if(!allowedContracts.length){
+        mostrarApp(false);
+        if(msg) msg.textContent = "Seu usuário não tem acesso a nenhum contrato. Peça liberação ao gestor.";
+        await auth.signOut();
+        return;
+      }
+
       montarSelectContratos();
-      document.getElementById("userBadge").textContent = \`Logado como: \${user.email || "—"}\`;
+
+      document.getElementById("userBadge").textContent = `Logado como: ${user.email || "—"}`;
       aplicarPermissoesUI();
       mostrarApp(true);
-      return;
+
+      setRefsContrato();
+      ligarRealtime();
+      initUI();
+      atualizarPainel();
+    }catch(e){
+      // Se rules estiverem bloqueando /users/{uid}
+      mostrarApp(false);
+      if(msg) msg.textContent = "Erro ao carregar permissões (Firestore Rules). Abra o console (F12) para ver.";
+      console.error(e);
+      await auth.signOut();
     }
-
-    montarSelectContratos();
-
-    document.getElementById("userBadge").textContent = \`Logado como: \${user.email || "—"}\`;
-    aplicarPermissoesUI();
-    mostrarApp(true);
-
-    setRefsContrato();
-    ligarRealtime();
-    initUI();
-    atualizarPainel();
   });
 
-  // boot
+  // boot refs (safe)
   setRefsContrato();
 </script>
 
