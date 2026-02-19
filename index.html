@@ -382,6 +382,7 @@
     </div>
   </div>
 
+  <!-- ✅ PRINT FERROPORT -->
   <div id="printFerroport">
     <div class="report-grid">
       <div class="report-box">
@@ -406,13 +407,34 @@
     </div>
   </div>
 
+  <!-- ✅ PRINT PTA INVECO -->
+  <div id="printPTA" style="display:none;">
+    <div class="report-box" style="margin-top:14px;">
+      <div class="box-title">Registros — PTA IVECO (Placa QRD-7698)</div>
+
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Condutor</th>
+            <th>Km Inicial</th>
+            <th>Km Final</th>
+            <th>Local</th>
+            <th>Atividade</th>
+          </tr>
+        </thead>
+        <tbody id="printPTATbody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="report-footer">
     DIGITAL • EMIVE — Tecnologia e Segurança
   </div>
 </section>
 
 <!-- ===========================================================
-     ✅ SCRIPT FINAL (com FAILSAFE + PTA INVECO + assinatura)
+     ✅ SCRIPT FINAL (com FAILSAFE + PTA INVECO + assinatura + PDF correto + Apagar PTA (gestor))
 =========================================================== -->
 <script>
 (function(){
@@ -478,7 +500,7 @@
       // Firestore refs
       let refDiarios = null;
       let refNomes = null;
-      let refPTA = null; // ✅ usa "ptauso" (igual suas regras)
+      let refPTA = null; // "ptauso"
 
       // Unsub realtime
       let unsubDiarios = null;
@@ -633,7 +655,6 @@
         const rowH  = Math.max(26, Math.floor((h - padT - padB) / top.length));
         const barH  = Math.floor(rowH * 0.55);
 
-        // grade suave
         ctx.strokeStyle = border;
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.35;
@@ -651,7 +672,6 @@
         top.forEach((item, i) => {
           const y = padT + i * rowH + rowH/2;
 
-          // nome com reticências
           ctx.font = fontLabel;
           ctx.fillStyle = muted;
 
@@ -663,7 +683,6 @@
           if(nome !== String(item.nome || "")) nome += "…";
           ctx.fillText(nome, 12, y);
 
-          // barra
           const bw = Math.max(2, (item.dias / max) * plotW);
           const x0 = padL;
           const y0 = Math.round(y - barH/2);
@@ -672,7 +691,6 @@
           ctx.fillStyle = bar;
           roundRectFill(ctx, x0, y0, bw, barH, r);
 
-          // valor
           const value = String(item.dias);
           ctx.font = fontValue;
           const valueW = ctx.measureText(value).width;
@@ -747,7 +765,6 @@
       function setRefsContrato(){
         refDiarios = db.collection("contratos").doc(contratoAtual).collection("diarios");
         refNomes   = db.collection("contratos").doc(contratoAtual).collection("nomes");
-        // ✅ usa "ptauso" para bater com suas rules
         refPTA     = db.collection("contratos").doc(contratoAtual).collection("ptauso");
       }
 
@@ -1012,7 +1029,6 @@
       }
       window.toggleVerMaisMes = toggleVerMaisMes;
 
-      // ✅ Apagar todos (Ferroport / qualquer contrato) - só gestor
       async function apagarDiarios(){
         try{
           if(!isAdmin) return alert("Apenas Gestor pode apagar tudo.");
@@ -1031,7 +1047,6 @@
       }
       window.apagarDiarios = apagarDiarios;
 
-      // ✅ Exportar CSV (Excel)
       function exportarDiarioCSV(){
         try{
           const dados = [...LISTA].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
@@ -1111,7 +1126,6 @@
         }
         function end(){ desenhando = false; }
 
-        // evita duplicar handlers
         canvas.onmousedown = canvas.onmousemove = canvas.onmouseup = canvas.onmouseleave = null;
         canvas.ontouchstart = canvas.ontouchmove = canvas.ontouchend = null;
 
@@ -1219,6 +1233,7 @@
       }
       window.ptaSalvar = ptaSalvar;
 
+      // ✅ TABELA PTA (com botão Apagar só Gestor)
       function carregarTabelaPTA(){
         const tbody = document.getElementById("tabelaPTA");
         if(!tbody) return;
@@ -1266,8 +1281,26 @@
 
             document.getElementById("cardPTA")?.scrollIntoView({ behavior:"smooth", block:"start" });
           };
-
           tdAcoes.appendChild(btnEditar);
+
+          if(isAdmin){
+            const btnApagar = document.createElement("button");
+            btnApagar.className = "btn danger small";
+            btnApagar.type = "button";
+            btnApagar.textContent = "Apagar";
+            btnApagar.onclick = async () => {
+              try{
+                if(!confirm("Deseja apagar este registro da PTA?")) return;
+                await refPTA.doc(item.id).delete();
+                alert("Registro apagado.");
+              }catch(e){
+                console.error(e);
+                alert("Erro ao apagar:\n\n" + (e?.message || e));
+              }
+            };
+            tdAcoes.appendChild(btnApagar);
+          }
+
           tbody.appendChild(tr);
         });
       }
@@ -1305,7 +1338,6 @@
 
         const isPTA = contratoAtual === "pta-inveco";
 
-        // PTA: KPIs próprios
         if(isPTA){
           setKpiLabelsPTA();
 
@@ -1321,7 +1353,6 @@
           document.getElementById("kpiTecnicos").textContent = String(condutoresSet.size);
           document.getElementById("kpiPresencas").textContent = String(kmTotal);
 
-          // zera insights ferroport
           const ids = ["insightTopNome","insightTopDias","insightMediaDia","insightMediaTec"];
           ids.forEach(id => {
             const el = document.getElementById(id);
@@ -1331,7 +1362,6 @@
           return;
         }
 
-        // Ferroport normal
         setKpiLabelsFerroport();
 
         const itensMes = [...LISTA]
@@ -1389,9 +1419,49 @@
       }
       window.atualizarPainel = atualizarPainel;
 
+      // ✅ PDF: PTA imprime PTA, Ferroport imprime Ferroport
       function gerarPDF(){
         atualizarPainel();
-        setTimeout(()=> window.print(), 50);
+
+        const isPTA = contratoAtual === "pta-inveco";
+
+        const blocoF = document.getElementById("printFerroport");
+        const blocoP = document.getElementById("printPTA");
+        if(blocoF) blocoF.style.display = isPTA ? "none" : "block";
+        if(blocoP) blocoP.style.display = isPTA ? "block" : "none";
+
+        if(isPTA){
+          const sel = getMesAnoSelecionado();
+          const tbody = document.getElementById("printPTATbody");
+          if(tbody){
+            tbody.innerHTML = "";
+
+            const itensMesPTA = [...LISTA_PTA]
+              .filter(x => sel && inMesAno(x.dataISO, sel.y, sel.m))
+              .sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
+
+            if(itensMesPTA.length === 0){
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td colspan="6">Sem registros no período selecionado.</td>`;
+              tbody.appendChild(tr);
+            }else{
+              itensMesPTA.forEach(x => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${x.dataBR || formatarDataBR(x.dataISO)}</td>
+                  <td>${x.condutor || ""}</td>
+                  <td>${x.kmInicial ?? ""}</td>
+                  <td>${x.kmFinal ?? ""}</td>
+                  <td>${x.local || ""}</td>
+                  <td>${x.descricao || ""}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            }
+          }
+        }
+
+        setTimeout(()=> window.print(), 80);
       }
       window.gerarPDF = gerarPDF;
 
