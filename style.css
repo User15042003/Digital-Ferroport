@@ -1,4 +1,3 @@
-/* style.css */
 :root{
   --bg:#f5f6f8;
   --card:#ffffff;
@@ -80,7 +79,6 @@ body{
   overflow:hidden;
 }
 
-/* overlay não pode bloquear cliques */
 .login-card:before{
   content:"";
   position:absolute;
@@ -321,7 +319,6 @@ button:disabled{
   gap:8px;
 }
 
-/* ✅ canvas com fundo e borda */
 .dash-canvas{
   width:100%;
   flex:1;
