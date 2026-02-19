@@ -542,7 +542,6 @@ th{
   border:1px solid #111;
   border-radius:10px;
   padding:12px;
-  margin-top:12px;
 }
 
 .box-title{
@@ -585,10 +584,6 @@ th{
   }
   .no-print{ display:none !important; }
   .print-only{ display:block !important; }
-
-  /* garante que só o escolhido apareça (o JS define display antes) */
-  #reportFerroport[style*="display: none"]{ display:none !important; }
-  #reportPTA[style*="display: none"]{ display:none !important; }
 }
 
 @media (max-width: 900px){
