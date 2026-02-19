@@ -872,6 +872,68 @@
       }
 
       // ===================== FERROPORT =====================
+
+      // ✅ EXCLUIR REGISTRO (UM DIA) - somente gestor
+      async function excluirRegistroDiario(dataISO){
+        try{
+          if(!isAdmin) return alert("Apenas Gestor pode excluir registros.");
+          if(!dataISO) return;
+          if(!confirm(`Excluir o registro do dia ${formatarDataBR(dataISO)}?`)) return;
+
+          await refDiarios.doc(dataISO).delete();
+          alert("Registro excluído.");
+        }catch(e){
+          console.error(e);
+          alert("Erro ao excluir registro:\n\n" + (e?.message || e));
+        }
+      }
+      window.excluirRegistroDiario = excluirRegistroDiario;
+
+      // ✅ EXCLUIR NOME - somente gestor
+      async function excluirNome(nome){
+        try{
+          if(!isAdmin) return alert("Apenas Gestor pode excluir nomes.");
+          if(!nome) return;
+
+          const removerDosRegistros = confirm(
+            `Excluir o nome "${nome}" da lista?\n\n` +
+            `OK = também remover "${nome}" de TODOS os registros do contrato.\n` +
+            `Cancelar = remover apenas da lista (os registros antigos continuam mostrando o nome).`
+          );
+
+          // remove da lista de nomes
+          await refNomes.doc(idSeguro(nome)).delete();
+
+          // opcional: remove o nome dos registros existentes
+          if(removerDosRegistros){
+            const snap = await refDiarios.get();
+            if(!snap.empty){
+              const batch = db.batch();
+              snap.docs.forEach(doc => {
+                const d = doc.data() || {};
+                const pessoas = Array.isArray(d.pessoas) ? d.pessoas : [];
+                if(pessoas.includes(nome)){
+                  const novas = pessoas.filter(p => p !== nome);
+                  batch.set(doc.ref, { pessoas: novas }, { merge:true });
+                }
+              });
+              await batch.commit();
+            }
+
+            // limpa seleção local se estiver marcado
+            selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
+            renderChipsDiario();
+          }
+
+          alert("Nome excluído.");
+        }catch(e){
+          console.error(e);
+          alert("Erro ao excluir nome:\n\n" + (e?.message || e));
+        }
+      }
+      window.excluirNome = excluirNome;
+
+      // ✅ chips com X para excluir (somente gestor)
       function renderChipsDiario(){
         const wrap = document.getElementById("chipsDiario");
         if(!wrap) return;
@@ -894,6 +956,21 @@
           };
 
           box.appendChild(btn);
+
+          if(isAdmin){
+            const del = document.createElement("button");
+            del.type = "button";
+            del.className = "chip-del";
+            del.title = `Excluir "${nome}"`;
+            del.setAttribute("aria-label", `Excluir ${nome}`);
+            del.textContent = "×";
+            del.onclick = (e) => {
+              e.stopPropagation();
+              excluirNome(nome);
+            };
+            box.appendChild(del);
+          }
+
           wrap.appendChild(box);
         });
       }
@@ -978,6 +1055,16 @@
             document.getElementById("cardPresenca")?.scrollIntoView({ behavior:"smooth", block:"start" });
           };
           tdAcoes.appendChild(btnEditar);
+
+          // ✅ Excluir registro (somente Gestor)
+          if(isAdmin){
+            const btnExcluir = document.createElement("button");
+            btnExcluir.className = "btn danger small";
+            btnExcluir.type = "button";
+            btnExcluir.textContent = "Excluir";
+            btnExcluir.onclick = () => excluirRegistroDiario(item.dataISO);
+            tdAcoes.appendChild(btnExcluir);
+          }
 
           tr.appendChild(tdData);
           tr.appendChild(tdPessoas);
@@ -1244,7 +1331,25 @@
       }
       window.ptaSalvar = ptaSalvar;
 
-      // ✅ Apagar tudo PTA (só gestor) - aqui está a correção principal
+      // ✅ Excluir 1 registro PTA (somente gestor)
+      async function ptaExcluirRegistro(docId){
+        try{
+          if(!isAdmin) return alert("Apenas Gestor pode excluir registros da PTA.");
+          if(contratoAtual !== "pta-inveco") return alert("Selecione o contrato PTA INVECO.");
+          if(!docId) return;
+
+          if(!confirm("Excluir este registro da PTA?")) return;
+
+          await refPTA.doc(docId).delete();
+          alert("Registro da PTA excluído.");
+        }catch(e){
+          console.error(e);
+          alert("Erro ao excluir PTA:\n\n" + (e?.message || e));
+        }
+      }
+      window.ptaExcluirRegistro = ptaExcluirRegistro;
+
+      // ✅ Apagar tudo PTA (só gestor)
       async function ptaApagarTudo(){
         try{
           if(!isAdmin) return alert("Apenas Gestor pode apagar registros da PTA.");
@@ -1253,7 +1358,6 @@
 
           if(!confirm("Tem certeza que deseja apagar TODOS os registros da PTA INVECO?")) return;
 
-          // pega docs direto do refPTA atual
           const snap = await refPTA.get();
           if(snap.empty){
             alert("Não há registros para apagar.");
@@ -1321,6 +1425,17 @@
           };
 
           tdAcoes.appendChild(btnEditar);
+
+          // ✅ botão excluir (somente gestor)
+          if(isAdmin){
+            const btnExcluir = document.createElement("button");
+            btnExcluir.className = "btn danger small";
+            btnExcluir.type = "button";
+            btnExcluir.textContent = "Excluir";
+            btnExcluir.onclick = () => ptaExcluirRegistro(item.id);
+            tdAcoes.appendChild(btnExcluir);
+          }
+
           tbody.appendChild(tr);
         });
       }
@@ -1373,7 +1488,6 @@
           document.getElementById("kpiTecnicos").textContent = String(condutoresSet.size);
           document.getElementById("kpiPresencas").textContent = String(kmTotal);
 
-          // preencher tabela do PDF PTA
           const printBody = document.getElementById("printPTATable");
           if(printBody){
             printBody.innerHTML = "";
@@ -1394,7 +1508,6 @@
           return;
         }
 
-        // Ferroport
         setKpiLabelsFerroport();
 
         const itensMes = [...LISTA]
@@ -1454,7 +1567,7 @@
 
       function gerarPDF(){
         atualizarPainel();
-        aplicarTelaPorContrato(); // garante o bloco correto do print visível
+        aplicarTelaPorContrato();
         setTimeout(()=> window.print(), 60);
       }
       window.gerarPDF = gerarPDF;
