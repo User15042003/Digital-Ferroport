@@ -1,1703 +1,1715 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Presença diária — Contratos</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Presença diária — Contratos</title>
+<link rel="stylesheet" href="style.css" />
 
-  <!-- Firebase (COMPAT) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase (COMPAT) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body>
 
 <!-- ===================== LOGIN ===================== -->
 <section class="login-page" id="loginBox">
-  <div class="login-card">
-    <div class="login-logos">
-      <img src="logo-digital.png" alt="Logo Digital" class="logo">
-      <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
-    </div>
+<div class="login-card">
+<div class="login-logos">
+<img src="logo-digital.png" alt="Logo Digital" class="logo">
+<img src="logo-emive.png" alt="Logo Emive" class="logo emive">
+</div>
 
-    <h2>Acesso restrito</h2>
-    <p class="muted">Entre com seu e-mail e senha para acessar o controle.</p>
+<h2>Acesso restrito</h2>
+<p class="muted">Entre com seu e-mail e senha para acessar o controle.</p>
 
-    <div class="grid-2">
-      <div class="field">
-        <label>E-mail</label>
-        <input id="loginEmail" type="email" placeholder="seuemail@empresa.com" autocomplete="username">
-      </div>
+<div class="grid-2">
+<div class="field">
+<label>E-mail</label>
+<input id="loginEmail" type="email" placeholder="seuemail@empresa.com" autocomplete="username">
+</div>
 
-      <div class="field">
-        <label>Senha</label>
-        <div class="input-icon">
-          <input id="loginSenha" type="password" placeholder="••••••••" autocomplete="current-password">
-          <button class="icon-btn" type="button"
-            onclick="toggleSenha('loginSenha', this)"
-            aria-label="Mostrar/ocultar senha"
-            title="Mostrar/ocultar senha">
-            <span class="cam-icon cam-closed">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 7a3 3 0 0 1 3-3h6l2 2h2a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7z"></path>
-                <path d="M9.5 12a2.5 2.5 0 1 0 5 0a2.5 2.5 0 0 0-5 0z"></path>
-                <path d="M3 3l18 18" class="stroke"></path>
-              </svg>
-            </span>
-            <span class="cam-icon cam-open" style="display:none;">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 7a3 3 0 0 1 3-3h6l2 2h2a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7z"></path>
-                <path d="M9.5 12a2.5 2.5 0 1 0 5 0a2.5 2.5 0 0 0-5 0z"></path>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </div>
+<div class="field">
+<label>Senha</label>
+<div class="input-icon">
+<input id="loginSenha" type="password" placeholder="••••••••" autocomplete="current-password">
+<button class="icon-btn" type="button"
+onclick="toggleSenha('loginSenha', this)"
+aria-label="Mostrar/ocultar senha"
+title="Mostrar/ocultar senha">
+<span class="cam-icon cam-closed">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M4 7a3 3 0 0 1 3-3h6l2 2h2a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7z"></path>
+<path d="M9.5 12a2.5 2.5 0 1 0 5 0a2.5 2.5 0 0 0-5 0z"></path>
+<path d="M3 3l18 18" class="stroke"></path>
+</svg>
+</span>
+<span class="cam-icon cam-open" style="display:none;">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M4 7a3 3 0 0 1 3-3h6l2 2h2a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7z"></path>
+<path d="M9.5 12a2.5 2.5 0 1 0 5 0a2.5 2.5 0 0 0-5 0z"></path>
+</svg>
+</span>
+</button>
+</div>
+</div>
+</div>
 
-    <div class="actions center">
-      <button class="btn" id="btnEntrar" type="button" onclick="login()">Entrar</button>
-      <button class="btn secondary" type="button" onclick="esqueciSenha()">Esqueci minha senha</button>
-      <button class="btn secondary small" type="button" id="btnTemaLogin" onclick="toggleTema()">🌙 Tema</button>
-    </div>
+<div class="actions center">
+<button class="btn" id="btnEntrar" type="button" onclick="login()">Entrar</button>
+<button class="btn secondary" type="button" onclick="esqueciSenha()">Esqueci minha senha</button>
+<button class="btn secondary small" type="button" id="btnTemaLogin" onclick="toggleTema()">🌙 Tema</button>
+</div>
 
-    <div class="login-status" id="loginStatus" style="display:none;">
-      <span class="spinner"></span>
-      <span>Entrando...</span>
-    </div>
+<div class="login-status" id="loginStatus" style="display:none;">
+<span class="spinner"></span>
+<span>Entrando...</span>
+</div>
 
-    <p class="muted small center" id="loginMsg"></p>
-    <p class="muted tiny center">DIGITAL • EMIVE — Tecnologia e Segurança</p>
-  </div>
+<p class="muted small center" id="loginMsg"></p>
+<p class="muted tiny center">DIGITAL • EMIVE — Tecnologia e Segurança</p>
+</div>
 </section>
 
 <!-- ===================== APP ===================== -->
 <div id="appRoot" style="display:none;">
 
 <header class="topbar no-print">
-  <div class="brand">
-    <div class="logos">
-      <img src="logo-digital.png" alt="Logo Digital" class="logo">
-      <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
-    </div>
+<div class="brand">
+<div class="logos">
+<img src="logo-digital.png" alt="Logo Digital" class="logo">
+<img src="logo-emive.png" alt="Logo Emive" class="logo emive">
+</div>
 
-    <div>
-      <div class="brand-title">Controle — Contratos</div>
-      <div class="brand-subtitle" id="userBadge">Logado como: —</div>
-    </div>
+<div>
+<div class="brand-title">Controle — Contratos</div>
+<div class="brand-subtitle" id="userBadge">Logado como: —</div>
+</div>
 
-    <div class="top-actions">
-      <button class="btn secondary small" type="button" id="btnTema" onclick="toggleTema()">🌙 Tema</button>
+<div class="top-actions">
+<button class="btn secondary small" type="button" id="btnTema" onclick="toggleTema()">🌙 Tema</button>
 
-      <div class="field inline">
-        <label>Contrato</label>
-        <select id="contratoSelect" disabled>
-          <option value="">Carregando...</option>
-        </select>
-      </div>
+<div class="field inline">
+<label>Contrato</label>
+<select id="contratoSelect" disabled>
+<option value="">Carregando...</option>
+</select>
+</div>
 
-      <span class="role-pill" id="rolePill">—</span>
-      <button class="btn secondary small" type="button" onclick="logout()">Sair</button>
-    </div>
-  </div>
+<span class="role-pill" id="rolePill">—</span>
+<button class="btn secondary small" type="button" onclick="logout()">Sair</button>
+</div>
+</div>
 </header>
 
 <main class="container">
 
-  <!-- ===================== PAINEL ===================== -->
-  <section class="card">
-    <div class="card-head">
-      <h2>Painel</h2>
-      <p class="muted">Selecione o mês para visualizar dados do contrato. PDF via impressão (Ctrl+P).</p>
-    </div>
+<!-- ===================== PAINEL ===================== -->
+<section class="card">
+<div class="card-head">
+<h2>Painel</h2>
+<p class="muted">Selecione o mês para visualizar dados do contrato. PDF via impressão (Ctrl+P).</p>
+</div>
 
-    <div class="grid-3">
-      <div class="field">
-        <label>Mês/Ano</label>
-        <input id="mesAno" type="month" />
-      </div>
+<div class="grid-3">
+<div class="field">
+<label>Mês/Ano</label>
+<input id="mesAno" type="month" />
+</div>
 
-      <div class="field">
-        <label>Resumo</label>
-        <div class="kpi-wrap">
-          <div class="kpi">
-            <div class="kpi-label" id="kpiLabel1">Dias registrados</div>
-            <div class="kpi-value" id="kpiDias">0</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label" id="kpiLabel2">Técnicos/Condutores</div>
-            <div class="kpi-value" id="kpiTecnicos">0</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label" id="kpiLabel3">Presenças/Registros</div>
-            <div class="kpi-value" id="kpiPresencas">0</div>
-          </div>
-        </div>
-      </div>
+<div class="field">
+<label>Resumo</label>
+<div class="kpi-wrap">
+<div class="kpi">
+<div class="kpi-label" id="kpiLabel1">Dias registrados</div>
+<div class="kpi-value" id="kpiDias">0</div>
+</div>
+<div class="kpi">
+<div class="kpi-label" id="kpiLabel2">Técnicos/Condutores</div>
+<div class="kpi-value" id="kpiTecnicos">0</div>
+</div>
+<div class="kpi">
+<div class="kpi-label" id="kpiLabel3">Presenças/Registros</div>
+<div class="kpi-value" id="kpiPresencas">0</div>
+</div>
+</div>
+</div>
 
-      <div class="field">
-        <label>Ações</label>
-        <div class="actions">
-          <button class="btn" type="button" onclick="atualizarPainel()">🔄 Atualizar</button>
-          <button class="btn secondary" type="button" onclick="gerarPDF()">📄 Gerar PDF</button>
-        </div>
-        <p class="muted small">O PDF é gerado via impressão do navegador (Ctrl+P).</p>
-      </div>
-    </div>
+<div class="field">
+<label>Ações</label>
+<div class="actions">
+<button class="btn" type="button" onclick="atualizarPainel()">🔄 Atualizar</button>
+<button class="btn secondary" type="button" onclick="gerarPDF()">📄 Gerar PDF</button>
+</div>
+<p class="muted small">O PDF é gerado via impressão do navegador (Ctrl+P).</p>
+</div>
+</div>
 
-    <!-- ===================== BLOCO FERROPORT (painel) ===================== -->
-    <div id="blocoFerroport">
-      <div class="split">
-        <div>
-          <h3 class="h3">Ranking (dias trabalhados no mês)</h3>
-          <table class="table-compact">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Técnico</th>
-                <th>Dias</th>
-                <th style="width:38%;">Progresso</th>
-              </tr>
-            </thead>
-            <tbody id="tabelaRanking"></tbody>
-          </table>
-        </div>
+<!-- ===================== BLOCO FERROPORT (painel) ===================== -->
+<div id="blocoFerroport">
+<div class="split">
+<div>
+<h3 class="h3">Ranking (dias trabalhados no mês)</h3>
+<table class="table-compact">
+<thead>
+<tr>
+<th>#</th>
+<th>Técnico</th>
+<th>Dias</th>
+<th style="width:38%;">Progresso</th>
+</tr>
+</thead>
+<tbody id="tabelaRanking"></tbody>
+</table>
+</div>
 
-        <div>
-          <h3 class="h3">Registros do mês</h3>
-          <table class="table-compact">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Pessoas</th>
-              </tr>
-            </thead>
-            <tbody id="tabelaMes"></tbody>
-          </table>
+<div>
+<h3 class="h3">Registros do mês</h3>
+<table class="table-compact">
+<thead>
+<tr>
+<th>Data</th>
+<th>Pessoas</th>
+</tr>
+</thead>
+<tbody id="tabelaMes"></tbody>
+</table>
 
-          <div class="ver-mais-wrap">
-            <button class="btn secondary small" id="btnVerMaisMes" type="button" onclick="toggleVerMaisMes()">
-              Ver mais registros
-            </button>
-          </div>
-        </div>
-      </div>
+<div class="ver-mais-wrap">
+<button class="btn secondary small" id="btnVerMaisMes" type="button" onclick="toggleVerMaisMes()">
+Ver mais registros
+</button>
+</div>
+</div>
+</div>
 
-      <div class="dash">
-        <div class="dash-box">
-          <div class="dash-title">📊 Dias por técnico (Top 10)</div>
-          <canvas id="chartRanking" class="dash-canvas"></canvas>
-          <p class="muted small">Mostra quem trabalhou mais dias no mês selecionado.</p>
-        </div>
+<div class="dash">
+<div class="dash-box">
+<div class="dash-title">📊 Dias por técnico (Top 10)</div>
+<canvas id="chartRanking" class="dash-canvas"></canvas>
+<p class="muted small">Mostra quem trabalhou mais dias no mês selecionado.</p>
+</div>
 
-        <div class="dash-box">
-          <div class="dash-title">📌 Insights rápidos</div>
-          <div class="insights">
-            <div class="insight">
-              <div class="insight-label">Maior frequência</div>
-              <div class="insight-value" id="insightTopNome">—</div>
-            </div>
-            <div class="insight">
-              <div class="insight-label">Dias do Top 1</div>
-              <div class="insight-value" id="insightTopDias">0</div>
-            </div>
-            <div class="insight">
-              <div class="insight-label">Média presenças/dia</div>
-              <div class="insight-value" id="insightMediaDia">0</div>
-            </div>
-            <div class="insight">
-              <div class="insight-label">Média dias/técnico</div>
-              <div class="insight-value" id="insightMediaTec">0</div>
-            </div>
-          </div>
-          <p class="muted small">Resumo automático com base no mês selecionado.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+<div class="dash-box">
+<div class="dash-title">📌 Insights rápidos</div>
+<div class="insights">
+<div class="insight">
+<div class="insight-label">Maior frequência</div>
+<div class="insight-value" id="insightTopNome">—</div>
+</div>
+<div class="insight">
+<div class="insight-label">Dias do Top 1</div>
+<div class="insight-value" id="insightTopDias">0</div>
+</div>
+<div class="insight">
+<div class="insight-label">Média presenças/dia</div>
+<div class="insight-value" id="insightMediaDia">0</div>
+</div>
+<div class="insight">
+<div class="insight-label">Média dias/técnico</div>
+<div class="insight-value" id="insightMediaTec">0</div>
+</div>
+</div>
+<p class="muted small">Resumo automático com base no mês selecionado.</p>
+</div>
+</div>
+</div>
+</section>
 
-  <!-- ===================== Ferroport form ===================== -->
-  <section class="card" id="cardPresenca">
-    <div class="card-head">
-      <h2>Presença por dia (Ferroport)</h2>
-      <p class="muted">Selecione a data e marque quem esteve no contrato.</p>
-    </div>
+<!-- ===================== Ferroport form ===================== -->
+<section class="card" id="cardPresenca">
+<div class="card-head">
+<h2>Presença por dia (Ferroport)</h2>
+<p class="muted">Selecione a data e marque quem esteve no contrato.</p>
+</div>
 
-    <div class="grid-2">
-      <div class="field">
-        <label>Data</label>
-        <input id="dataDia" type="date" />
-      </div>
+<div class="grid-2">
+<div class="field">
+<label>Data</label>
+<input id="dataDia" type="date" />
+</div>
 
-      <div class="field">
-        <label>Pessoas</label>
-        <div class="chips" id="chipsDiario"></div>
+<div class="field">
+<label>Pessoas</label>
+<div class="chips" id="chipsDiario"></div>
 
-        <div class="add-nome">
-          <input type="text" id="novoNome" placeholder="Adicionar técnico (ex: João Silva)">
-          <button class="btn" type="button" onclick="adicionarNome()">+ Adicionar</button>
-        </div>
+<div class="add-nome">
+<input type="text" id="novoNome" placeholder="Adicionar técnico (ex: João Silva)">
+<button class="btn" type="button" onclick="adicionarNome()">+ Adicionar</button>
+</div>
 
-        <p class="muted small">Os nomes ficam salvos no banco (tempo real).</p>
-        <p class="muted small" id="permMsg" style="display:none;">Você está como Técnico: algumas ações ficam bloqueadas.</p>
-      </div>
-    </div>
+<p class="muted small">Os nomes ficam salvos no banco (tempo real).</p>
+<p class="muted small" id="permMsg" style="display:none;">Você está como Técnico: algumas ações ficam bloqueadas.</p>
+</div>
+</div>
 
-    <div class="actions">
-      <button class="btn" type="button" onclick="salvarDiario()">💾 Salvar dia</button>
-      <button class="btn secondary" type="button" onclick="limparDiario()">🧹 Limpar</button>
-      <button class="btn danger" id="btnApagarTudo" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
-      <button class="btn" type="button" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
-    </div>
-  </section>
+<div class="actions">
+<button class="btn" type="button" onclick="salvarDiario()">💾 Salvar dia</button>
+<button class="btn secondary" type="button" onclick="limparDiario()">🧹 Limpar</button>
+<button class="btn danger" id="btnApagarTudo" type="button" onclick="apagarDiarios()">🗑 Apagar tudo</button>
+<button class="btn" type="button" onclick="exportarDiarioCSV()">⬇ Exportar Excel</button>
+</div>
+</section>
 
-  <section class="card no-print" id="cardListaFerroport">
-    <div class="card-head">
-      <h2>Presenças registradas (Ferroport)</h2>
-      <p class="muted">Se salvar a mesma data novamente, o sistema atualiza. Use “Editar” para carregar um registro.</p>
-    </div>
+<section class="card no-print" id="cardListaFerroport">
+<div class="card-head">
+<h2>Presenças registradas (Ferroport)</h2>
+<p class="muted">Se salvar a mesma data novamente, o sistema atualiza. Use “Editar” para carregar um registro.</p>
+</div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Pessoas</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaDiario"></tbody>
-    </table>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Pessoas</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="tabelaDiario"></tbody>
+</table>
 
-    <div class="ver-mais-wrap">
-      <button class="btn secondary small" id="btnVerMais" type="button" onclick="toggleVerMais()">
-        Ver mais registros
-      </button>
-    </div>
-  </section>
+<div class="ver-mais-wrap">
+<button class="btn secondary small" id="btnVerMais" type="button" onclick="toggleVerMais()">
+Ver mais registros
+</button>
+</div>
+</section>
 
+  <!-- ===================== PTA INVECO ===================== -->
   <!-- ===================== PTA IVECO ===================== -->
-  <section class="card" id="cardPTA" style="display:none;">
-    <div class="card-head">
-      <h2>Controle de Uso da PTA IVECO — Placa QRD-7698</h2>
-      <p class="muted">Preencha os dados e colete a assinatura do condutor.</p>
-    </div>
+<section class="card" id="cardPTA" style="display:none;">
+<div class="card-head">
+<h2>Controle de Uso da PTA IVECO — Placa QRD-7698</h2>
+<p class="muted">Preencha os dados e colete a assinatura do condutor.</p>
+</div>
 
-    <div class="grid-2">
-      <div class="field">
-        <label>Data</label>
-        <input id="ptaData" type="date" />
-      </div>
+<div class="grid-2">
+<div class="field">
+<label>Data</label>
+<input id="ptaData" type="date" />
+</div>
 
-      <div class="field">
-        <label>Nome do Condutor</label>
-        <input id="ptaCondutor" type="text" placeholder="Ex: João Silva" />
-      </div>
-    </div>
+<div class="field">
+<label>Nome do Condutor</label>
+<input id="ptaCondutor" type="text" placeholder="Ex: João Silva" />
+</div>
+</div>
 
-    <div class="grid-2">
-      <div class="field">
-        <label>Km Inicial</label>
-        <input id="ptaKmInicial" type="number" inputmode="numeric" placeholder="Ex: 10234" />
-      </div>
+<div class="grid-2">
+<div class="field">
+<label>Km Inicial</label>
+<input id="ptaKmInicial" type="number" inputmode="numeric" placeholder="Ex: 10234" />
+</div>
 
-      <div class="field">
-        <label>Km Final</label>
-        <input id="ptaKmFinal" type="number" inputmode="numeric" placeholder="Ex: 10310" />
-      </div>
-    </div>
+<div class="field">
+<label>Km Final</label>
+<input id="ptaKmFinal" type="number" inputmode="numeric" placeholder="Ex: 10310" />
+</div>
+</div>
 
-    <div class="grid-2">
-      <div class="field">
-        <label>Local da Atividade</label>
-        <input id="ptaLocal" type="text" placeholder="Ex: Porto / Terminal / Pátio ..." />
-      </div>
+<div class="grid-2">
+<div class="field">
+<label>Local da Atividade</label>
+<input id="ptaLocal" type="text" placeholder="Ex: Porto / Terminal / Pátio ..." />
+</div>
 
-      <div class="field">
-        <label>Descrição da Atividade</label>
-        <input id="ptaDescricao" type="text" placeholder="Ex: Transporte / Apoio / Inspeção ..." />
-      </div>
-    </div>
+<div class="field">
+<label>Descrição da Atividade</label>
+<input id="ptaDescricao" type="text" placeholder="Ex: Transporte / Apoio / Inspeção ..." />
+</div>
+</div>
 
-    <div class="field">
-      <label>Assinatura (à mão)</label>
-      <div class="signature-wrap">
-        <canvas id="ptaAssinatura" class="signature-canvas"></canvas>
-        <div class="signature-actions">
-          <button class="btn secondary small" type="button" onclick="ptaLimparAssinatura()">🧼 Limpar assinatura</button>
-        </div>
-        <p class="muted small">Use o mouse ou toque na tela para assinar.</p>
-      </div>
-    </div>
+<div class="field">
+<label>Assinatura (à mão)</label>
+<div class="signature-wrap">
+<canvas id="ptaAssinatura" class="signature-canvas"></canvas>
+<div class="signature-actions">
+<button class="btn secondary small" type="button" onclick="ptaLimparAssinatura()">🧼 Limpar assinatura</button>
+</div>
+<p class="muted small">Use o mouse ou toque na tela para assinar.</p>
+</div>
+</div>
 
-    <div class="actions">
-      <button class="btn" type="button" onclick="ptaSalvar()">💾 Salvar registro</button>
-      <button class="btn secondary" type="button" onclick="ptaLimparFormulario()">🧹 Limpar</button>
-      <!-- ✅ Botão apagar PTA (só gestor) -->
-      <button class="btn danger" id="btnApagarPTA" type="button" onclick="ptaApagarTudo()" style="display:none;">🗑 Apagar tudo (PTA)</button>
-    </div>
-  </section>
+<div class="actions">
+<button class="btn" type="button" onclick="ptaSalvar()">💾 Salvar registro</button>
+<button class="btn secondary" type="button" onclick="ptaLimparFormulario()">🧹 Limpar</button>
+<!-- ✅ Botão apagar PTA (só gestor) -->
+<button class="btn danger" id="btnApagarPTA" type="button" onclick="ptaApagarTudo()" style="display:none;">🗑 Apagar tudo (PTA)</button>
+</div>
+</section>
 
-  <section class="card no-print" id="cardListaPTA" style="display:none;">
-    <div class="card-head">
+<section class="card no-print" id="cardListaPTA" style="display:none;">
+<div class="card-head">
+      <h2>Registros — PTA INVECO</h2>
       <h2>Registros — PTA IVECO</h2>
-      <p class="muted">Use “Editar” para carregar um registro e atualizar (a assinatura também).</p>
-    </div>
+<p class="muted">Use “Editar” para carregar um registro e atualizar (a assinatura também).</p>
+</div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Condutor</th>
-          <th>Km Inicial</th>
-          <th>Km Final</th>
-          <th>Local</th>
-          <th>Atividade</th>
-          <th>Assinatura</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaPTA"></tbody>
-    </table>
-  </section>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Condutor</th>
+<th>Km Inicial</th>
+<th>Km Final</th>
+<th>Local</th>
+<th>Atividade</th>
+<th>Assinatura</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="tabelaPTA"></tbody>
+</table>
+</section>
 
-  <footer class="footer no-print">
-    DIGITAL • EMIVE • Tecnologia e Segurança
-  </footer>
+<footer class="footer no-print">
+DIGITAL • EMIVE • Tecnologia e Segurança
+</footer>
 
 </main>
 </div>
 
 <!-- ===================== PDF ===================== -->
 <section class="print-only report">
-  <div class="report-head">
-    <div class="report-logos">
-      <img src="logo-digital.png" alt="Logo Digital" class="logo">
-      <img src="logo-emive.png" alt="Logo Emive" class="logo emive">
-    </div>
+<div class="report-head">
+<div class="report-logos">
+<img src="logo-digital.png" alt="Logo Digital" class="logo">
+<img src="logo-emive.png" alt="Logo Emive" class="logo emive">
+</div>
 
-    <div class="report-titles">
-      <div class="report-title">Relatório — <span id="reportContrato">—</span></div>
-      <div class="report-subtitle" id="reportPeriodo">Período: —</div>
-      <div class="report-subtitle" id="reportGeradoEm">Gerado em: —</div>
-    </div>
-  </div>
+<div class="report-titles">
+<div class="report-title">Relatório — <span id="reportContrato">—</span></div>
+<div class="report-subtitle" id="reportPeriodo">Período: —</div>
+<div class="report-subtitle" id="reportGeradoEm">Gerado em: —</div>
+</div>
+</div>
 
-  <!-- ✅ FERROPORT PDF -->
-  <div id="printFerroport">
-    <div class="report-grid">
-      <div class="report-box">
-        <div class="box-title">Ranking — Dias trabalhados</div>
-        <table class="report-table">
-          <thead>
-            <tr><th>#</th><th>Técnico</th><th>Dias</th></tr>
-          </thead>
-          <tbody id="printRanking"></tbody>
-        </table>
-      </div>
+<!-- ✅ FERROPORT PDF -->
+<div id="printFerroport">
+<div class="report-grid">
+<div class="report-box">
+<div class="box-title">Ranking — Dias trabalhados</div>
+<table class="report-table">
+<thead>
+<tr><th>#</th><th>Técnico</th><th>Dias</th></tr>
+</thead>
+<tbody id="printRanking"></tbody>
+</table>
+</div>
 
-      <div class="report-box">
-        <div class="box-title">Registros do mês</div>
-        <table class="report-table">
-          <thead>
-            <tr><th>Data</th><th>Pessoas</th></tr>
-          </thead>
-          <tbody id="printMes"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+<div class="report-box">
+<div class="box-title">Registros do mês</div>
+<table class="report-table">
+<thead>
+<tr><th>Data</th><th>Pessoas</th></tr>
+</thead>
+<tbody id="printMes"></tbody>
+</table>
+</div>
+</div>
+</div>
 
-  <!-- ✅ PTA PDF -->
-  <div id="printPTA" style="display:none;">
-    <div class="report-box" style="margin-top:12px;">
+<!-- ✅ PTA PDF -->
+<div id="printPTA" style="display:none;">
+<div class="report-box" style="margin-top:12px;">
+      <div class="box-title">Registros do mês — PTA INVECO</div>
       <div class="box-title">Registros do mês — PTA IVECO</div>
-      <table class="report-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Condutor</th>
-            <th>Km Inicial</th>
-            <th>Km Final</th>
-            <th>Local</th>
-            <th>Atividade</th>
-          </tr>
-        </thead>
-        <tbody id="printPTATable"></tbody>
-      </table>
-      <p class="muted small" style="margin-top:10px;">
-        Observação: Assinaturas são armazenadas no sistema e podem ser conferidas na tela do contrato.
-      </p>
-    </div>
-  </div>
+<table class="report-table">
+<thead>
+<tr>
+<th>Data</th>
+<th>Condutor</th>
+<th>Km Inicial</th>
+<th>Km Final</th>
+<th>Local</th>
+<th>Atividade</th>
+</tr>
+</thead>
+<tbody id="printPTATable"></tbody>
+</table>
+<p class="muted small" style="margin-top:10px;">
+Observação: Assinaturas são armazenadas no sistema e podem ser conferidas na tela do contrato.
+</p>
+</div>
+</div>
 
-  <div class="report-footer">
-    DIGITAL • EMIVE — Tecnologia e Segurança
-  </div>
+<div class="report-footer">
+DIGITAL • EMIVE — Tecnologia e Segurança
+</div>
 </section>
 
 <!-- ===========================================================
-     ✅ SCRIPT FINAL
+    ✅ SCRIPT FINAL
 =========================================================== -->
 <script>
 (function(){
-  function showFatal(err){
-    console.error(err);
-    document.body.innerHTML =
-      '<div style="font-family:Arial;padding:20px">' +
-      '<h2 style="color:#CB3344">Erro no JavaScript</h2>' +
-      '<pre style="background:#111;color:#0f0;padding:12px;border-radius:8px;white-space:pre-wrap">' +
-      (err && (err.stack || err.message) ? (err.stack || err.message) : String(err)) +
-      '</pre>' +
-      '<p>Abra o Console (F12) para mais detalhes.</p>' +
-      '</div>';
-  }
-  window.addEventListener("error", (e)=> showFatal(e.error || e.message));
-  window.addEventListener("unhandledrejection", (e)=> showFatal(e.reason));
+function showFatal(err){
+console.error(err);
+document.body.innerHTML =
+'<div style="font-family:Arial;padding:20px">' +
+'<h2 style="color:#CB3344">Erro no JavaScript</h2>' +
+'<pre style="background:#111;color:#0f0;padding:12px;border-radius:8px;white-space:pre-wrap">' +
+(err && (err.stack || err.message) ? (err.stack || err.message) : String(err)) +
+'</pre>' +
+'<p>Abra o Console (F12) para mais detalhes.</p>' +
+'</div>';
+}
+window.addEventListener("error", (e)=> showFatal(e.error || e.message));
+window.addEventListener("unhandledrejection", (e)=> showFatal(e.reason));
 
-  document.addEventListener("DOMContentLoaded", () => {
-    try{
-      if(typeof firebase === "undefined"){
-        throw new Error("firebase is not defined. Os scripts compat precisam estar carregados antes deste script.");
-      }
+document.addEventListener("DOMContentLoaded", () => {
+try{
+if(typeof firebase === "undefined"){
+throw new Error("firebase is not defined. Os scripts compat precisam estar carregados antes deste script.");
+}
 
-      // ===================== CONFIG =====================
-      const firebaseConfig = {
-        apiKey: "AIzaSyBzgChouE4W25XnD-vFybJrKVN9yl3R0IQ",
-        authDomain: "ferroportluannogueira.firebaseapp.com",
-        projectId: "ferroportluannogueira",
-        storageBucket: "ferroportluannogueira.firebasestorage.app",
-        messagingSenderId: "531699539518",
-        appId: "1:531699539518:web:6e32a169d9110f70b9fb6f",
-        measurementId: "G-61BRVCSHD7"
-      };
+// ===================== CONFIG =====================
+const firebaseConfig = {
+apiKey: "AIzaSyBzgChouE4W25XnD-vFybJrKVN9yl3R0IQ",
+authDomain: "ferroportluannogueira.firebaseapp.com",
+projectId: "ferroportluannogueira",
+storageBucket: "ferroportluannogueira.firebasestorage.app",
+messagingSenderId: "531699539518",
+appId: "1:531699539518:web:6e32a169d9110f70b9fb6f",
+measurementId: "G-61BRVCSHD7"
+};
 
-      const CONTRATOS = [
-        { value: "ferroport",  label: "Ferroport" },
+const CONTRATOS = [
+{ value: "ferroport",  label: "Ferroport" },
+        { value: "pta-inveco", label: "PTA INVECO" }
         { value: "pta-IVECO", label: "PTA IVECO" }
-      ];
+];
 
-      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-      const auth = firebase.auth();
-      const db   = firebase.firestore();
+const auth = firebase.auth();
+const db   = firebase.firestore();
 
-      // Ferroport
-      let LISTA = [];
-      let NOMES = [];
-      let selecaoDiaria = [];
+// Ferroport
+let LISTA = [];
+let NOMES = [];
+let selecaoDiaria = [];
 
-      let mostrarTodosRegistros = false;
-      const LIMITE_REGISTROS = 5;
+let mostrarTodosRegistros = false;
+const LIMITE_REGISTROS = 5;
 
-      let mostrarTodosMes = false;
-      const LIMITE_MES = 6;
+let mostrarTodosMes = false;
+const LIMITE_MES = 6;
 
-      // Contratos / Permissões
-      const KEY_CONTRATO = "contrato_atual";
-      let contratoAtual = localStorage.getItem(KEY_CONTRATO) || "ferroport";
+// Contratos / Permissões
+const KEY_CONTRATO = "contrato_atual";
+let contratoAtual = localStorage.getItem(KEY_CONTRATO) || "ferroport";
 
-      let allowedContracts = [];
-      let isAdmin = false;
+let allowedContracts = [];
+let isAdmin = false;
 
-      // Firestore refs
-      let refDiarios = null;
-      let refNomes = null;
-      let refPTA = null; // /contratos/{contractId}/ptauso
+// Firestore refs
+let refDiarios = null;
+let refNomes = null;
+let refPTA = null; // /contratos/{contractId}/ptauso
 
-      // Unsub realtime
-      let unsubDiarios = null;
-      let unsubNomes = null;
-      let unsubPTA = null;
+// Unsub realtime
+let unsubDiarios = null;
+let unsubNomes = null;
+let unsubPTA = null;
 
-      // PTA
-      let LISTA_PTA = [];
-      let ptaEditId = null;
+// PTA
+let LISTA_PTA = [];
+let ptaEditId = null;
 
-      // ===================== TEMA =====================
-      const KEY_TEMA = "tema_site";
-      function aplicarTema(theme){
-        document.documentElement.setAttribute("data-theme", theme);
-        localStorage.setItem(KEY_TEMA, theme);
+// ===================== TEMA =====================
+const KEY_TEMA = "tema_site";
+function aplicarTema(theme){
+document.documentElement.setAttribute("data-theme", theme);
+localStorage.setItem(KEY_TEMA, theme);
 
-        const txt = theme === "dark" ? "☀️ Tema" : "🌙 Tema";
-        const btn = document.getElementById("btnTema");
-        const btnLogin = document.getElementById("btnTemaLogin");
-        if(btn) btn.textContent = txt;
-        if(btnLogin) btnLogin.textContent = txt;
+const txt = theme === "dark" ? "☀️ Tema" : "🌙 Tema";
+const btn = document.getElementById("btnTema");
+const btnLogin = document.getElementById("btnTemaLogin");
+if(btn) btn.textContent = txt;
+if(btnLogin) btnLogin.textContent = txt;
 
-        try{ setTimeout(() => atualizarPainel(), 10); }catch(_){}
-      }
-      function toggleTema(){
-        const atual = document.documentElement.getAttribute("data-theme") || "light";
-        aplicarTema(atual === "dark" ? "light" : "dark");
-      }
-      window.toggleTema = toggleTema;
+try{ setTimeout(() => atualizarPainel(), 10); }catch(_){}
+}
+function toggleTema(){
+const atual = document.documentElement.getAttribute("data-theme") || "light";
+aplicarTema(atual === "dark" ? "light" : "dark");
+}
+window.toggleTema = toggleTema;
 
-      aplicarTema(localStorage.getItem(KEY_TEMA) || "light");
+aplicarTema(localStorage.getItem(KEY_TEMA) || "light");
 
-      function toggleSenha(inputId, btn){
-        const input = document.getElementById(inputId);
-        if(!input || !btn) return;
+function toggleSenha(inputId, btn){
+const input = document.getElementById(inputId);
+if(!input || !btn) return;
 
-        const mostrando = input.type === "text";
-        input.type = mostrando ? "password" : "text";
+const mostrando = input.type === "text";
+input.type = mostrando ? "password" : "text";
 
-        const closed = btn.querySelector(".cam-closed");
-        const open = btn.querySelector(".cam-open");
-        if(closed && open){
-          closed.style.display = mostrando ? "inline-flex" : "none";
-          open.style.display = mostrando ? "none" : "inline-flex";
-        }
-      }
-      window.toggleSenha = toggleSenha;
+const closed = btn.querySelector(".cam-closed");
+const open = btn.querySelector(".cam-open");
+if(closed && open){
+closed.style.display = mostrando ? "inline-flex" : "none";
+open.style.display = mostrando ? "none" : "inline-flex";
+}
+}
+window.toggleSenha = toggleSenha;
 
-      // ===================== HELPERS =====================
-      function formatarDataBR(dataISO){
-        if(!dataISO) return "";
-        const [y,m,d] = dataISO.split("-");
-        return `${d}/${m}/${y}`;
-      }
-      function hojeISO(){
-        const d = new Date();
-        const pad = (n)=> String(n).padStart(2,"0");
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-      }
-      function agoraBR(){
-        const d = new Date();
-        const pad = (n)=> String(n).padStart(2,"0");
-        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      }
-      function getMesAnoSelecionado(){
-        const v = document.getElementById("mesAno")?.value;
-        if(!v) return null;
-        const [y,m] = v.split("-");
-        return { y, m };
-      }
-      function idSeguro(str){
-        return String(str || "")
-          .toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-          .replace(/\s+/g,"-")
-          .replace(/[^a-z0-9\-]/g,"")
-          .slice(0,80);
-      }
-      function nomeContratoBonito(slug){
+// ===================== HELPERS =====================
+function formatarDataBR(dataISO){
+if(!dataISO) return "";
+const [y,m,d] = dataISO.split("-");
+return `${d}/${m}/${y}`;
+}
+function hojeISO(){
+const d = new Date();
+const pad = (n)=> String(n).padStart(2,"0");
+return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function agoraBR(){
+const d = new Date();
+const pad = (n)=> String(n).padStart(2,"0");
+return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function getMesAnoSelecionado(){
+const v = document.getElementById("mesAno")?.value;
+if(!v) return null;
+const [y,m] = v.split("-");
+return { y, m };
+}
+function idSeguro(str){
+return String(str || "")
+.toLowerCase()
+.normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+.replace(/\s+/g,"-")
+.replace(/[^a-z0-9\-]/g,"")
+.slice(0,80);
+}
+function nomeContratoBonito(slug){
+        return ({ "ferroport":"Ferroport", "pta-inveco":"PTA INVECO" }[slug] || slug);
         return ({ "ferroport":"Ferroport", "pta-IVECO":"PTA IVECO" }[slug] || slug);
-      }
-      function inMesAno(dataISO, y, m){
-        if(!dataISO) return false;
-        return dataISO.startsWith(`${y}-${m}-`);
-      }
+}
+function inMesAno(dataISO, y, m){
+if(!dataISO) return false;
+return dataISO.startsWith(`${y}-${m}-`);
+}
 
-      // ===================== RANKING (Ferroport) =====================
-      function contarDiasPorTecnico(itensMes){
-        const map = new Map();
-        itensMes.forEach(item => {
-          (item.pessoas || []).forEach(nome => {
-            map.set(nome, (map.get(nome) || 0) + 1);
-          });
-        });
-        return [...map.entries()]
-          .map(([nome, dias]) => ({ nome, dias }))
-          .sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
-      }
+// ===================== RANKING (Ferroport) =====================
+function contarDiasPorTecnico(itensMes){
+const map = new Map();
+itensMes.forEach(item => {
+(item.pessoas || []).forEach(nome => {
+map.set(nome, (map.get(nome) || 0) + 1);
+});
+});
+return [...map.entries()]
+.map(([nome, dias]) => ({ nome, dias }))
+.sort((a,b) => b.dias - a.dias || a.nome.localeCompare(b.nome, "pt-BR"));
+}
 
-      // ===================== GRÁFICO =====================
-      function desenharGraficoTop10(canvasId, data){
-        const canvas = document.getElementById(canvasId);
-        if(!canvas) return;
+// ===================== GRÁFICO =====================
+function desenharGraficoTop10(canvasId, data){
+const canvas = document.getElementById(canvasId);
+if(!canvas) return;
 
-        const w = canvas.clientWidth || 0;
-        const h = canvas.clientHeight || 0;
-        if(w < 50 || h < 50) return;
+const w = canvas.clientWidth || 0;
+const h = canvas.clientHeight || 0;
+if(w < 50 || h < 50) return;
 
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width  = Math.floor(w * dpr);
-        canvas.height = Math.floor(h * dpr);
+const dpr = window.devicePixelRatio || 1;
+canvas.width  = Math.floor(w * dpr);
+canvas.height = Math.floor(h * dpr);
 
-        const ctx = canvas.getContext("2d");
-        ctx.setTransform(dpr,0,0,dpr,0,0);
-        ctx.clearRect(0,0,w,h);
+const ctx = canvas.getContext("2d");
+ctx.setTransform(dpr,0,0,dpr,0,0);
+ctx.clearRect(0,0,w,h);
 
-        const styles = getComputedStyle(document.documentElement);
-        const text   = styles.getPropertyValue("--text").trim() || "#111";
-        const muted  = styles.getPropertyValue("--muted").trim() || "#666";
-        const border = styles.getPropertyValue("--border").trim() || "#ddd";
-        const bar    = styles.getPropertyValue("--digital-red").trim() || "#CB3344";
-        const bg     = styles.getPropertyValue("--card-2").trim() || "#f7f7f7";
+const styles = getComputedStyle(document.documentElement);
+const text   = styles.getPropertyValue("--text").trim() || "#111";
+const muted  = styles.getPropertyValue("--muted").trim() || "#666";
+const border = styles.getPropertyValue("--border").trim() || "#ddd";
+const bar    = styles.getPropertyValue("--digital-red").trim() || "#CB3344";
+const bg     = styles.getPropertyValue("--card-2").trim() || "#f7f7f7";
 
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, w, h);
+ctx.fillStyle = bg;
+ctx.fillRect(0, 0, w, h);
 
-        if(!data || data.length === 0){
-          ctx.font = "14px Arial";
-          ctx.fillStyle = muted;
-          ctx.fillText("Sem dados no mês selecionado.", 12, 24);
-          return;
-        }
+if(!data || data.length === 0){
+ctx.font = "14px Arial";
+ctx.fillStyle = muted;
+ctx.fillText("Sem dados no mês selecionado.", 12, 24);
+return;
+}
 
-        const top = data.slice(0,10);
-        const max = Math.max(...top.map(x => x.dias), 1);
+const top = data.slice(0,10);
+const max = Math.max(...top.map(x => x.dias), 1);
 
-        const fontLabel = "12px Arial";
-        const fontValue = "12px Arial";
+const fontLabel = "12px Arial";
+const fontValue = "12px Arial";
 
-        ctx.font = fontLabel;
-        const maxNameW = Math.min(
-          240,
-          Math.max(...top.map(x => ctx.measureText(String(x.nome)).width)) + 18
-        );
+ctx.font = fontLabel;
+const maxNameW = Math.min(
+240,
+Math.max(...top.map(x => ctx.measureText(String(x.nome)).width)) + 18
+);
 
-        const padL = Math.max(110, Math.min(maxNameW, Math.floor(w * 0.55)));
-        const padR = 26;
-        const padT = 18;
-        const padB = 18;
+const padL = Math.max(110, Math.min(maxNameW, Math.floor(w * 0.55)));
+const padR = 26;
+const padT = 18;
+const padB = 18;
 
-        const plotW = Math.max(60, w - padL - padR);
-        const rowH  = Math.max(26, Math.floor((h - padT - padB) / top.length));
-        const barH  = Math.floor(rowH * 0.55);
+const plotW = Math.max(60, w - padL - padR);
+const rowH  = Math.max(26, Math.floor((h - padT - padB) / top.length));
+const barH  = Math.floor(rowH * 0.55);
 
-        ctx.strokeStyle = border;
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.35;
-        for(let i=0;i<=4;i++){
-          const x = padL + (plotW * (i/4));
-          ctx.beginPath();
-          ctx.moveTo(x, padT);
-          ctx.lineTo(x, h - padB);
-          ctx.stroke();
-        }
-        ctx.globalAlpha = 1;
+ctx.strokeStyle = border;
+ctx.lineWidth = 1;
+ctx.globalAlpha = 0.35;
+for(let i=0;i<=4;i++){
+const x = padL + (plotW * (i/4));
+ctx.beginPath();
+ctx.moveTo(x, padT);
+ctx.lineTo(x, h - padB);
+ctx.stroke();
+}
+ctx.globalAlpha = 1;
 
-        ctx.textBaseline = "middle";
+ctx.textBaseline = "middle";
 
-        top.forEach((item, i) => {
-          const y = padT + i * rowH + rowH/2;
+top.forEach((item, i) => {
+const y = padT + i * rowH + rowH/2;
 
-          ctx.font = fontLabel;
-          ctx.fillStyle = muted;
+ctx.font = fontLabel;
+ctx.fillStyle = muted;
 
-          let nome = String(item.nome || "");
-          const maxAllowed = padL - 16;
-          while(nome.length > 1 && ctx.measureText(nome + "…").width > maxAllowed){
-            nome = nome.slice(0, -1);
-          }
-          if(nome !== String(item.nome || "")) nome += "…";
-          ctx.fillText(nome, 12, y);
+let nome = String(item.nome || "");
+const maxAllowed = padL - 16;
+while(nome.length > 1 && ctx.measureText(nome + "…").width > maxAllowed){
+nome = nome.slice(0, -1);
+}
+if(nome !== String(item.nome || "")) nome += "…";
+ctx.fillText(nome, 12, y);
 
-          const bw = Math.max(2, (item.dias / max) * plotW);
-          const x0 = padL;
-          const y0 = Math.round(y - barH/2);
+const bw = Math.max(2, (item.dias / max) * plotW);
+const x0 = padL;
+const y0 = Math.round(y - barH/2);
 
-          const r = Math.min(8, Math.floor(barH/2));
-          ctx.fillStyle = bar;
-          roundRectFill(ctx, x0, y0, bw, barH, r);
+const r = Math.min(8, Math.floor(barH/2));
+ctx.fillStyle = bar;
+roundRectFill(ctx, x0, y0, bw, barH, r);
 
-          const value = String(item.dias);
-          ctx.font = fontValue;
-          const valueW = ctx.measureText(value).width;
+const value = String(item.dias);
+ctx.font = fontValue;
+const valueW = ctx.measureText(value).width;
 
-          const inside = bw > (valueW + 14);
-          if(inside){
-            ctx.fillStyle = "#fff";
-            ctx.fillText(value, x0 + bw - valueW - 8, y);
-          }else{
-            ctx.fillStyle = text;
-            const xVal = Math.min(w - padR + 2, x0 + bw + 8);
-            ctx.fillText(value, xVal, y);
-          }
-        });
+const inside = bw > (valueW + 14);
+if(inside){
+ctx.fillStyle = "#fff";
+ctx.fillText(value, x0 + bw - valueW - 8, y);
+}else{
+ctx.fillStyle = text;
+const xVal = Math.min(w - padR + 2, x0 + bw + 8);
+ctx.fillText(value, xVal, y);
+}
+});
 
-        function roundRectFill(ctx, x, y, width, height, radius){
-          const rr = Math.max(0, Math.min(radius, width/2, height/2));
-          ctx.beginPath();
-          ctx.moveTo(x + rr, y);
-          ctx.arcTo(x + width, y, x + width, y + height, rr);
-          ctx.arcTo(x + width, y + height, x, y + height, rr);
-          ctx.arcTo(x, y + height, x, y, rr);
-          ctx.arcTo(x, y, x + width, y, rr);
-          ctx.closePath();
-          ctx.fill();
-        }
-      }
+function roundRectFill(ctx, x, y, width, height, radius){
+const rr = Math.max(0, Math.min(radius, width/2, height/2));
+ctx.beginPath();
+ctx.moveTo(x + rr, y);
+ctx.arcTo(x + width, y, x + width, y + height, rr);
+ctx.arcTo(x + width, y + height, x, y + height, rr);
+ctx.arcTo(x, y + height, x, y, rr);
+ctx.arcTo(x, y, x + width, y, rr);
+ctx.closePath();
+ctx.fill();
+}
+}
 
-      // ===================== PERMISSÕES =====================
-      async function carregarPermissoesUsuario(user){
-        const snap = await db.collection("users").doc(user.uid).get();
-        const data = snap.exists ? (snap.data() || {}) : {};
-        allowedContracts = Array.isArray(data.allowedContracts) ? data.allowedContracts : [];
-        isAdmin = String(data.role || "").toLowerCase() === "gestor";
-      }
+// ===================== PERMISSÕES =====================
+async function carregarPermissoesUsuario(user){
+const snap = await db.collection("users").doc(user.uid).get();
+const data = snap.exists ? (snap.data() || {}) : {};
+allowedContracts = Array.isArray(data.allowedContracts) ? data.allowedContracts : [];
+isAdmin = String(data.role || "").toLowerCase() === "gestor";
+}
 
-      function montarSelectContratos(){
-        const sel = document.getElementById("contratoSelect");
-        if(!sel) return;
+function montarSelectContratos(){
+const sel = document.getElementById("contratoSelect");
+if(!sel) return;
 
-        sel.innerHTML = "";
+sel.innerHTML = "";
 
-        if(!allowedContracts.length){
-          const opt = document.createElement("option");
-          opt.value = "";
-          opt.textContent = "Sem acesso";
-          sel.appendChild(opt);
-          sel.disabled = true;
-          return;
-        }
+if(!allowedContracts.length){
+const opt = document.createElement("option");
+opt.value = "";
+opt.textContent = "Sem acesso";
+sel.appendChild(opt);
+sel.disabled = true;
+return;
+}
 
-        sel.disabled = false;
+sel.disabled = false;
 
-        CONTRATOS
-          .filter(c => allowedContracts.includes(c.value))
-          .forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c.value;
-            opt.textContent = c.label;
-            sel.appendChild(opt);
-          });
+CONTRATOS
+.filter(c => allowedContracts.includes(c.value))
+.forEach(c => {
+const opt = document.createElement("option");
+opt.value = c.value;
+opt.textContent = c.label;
+sel.appendChild(opt);
+});
 
-        if(!allowedContracts.includes(contratoAtual)){
-          contratoAtual = allowedContracts[0];
-          localStorage.setItem(KEY_CONTRATO, contratoAtual);
-        }
+if(!allowedContracts.includes(contratoAtual)){
+contratoAtual = allowedContracts[0];
+localStorage.setItem(KEY_CONTRATO, contratoAtual);
+}
 
-        sel.value = contratoAtual;
-      }
+sel.value = contratoAtual;
+}
 
-      // ===================== REFS / REALTIME =====================
-      function setRefsContrato(){
-        refDiarios = db.collection("contratos").doc(contratoAtual).collection("diarios");
-        refNomes   = db.collection("contratos").doc(contratoAtual).collection("nomes");
-        refPTA     = db.collection("contratos").doc(contratoAtual).collection("ptauso");
-      }
+// ===================== REFS / REALTIME =====================
+function setRefsContrato(){
+refDiarios = db.collection("contratos").doc(contratoAtual).collection("diarios");
+refNomes   = db.collection("contratos").doc(contratoAtual).collection("nomes");
+refPTA     = db.collection("contratos").doc(contratoAtual).collection("ptauso");
+}
 
-      function desligarRealtime(){
-        if(typeof unsubDiarios === "function") unsubDiarios();
-        if(typeof unsubNomes === "function") unsubNomes();
-        if(typeof unsubPTA === "function") unsubPTA();
-        unsubDiarios = unsubNomes = unsubPTA = null;
-      }
+function desligarRealtime(){
+if(typeof unsubDiarios === "function") unsubDiarios();
+if(typeof unsubNomes === "function") unsubNomes();
+if(typeof unsubPTA === "function") unsubPTA();
+unsubDiarios = unsubNomes = unsubPTA = null;
+}
 
-      function ligarRealtime(){
-        desligarRealtime();
+function ligarRealtime(){
+desligarRealtime();
 
-        unsubDiarios = refDiarios.onSnapshot(
-          (snap) => {
-            LISTA = snap.docs.map(d => d.data());
-            carregarDiario();
-            atualizarPainel();
-          },
-          (err) => {
-            console.error("Erro diários:", err);
-            alert("Erro diários:\n\n" + (err?.message || err));
-          }
-        );
+unsubDiarios = refDiarios.onSnapshot(
+(snap) => {
+LISTA = snap.docs.map(d => d.data());
+carregarDiario();
+atualizarPainel();
+},
+(err) => {
+console.error("Erro diários:", err);
+alert("Erro diários:\n\n" + (err?.message || err));
+}
+);
 
-        unsubNomes = refNomes.onSnapshot(
-          (snap) => {
-            NOMES = snap.docs.map(d => (d.data()||{}).nome).filter(Boolean).sort((a,b) => a.localeCompare(b, "pt-BR"));
-            renderChipsDiario();
-          },
-          (err) => {
-            console.error("Erro nomes:", err);
-            alert("Erro nomes:\n\n" + (err?.message || err));
-          }
-        );
+unsubNomes = refNomes.onSnapshot(
+(snap) => {
+NOMES = snap.docs.map(d => (d.data()||{}).nome).filter(Boolean).sort((a,b) => a.localeCompare(b, "pt-BR"));
+renderChipsDiario();
+},
+(err) => {
+console.error("Erro nomes:", err);
+alert("Erro nomes:\n\n" + (err?.message || err));
+}
+);
 
-        unsubPTA = refPTA.onSnapshot(
-          (snap) => {
-            LISTA_PTA = snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
-            carregarTabelaPTA();
-            atualizarPainel();
-          },
-          (err) => {
-            console.error("Erro PTA:", err);
-            alert("Erro PTA:\n\n" + (err?.message || err));
-          }
-        );
-      }
+unsubPTA = refPTA.onSnapshot(
+(snap) => {
+LISTA_PTA = snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
+carregarTabelaPTA();
+atualizarPainel();
+},
+(err) => {
+console.error("Erro PTA:", err);
+alert("Erro PTA:\n\n" + (err?.message || err));
+}
+);
+}
 
-      // ===================== UI =====================
-      function mostrarApp(logado){
-        const a = document.getElementById("loginBox");
-        const b = document.getElementById("appRoot");
-        if(a) a.style.display = logado ? "none" : "flex";
-        if(b) b.style.display = logado ? "block" : "none";
-      }
+// ===================== UI =====================
+function mostrarApp(logado){
+const a = document.getElementById("loginBox");
+const b = document.getElementById("appRoot");
+if(a) a.style.display = logado ? "none" : "flex";
+if(b) b.style.display = logado ? "block" : "none";
+}
 
-      function aplicarPermissoesUI(){
-        const pill = document.getElementById("rolePill");
-        const permMsg = document.getElementById("permMsg");
-        const btnApagarTudo = document.getElementById("btnApagarTudo");
-        const btnApagarPTA = document.getElementById("btnApagarPTA");
+function aplicarPermissoesUI(){
+const pill = document.getElementById("rolePill");
+const permMsg = document.getElementById("permMsg");
+const btnApagarTudo = document.getElementById("btnApagarTudo");
+const btnApagarPTA = document.getElementById("btnApagarPTA");
 
-        if(pill){
-          pill.textContent = isAdmin ? "Gestor" : "Técnico";
-          pill.classList.toggle("admin", isAdmin);
-        }
+if(pill){
+pill.textContent = isAdmin ? "Gestor" : "Técnico";
+pill.classList.toggle("admin", isAdmin);
+}
 
-        if(btnApagarTudo) btnApagarTudo.style.display = isAdmin ? "inline-block" : "none";
-        if(btnApagarPTA) btnApagarPTA.style.display = isAdmin ? "inline-block" : "none";
-        if(permMsg) permMsg.style.display = isAdmin ? "none" : "block";
-      }
+if(btnApagarTudo) btnApagarTudo.style.display = isAdmin ? "inline-block" : "none";
+if(btnApagarPTA) btnApagarPTA.style.display = isAdmin ? "inline-block" : "none";
+if(permMsg) permMsg.style.display = isAdmin ? "none" : "block";
+}
 
-      function aplicarTelaPorContrato(){
+function aplicarTelaPorContrato(){
+        const isPTA = contratoAtual === "pta-inveco";
         const isPTA = contratoAtual === "pta-IVECO";
 
-        const blocoFerroport = document.getElementById("blocoFerroport");
-        const cardPresenca = document.getElementById("cardPresenca");
-        const cardListaFerroport = document.getElementById("cardListaFerroport");
-
-        if(blocoFerroport) blocoFerroport.style.display = isPTA ? "none" : "block";
-        if(cardPresenca) cardPresenca.style.display = isPTA ? "none" : "block";
-        if(cardListaFerroport) cardListaFerroport.style.display = isPTA ? "none" : "block";
-
-        const cardPTA = document.getElementById("cardPTA");
-        const cardListaPTA = document.getElementById("cardListaPTA");
-        if(cardPTA) cardPTA.style.display = isPTA ? "block" : "none";
-        if(cardListaPTA) cardListaPTA.style.display = isPTA ? "block" : "none";
-
-        // alterna blocos do PDF
-        const printFerroport = document.getElementById("printFerroport");
-        const printPTA = document.getElementById("printPTA");
-        if(printFerroport) printFerroport.style.display = isPTA ? "none" : "block";
-        if(printPTA) printPTA.style.display = isPTA ? "block" : "none";
-
-        if(isPTA){
-          const ptaData = document.getElementById("ptaData");
-          if(ptaData && !ptaData.value) ptaData.value = hojeISO();
-          setTimeout(() => ptaInitAssinatura(), 80);
-        }
-      }
-
-      // ===================== FERROPORT =====================
-
-      // ✅ EXCLUIR REGISTRO (UM DIA) - somente gestor
-      async function excluirRegistroDiario(dataISO){
-        try{
-          if(!isAdmin) return alert("Apenas Gestor pode excluir registros.");
-          if(!dataISO) return;
-          if(!confirm(`Excluir o registro do dia ${formatarDataBR(dataISO)}?`)) return;
-
-          await refDiarios.doc(dataISO).delete();
-          alert("Registro excluído.");
-        }catch(e){
-          console.error(e);
-          alert("Erro ao excluir registro:\n\n" + (e?.message || e));
-        }
-      }
-      window.excluirRegistroDiario = excluirRegistroDiario;
-
-      // ✅ EXCLUIR NOME - somente gestor
-      async function excluirNome(nome){
-        try{
-          if(!isAdmin) return alert("Apenas Gestor pode excluir nomes.");
-          if(!nome) return;
-
-          const removerDosRegistros = confirm(
-            `Excluir o nome "${nome}" da lista?\n\n` +
-            `OK = também remover "${nome}" de TODOS os registros do contrato.\n` +
-            `Cancelar = remover apenas da lista (os registros antigos continuam mostrando o nome).`
-          );
-
-          // remove da lista de nomes
-          await refNomes.doc(idSeguro(nome)).delete();
-
-          // opcional: remove o nome dos registros existentes
-          if(removerDosRegistros){
-            const snap = await refDiarios.get();
-            if(!snap.empty){
-              const batch = db.batch();
-              snap.docs.forEach(doc => {
-                const d = doc.data() || {};
-                const pessoas = Array.isArray(d.pessoas) ? d.pessoas : [];
-                if(pessoas.includes(nome)){
-                  const novas = pessoas.filter(p => p !== nome);
-                  batch.set(doc.ref, { pessoas: novas }, { merge:true });
-                }
-              });
-              await batch.commit();
-            }
-
-            // limpa seleção local se estiver marcado
-            selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
-            renderChipsDiario();
-          }
-
-          alert("Nome excluído.");
-        }catch(e){
-          console.error(e);
-          alert("Erro ao excluir nome:\n\n" + (e?.message || e));
-        }
-      }
-      window.excluirNome = excluirNome;
-
-      // ✅ chips com X para excluir (somente gestor)
-      function renderChipsDiario(){
-        const wrap = document.getElementById("chipsDiario");
-        if(!wrap) return;
-        wrap.innerHTML = "";
-
-        NOMES.forEach(nome => {
-          const box = document.createElement("div");
-          box.className = "chip-box";
-
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "chip" + (selecaoDiaria.includes(nome) ? " active" : "");
-          btn.innerText = nome;
-
-          btn.onclick = () => {
-            selecaoDiaria = selecaoDiaria.includes(nome)
-              ? selecaoDiaria.filter(n => n !== nome)
-              : [...selecaoDiaria, nome];
-            renderChipsDiario();
-          };
-
-          box.appendChild(btn);
-
-          if(isAdmin){
-            const del = document.createElement("button");
-            del.type = "button";
-            del.className = "chip-del";
-            del.title = `Excluir "${nome}"`;
-            del.setAttribute("aria-label", `Excluir ${nome}`);
-            del.textContent = "×";
-            del.onclick = (e) => {
-              e.stopPropagation();
-              excluirNome(nome);
-            };
-            box.appendChild(del);
-          }
-
-          wrap.appendChild(box);
-        });
-      }
-      window.renderChipsDiario = renderChipsDiario;
-
-      async function adicionarNome(){
-        try{
-          const input = document.getElementById("novoNome");
-          const nome = input.value.trim();
-          if(!nome) return alert("Digite um nome.");
-
-          const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
-          if(existe) return alert("Esse nome já existe.");
-
-          await refNomes.doc(idSeguro(nome)).set({ nome });
-          input.value = "";
-        }catch(e){
-          console.error(e);
-          alert("Erro ao adicionar nome:\n\n" + (e?.message || e));
-        }
-      }
-      window.adicionarNome = adicionarNome;
-
-      async function salvarDiario(){
-        try{
-          const data = document.getElementById("dataDia").value;
-          if(!data) return alert("Selecione a data.");
-          if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
-
-          const item = { dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
-          await refDiarios.doc(data).set(item);
-
-          limparDiario();
-        }catch(e){
-          console.error(e);
-          alert("Erro ao salvar o dia:\n\n" + (e?.message || e));
-        }
-      }
-      window.salvarDiario = salvarDiario;
-
-      function limparDiario(silencioso=false){
-        const dataDia = document.getElementById("dataDia");
-        if(dataDia) dataDia.value = hojeISO();
-        selecaoDiaria = [];
-        renderChipsDiario();
-        if(!silencioso){
-          const novoNome = document.getElementById("novoNome");
-          if(novoNome) novoNome.value = "";
-        }
-      }
-      window.limparDiario = limparDiario;
-
-      function carregarDiario(){
-        const tbody = document.getElementById("tabelaDiario");
-        if(!tbody) return;
-
-        tbody.innerHTML = "";
-
-        const dados = [...LISTA].sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
-        const visiveis = mostrarTodosRegistros ? dados : dados.slice(0, LIMITE_REGISTROS);
-
-        visiveis.forEach(item => {
-          const tr = document.createElement("tr");
-
-          const tdData = document.createElement("td");
-          tdData.textContent = item.dataBR || formatarDataBR(item.dataISO);
-
-          const tdPessoas = document.createElement("td");
-          tdPessoas.textContent = Array.isArray(item.pessoas) ? item.pessoas.join(", ") : "";
-
-          const tdAcoes = document.createElement("td");
-          tdAcoes.className = "row-actions";
-
-          const btnEditar = document.createElement("button");
-          btnEditar.className = "btn secondary small";
-          btnEditar.type = "button";
-          btnEditar.textContent = "Editar";
-          btnEditar.onclick = () => {
-            document.getElementById("dataDia").value = item.dataISO || hojeISO();
-            selecaoDiaria = Array.isArray(item.pessoas) ? [...item.pessoas] : [];
-            renderChipsDiario();
-            document.getElementById("cardPresenca")?.scrollIntoView({ behavior:"smooth", block:"start" });
-          };
-          tdAcoes.appendChild(btnEditar);
-
-          // ✅ Excluir registro (somente Gestor)
-          if(isAdmin){
-            const btnExcluir = document.createElement("button");
-            btnExcluir.className = "btn danger small";
-            btnExcluir.type = "button";
-            btnExcluir.textContent = "Excluir";
-            btnExcluir.onclick = () => excluirRegistroDiario(item.dataISO);
-            tdAcoes.appendChild(btnExcluir);
-          }
-
-          tr.appendChild(tdData);
-          tr.appendChild(tdPessoas);
-          tr.appendChild(tdAcoes);
-          tbody.appendChild(tr);
-        });
-
-        atualizarBotaoVerMais();
-      }
-
-      function atualizarBotaoVerMais(){
-        const btn = document.getElementById("btnVerMais");
-        if(!btn) return;
-        btn.style.display = LISTA.length > LIMITE_REGISTROS ? "inline-block" : "none";
-        btn.textContent = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
-      }
-
-      function toggleVerMais(){
-        mostrarTodosRegistros = !mostrarTodosRegistros;
-        carregarDiario();
-      }
-      window.toggleVerMais = toggleVerMais;
-
-      function carregarMes(itensMes){
-        const tbody = document.getElementById("tabelaMes");
-        if(tbody){
-          tbody.innerHTML = "";
-          const vis = mostrarTodosMes ? itensMes : itensMes.slice(0, LIMITE_MES);
-          vis.forEach(item => {
-            const tr = document.createElement("tr");
-            tr.innerHTML =
-              `<td>${item.dataBR || formatarDataBR(item.dataISO)}</td>` +
-              `<td>${Array.isArray(item.pessoas) ? item.pessoas.join(", ") : ""}</td>`;
-            tbody.appendChild(tr);
-          });
-
-          const btn = document.getElementById("btnVerMaisMes");
-          if(btn){
-            btn.style.display = itensMes.length > LIMITE_MES ? "inline-block" : "none";
-            btn.textContent = mostrarTodosMes ? "Ver menos registros" : "Ver mais registros";
-          }
-        }
-
-        const pMes = document.getElementById("printMes");
-        if(pMes){
-          pMes.innerHTML = "";
-          itensMes.forEach(item => {
-            const tr = document.createElement("tr");
-            tr.innerHTML =
-              `<td>${item.dataBR || formatarDataBR(item.dataISO)}</td>` +
-              `<td>${Array.isArray(item.pessoas) ? item.pessoas.join(", ") : ""}</td>`;
-            pMes.appendChild(tr);
-          });
-        }
-      }
-
-      function toggleVerMaisMes(){
-        mostrarTodosMes = !mostrarTodosMes;
-        atualizarPainel();
-      }
-      window.toggleVerMaisMes = toggleVerMaisMes;
-
-      async function apagarDiarios(){
-        try{
-          if(!isAdmin) return alert("Apenas Gestor pode apagar tudo.");
-          if(!confirm("Tem certeza que deseja apagar TODOS os registros deste contrato (Ferroport/diarios)?")) return;
-
-          const snap = await refDiarios.get();
-          const batch = db.batch();
-          snap.docs.forEach(doc => batch.delete(doc.ref));
-          await batch.commit();
-
-          alert("Registros apagados.");
-        }catch(e){
-          console.error(e);
-          alert("Erro ao apagar:\n\n" + (e?.message || e));
-        }
-      }
-      window.apagarDiarios = apagarDiarios;
-
-      function exportarDiarioCSV(){
-        try{
-          const dados = [...LISTA].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
-          const linhas = [];
-          linhas.push(["Data","Pessoas"].join(";"));
-
-          dados.forEach(item => {
-            const data = item.dataBR || formatarDataBR(item.dataISO);
-            const pessoas = Array.isArray(item.pessoas) ? item.pessoas.join(", ") : "";
-            linhas.push([data, pessoas].map(v => `"${String(v).replace(/"/g,'""')}"`).join(";"));
-          });
-
-          const csv = "\uFEFF" + linhas.join("\n");
-          const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-          const url = URL.createObjectURL(blob);
-
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `ferroport_${contratoAtual}_${(document.getElementById("mesAno")?.value || "export")}.csv`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
-        }catch(e){
-          console.error(e);
-          alert("Erro ao exportar:\n\n" + (e?.message || e));
-        }
-      }
-      window.exportarDiarioCSV = exportarDiarioCSV;
-
-      // ===================== PTA: ASSINATURA =====================
-      function ptaInitAssinatura(){
-        const canvas = document.getElementById("ptaAssinatura");
-        if(!canvas) return;
-
-        const rect = canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-
-        canvas.width  = Math.floor(rect.width  * dpr);
-        canvas.height = Math.floor(rect.height * dpr);
-
-        const ctx = canvas.getContext("2d");
-        ctx.setTransform(dpr,0,0,dpr,0,0);
-
-        const styles = getComputedStyle(document.documentElement);
-        const cor = styles.getPropertyValue("--text").trim() || "#111";
-        ctx.lineWidth = 2.2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.strokeStyle = cor;
-
-        let desenhando = false;
-        let lastX = 0, lastY = 0;
-
-        function pos(e){
-          const r = canvas.getBoundingClientRect();
-          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-          return { x: clientX - r.left, y: clientY - r.top };
-        }
-
-        function start(e){
-          desenhando = true;
-          const p = pos(e);
-          lastX = p.x; lastY = p.y;
-          e.preventDefault();
-        }
-        function move(e){
-          if(!desenhando) return;
-          const p = pos(e);
-          ctx.beginPath();
-          ctx.moveTo(lastX, lastY);
-          ctx.lineTo(p.x, p.y);
-          ctx.stroke();
-          lastX = p.x; lastY = p.y;
-          e.preventDefault();
-        }
-        function end(){ desenhando = false; }
-
-        canvas.onmousedown = canvas.onmousemove = canvas.onmouseup = canvas.onmouseleave = null;
-        canvas.ontouchstart = canvas.ontouchmove = canvas.ontouchend = null;
-
-        canvas.onmousedown = start;
-        canvas.onmousemove = move;
-        canvas.onmouseup = end;
-        canvas.onmouseleave = end;
-
-        canvas.ontouchstart = start;
-        canvas.ontouchmove = move;
-        canvas.ontouchend = end;
-      }
-
-      function ptaLimparAssinatura(){
-        const canvas = document.getElementById("ptaAssinatura");
-        if(!canvas) return;
-        const ctx = canvas.getContext("2d");
-        ctx.setTransform(1,0,0,1,0,0);
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        try{ ptaInitAssinatura(); }catch(_){}
-      }
-      window.ptaLimparAssinatura = ptaLimparAssinatura;
-
-      function ptaAssinaturaDataURL(){
-        const canvas = document.getElementById("ptaAssinatura");
-        if(!canvas) return "";
-        return canvas.toDataURL("image/png");
-      }
-
-      function ptaCarregarAssinatura(dataUrl){
-        const canvas = document.getElementById("ptaAssinatura");
-        if(!canvas) return;
-        const ctx = canvas.getContext("2d");
-        const img = new Image();
-        img.onload = () => {
-          const rect = canvas.getBoundingClientRect();
-          const dpr = window.devicePixelRatio || 1;
-          ctx.setTransform(dpr,0,0,dpr,0,0);
-          ctx.clearRect(0,0,rect.width, rect.height);
-          ctx.drawImage(img, 0, 0, rect.width, rect.height);
-        };
-        img.src = dataUrl || "";
-      }
-
-      function ptaLimparFormulario(){
-        const d = document.getElementById("ptaData");
-        if(d) d.value = hojeISO();
-
-        const ids = ["ptaCondutor","ptaKmInicial","ptaKmFinal","ptaLocal","ptaDescricao"];
-        ids.forEach(id => {
-          const el = document.getElementById(id);
-          if(el) el.value = "";
-        });
-
-        ptaEditId = null;
-        ptaLimparAssinatura();
-      }
-      window.ptaLimparFormulario = ptaLimparFormulario;
-
-      async function ptaSalvar(){
-        try{
+const blocoFerroport = document.getElementById("blocoFerroport");
+const cardPresenca = document.getElementById("cardPresenca");
+const cardListaFerroport = document.getElementById("cardListaFerroport");
+
+if(blocoFerroport) blocoFerroport.style.display = isPTA ? "none" : "block";
+if(cardPresenca) cardPresenca.style.display = isPTA ? "none" : "block";
+if(cardListaFerroport) cardListaFerroport.style.display = isPTA ? "none" : "block";
+
+const cardPTA = document.getElementById("cardPTA");
+const cardListaPTA = document.getElementById("cardListaPTA");
+if(cardPTA) cardPTA.style.display = isPTA ? "block" : "none";
+if(cardListaPTA) cardListaPTA.style.display = isPTA ? "block" : "none";
+
+// alterna blocos do PDF
+const printFerroport = document.getElementById("printFerroport");
+const printPTA = document.getElementById("printPTA");
+if(printFerroport) printFerroport.style.display = isPTA ? "none" : "block";
+if(printPTA) printPTA.style.display = isPTA ? "block" : "none";
+
+if(isPTA){
+const ptaData = document.getElementById("ptaData");
+if(ptaData && !ptaData.value) ptaData.value = hojeISO();
+setTimeout(() => ptaInitAssinatura(), 80);
+}
+}
+
+// ===================== FERROPORT =====================
+
+// ✅ EXCLUIR REGISTRO (UM DIA) - somente gestor
+async function excluirRegistroDiario(dataISO){
+try{
+if(!isAdmin) return alert("Apenas Gestor pode excluir registros.");
+if(!dataISO) return;
+if(!confirm(`Excluir o registro do dia ${formatarDataBR(dataISO)}?`)) return;
+
+await refDiarios.doc(dataISO).delete();
+alert("Registro excluído.");
+}catch(e){
+console.error(e);
+alert("Erro ao excluir registro:\n\n" + (e?.message || e));
+}
+}
+window.excluirRegistroDiario = excluirRegistroDiario;
+
+// ✅ EXCLUIR NOME - somente gestor
+async function excluirNome(nome){
+try{
+if(!isAdmin) return alert("Apenas Gestor pode excluir nomes.");
+if(!nome) return;
+
+const removerDosRegistros = confirm(
+`Excluir o nome "${nome}" da lista?\n\n` +
+`OK = também remover "${nome}" de TODOS os registros do contrato.\n` +
+`Cancelar = remover apenas da lista (os registros antigos continuam mostrando o nome).`
+);
+
+// remove da lista de nomes
+await refNomes.doc(idSeguro(nome)).delete();
+
+// opcional: remove o nome dos registros existentes
+if(removerDosRegistros){
+const snap = await refDiarios.get();
+if(!snap.empty){
+const batch = db.batch();
+snap.docs.forEach(doc => {
+const d = doc.data() || {};
+const pessoas = Array.isArray(d.pessoas) ? d.pessoas : [];
+if(pessoas.includes(nome)){
+const novas = pessoas.filter(p => p !== nome);
+batch.set(doc.ref, { pessoas: novas }, { merge:true });
+}
+});
+await batch.commit();
+}
+
+// limpa seleção local se estiver marcado
+selecaoDiaria = selecaoDiaria.filter(n => n !== nome);
+renderChipsDiario();
+}
+
+alert("Nome excluído.");
+}catch(e){
+console.error(e);
+alert("Erro ao excluir nome:\n\n" + (e?.message || e));
+}
+}
+window.excluirNome = excluirNome;
+
+// ✅ chips com X para excluir (somente gestor)
+function renderChipsDiario(){
+const wrap = document.getElementById("chipsDiario");
+if(!wrap) return;
+wrap.innerHTML = "";
+
+NOMES.forEach(nome => {
+const box = document.createElement("div");
+box.className = "chip-box";
+
+const btn = document.createElement("button");
+btn.type = "button";
+btn.className = "chip" + (selecaoDiaria.includes(nome) ? " active" : "");
+btn.innerText = nome;
+
+btn.onclick = () => {
+selecaoDiaria = selecaoDiaria.includes(nome)
+? selecaoDiaria.filter(n => n !== nome)
+: [...selecaoDiaria, nome];
+renderChipsDiario();
+};
+
+box.appendChild(btn);
+
+if(isAdmin){
+const del = document.createElement("button");
+del.type = "button";
+del.className = "chip-del";
+del.title = `Excluir "${nome}"`;
+del.setAttribute("aria-label", `Excluir ${nome}`);
+del.textContent = "×";
+del.onclick = (e) => {
+e.stopPropagation();
+excluirNome(nome);
+};
+box.appendChild(del);
+}
+
+wrap.appendChild(box);
+});
+}
+window.renderChipsDiario = renderChipsDiario;
+
+async function adicionarNome(){
+try{
+const input = document.getElementById("novoNome");
+const nome = input.value.trim();
+if(!nome) return alert("Digite um nome.");
+
+const existe = NOMES.some(n => n.toLowerCase() === nome.toLowerCase());
+if(existe) return alert("Esse nome já existe.");
+
+await refNomes.doc(idSeguro(nome)).set({ nome });
+input.value = "";
+}catch(e){
+console.error(e);
+alert("Erro ao adicionar nome:\n\n" + (e?.message || e));
+}
+}
+window.adicionarNome = adicionarNome;
+
+async function salvarDiario(){
+try{
+const data = document.getElementById("dataDia").value;
+if(!data) return alert("Selecione a data.");
+if(selecaoDiaria.length === 0) return alert("Selecione pelo menos uma pessoa.");
+
+const item = { dataISO: data, dataBR: formatarDataBR(data), pessoas: [...selecaoDiaria] };
+await refDiarios.doc(data).set(item);
+
+limparDiario();
+}catch(e){
+console.error(e);
+alert("Erro ao salvar o dia:\n\n" + (e?.message || e));
+}
+}
+window.salvarDiario = salvarDiario;
+
+function limparDiario(silencioso=false){
+const dataDia = document.getElementById("dataDia");
+if(dataDia) dataDia.value = hojeISO();
+selecaoDiaria = [];
+renderChipsDiario();
+if(!silencioso){
+const novoNome = document.getElementById("novoNome");
+if(novoNome) novoNome.value = "";
+}
+}
+window.limparDiario = limparDiario;
+
+function carregarDiario(){
+const tbody = document.getElementById("tabelaDiario");
+if(!tbody) return;
+
+tbody.innerHTML = "";
+
+const dados = [...LISTA].sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
+const visiveis = mostrarTodosRegistros ? dados : dados.slice(0, LIMITE_REGISTROS);
+
+visiveis.forEach(item => {
+const tr = document.createElement("tr");
+
+const tdData = document.createElement("td");
+tdData.textContent = item.dataBR || formatarDataBR(item.dataISO);
+
+const tdPessoas = document.createElement("td");
+tdPessoas.textContent = Array.isArray(item.pessoas) ? item.pessoas.join(", ") : "";
+
+const tdAcoes = document.createElement("td");
+tdAcoes.className = "row-actions";
+
+const btnEditar = document.createElement("button");
+btnEditar.className = "btn secondary small";
+btnEditar.type = "button";
+btnEditar.textContent = "Editar";
+btnEditar.onclick = () => {
+document.getElementById("dataDia").value = item.dataISO || hojeISO();
+selecaoDiaria = Array.isArray(item.pessoas) ? [...item.pessoas] : [];
+renderChipsDiario();
+document.getElementById("cardPresenca")?.scrollIntoView({ behavior:"smooth", block:"start" });
+};
+tdAcoes.appendChild(btnEditar);
+
+// ✅ Excluir registro (somente Gestor)
+if(isAdmin){
+const btnExcluir = document.createElement("button");
+btnExcluir.className = "btn danger small";
+btnExcluir.type = "button";
+btnExcluir.textContent = "Excluir";
+btnExcluir.onclick = () => excluirRegistroDiario(item.dataISO);
+tdAcoes.appendChild(btnExcluir);
+}
+
+tr.appendChild(tdData);
+tr.appendChild(tdPessoas);
+tr.appendChild(tdAcoes);
+tbody.appendChild(tr);
+});
+
+atualizarBotaoVerMais();
+}
+
+function atualizarBotaoVerMais(){
+const btn = document.getElementById("btnVerMais");
+if(!btn) return;
+btn.style.display = LISTA.length > LIMITE_REGISTROS ? "inline-block" : "none";
+btn.textContent = mostrarTodosRegistros ? "Ver menos" : "Ver mais registros";
+}
+
+function toggleVerMais(){
+mostrarTodosRegistros = !mostrarTodosRegistros;
+carregarDiario();
+}
+window.toggleVerMais = toggleVerMais;
+
+function carregarMes(itensMes){
+const tbody = document.getElementById("tabelaMes");
+if(tbody){
+tbody.innerHTML = "";
+const vis = mostrarTodosMes ? itensMes : itensMes.slice(0, LIMITE_MES);
+vis.forEach(item => {
+const tr = document.createElement("tr");
+tr.innerHTML =
+`<td>${item.dataBR || formatarDataBR(item.dataISO)}</td>` +
+`<td>${Array.isArray(item.pessoas) ? item.pessoas.join(", ") : ""}</td>`;
+tbody.appendChild(tr);
+});
+
+const btn = document.getElementById("btnVerMaisMes");
+if(btn){
+btn.style.display = itensMes.length > LIMITE_MES ? "inline-block" : "none";
+btn.textContent = mostrarTodosMes ? "Ver menos registros" : "Ver mais registros";
+}
+}
+
+const pMes = document.getElementById("printMes");
+if(pMes){
+pMes.innerHTML = "";
+itensMes.forEach(item => {
+const tr = document.createElement("tr");
+tr.innerHTML =
+`<td>${item.dataBR || formatarDataBR(item.dataISO)}</td>` +
+`<td>${Array.isArray(item.pessoas) ? item.pessoas.join(", ") : ""}</td>`;
+pMes.appendChild(tr);
+});
+}
+}
+
+function toggleVerMaisMes(){
+mostrarTodosMes = !mostrarTodosMes;
+atualizarPainel();
+}
+window.toggleVerMaisMes = toggleVerMaisMes;
+
+async function apagarDiarios(){
+try{
+if(!isAdmin) return alert("Apenas Gestor pode apagar tudo.");
+if(!confirm("Tem certeza que deseja apagar TODOS os registros deste contrato (Ferroport/diarios)?")) return;
+
+const snap = await refDiarios.get();
+const batch = db.batch();
+snap.docs.forEach(doc => batch.delete(doc.ref));
+await batch.commit();
+
+alert("Registros apagados.");
+}catch(e){
+console.error(e);
+alert("Erro ao apagar:\n\n" + (e?.message || e));
+}
+}
+window.apagarDiarios = apagarDiarios;
+
+function exportarDiarioCSV(){
+try{
+const dados = [...LISTA].sort((a,b)=> (a.dataISO||"").localeCompare(b.dataISO||""));
+const linhas = [];
+linhas.push(["Data","Pessoas"].join(";"));
+
+dados.forEach(item => {
+const data = item.dataBR || formatarDataBR(item.dataISO);
+const pessoas = Array.isArray(item.pessoas) ? item.pessoas.join(", ") : "";
+linhas.push([data, pessoas].map(v => `"${String(v).replace(/"/g,'""')}"`).join(";"));
+});
+
+const csv = "\uFEFF" + linhas.join("\n");
+const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+const url = URL.createObjectURL(blob);
+
+const a = document.createElement("a");
+a.href = url;
+a.download = `ferroport_${contratoAtual}_${(document.getElementById("mesAno")?.value || "export")}.csv`;
+document.body.appendChild(a);
+a.click();
+a.remove();
+URL.revokeObjectURL(url);
+}catch(e){
+console.error(e);
+alert("Erro ao exportar:\n\n" + (e?.message || e));
+}
+}
+window.exportarDiarioCSV = exportarDiarioCSV;
+
+// ===================== PTA: ASSINATURA =====================
+function ptaInitAssinatura(){
+const canvas = document.getElementById("ptaAssinatura");
+if(!canvas) return;
+
+const rect = canvas.getBoundingClientRect();
+const dpr = window.devicePixelRatio || 1;
+
+canvas.width  = Math.floor(rect.width  * dpr);
+canvas.height = Math.floor(rect.height * dpr);
+
+const ctx = canvas.getContext("2d");
+ctx.setTransform(dpr,0,0,dpr,0,0);
+
+const styles = getComputedStyle(document.documentElement);
+const cor = styles.getPropertyValue("--text").trim() || "#111";
+ctx.lineWidth = 2.2;
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
+ctx.strokeStyle = cor;
+
+let desenhando = false;
+let lastX = 0, lastY = 0;
+
+function pos(e){
+const r = canvas.getBoundingClientRect();
+const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+return { x: clientX - r.left, y: clientY - r.top };
+}
+
+function start(e){
+desenhando = true;
+const p = pos(e);
+lastX = p.x; lastY = p.y;
+e.preventDefault();
+}
+function move(e){
+if(!desenhando) return;
+const p = pos(e);
+ctx.beginPath();
+ctx.moveTo(lastX, lastY);
+ctx.lineTo(p.x, p.y);
+ctx.stroke();
+lastX = p.x; lastY = p.y;
+e.preventDefault();
+}
+function end(){ desenhando = false; }
+
+canvas.onmousedown = canvas.onmousemove = canvas.onmouseup = canvas.onmouseleave = null;
+canvas.ontouchstart = canvas.ontouchmove = canvas.ontouchend = null;
+
+canvas.onmousedown = start;
+canvas.onmousemove = move;
+canvas.onmouseup = end;
+canvas.onmouseleave = end;
+
+canvas.ontouchstart = start;
+canvas.ontouchmove = move;
+canvas.ontouchend = end;
+}
+
+function ptaLimparAssinatura(){
+const canvas = document.getElementById("ptaAssinatura");
+if(!canvas) return;
+const ctx = canvas.getContext("2d");
+ctx.setTransform(1,0,0,1,0,0);
+ctx.clearRect(0,0,canvas.width,canvas.height);
+try{ ptaInitAssinatura(); }catch(_){}
+}
+window.ptaLimparAssinatura = ptaLimparAssinatura;
+
+function ptaAssinaturaDataURL(){
+const canvas = document.getElementById("ptaAssinatura");
+if(!canvas) return "";
+return canvas.toDataURL("image/png");
+}
+
+function ptaCarregarAssinatura(dataUrl){
+const canvas = document.getElementById("ptaAssinatura");
+if(!canvas) return;
+const ctx = canvas.getContext("2d");
+const img = new Image();
+img.onload = () => {
+const rect = canvas.getBoundingClientRect();
+const dpr = window.devicePixelRatio || 1;
+ctx.setTransform(dpr,0,0,dpr,0,0);
+ctx.clearRect(0,0,rect.width, rect.height);
+ctx.drawImage(img, 0, 0, rect.width, rect.height);
+};
+img.src = dataUrl || "";
+}
+
+function ptaLimparFormulario(){
+const d = document.getElementById("ptaData");
+if(d) d.value = hojeISO();
+
+const ids = ["ptaCondutor","ptaKmInicial","ptaKmFinal","ptaLocal","ptaDescricao"];
+ids.forEach(id => {
+const el = document.getElementById(id);
+if(el) el.value = "";
+});
+
+ptaEditId = null;
+ptaLimparAssinatura();
+}
+window.ptaLimparFormulario = ptaLimparFormulario;
+
+async function ptaSalvar(){
+try{
+          if(contratoAtual !== "pta-inveco"){
+            return alert("Selecione o contrato PTA INVECO para salvar este tipo de registro.");
           if(contratoAtual !== "pta-IVECO"){
             return alert("Selecione o contrato PTA IVECO para salvar este tipo de registro.");
-          }
+}
 
-          const dataISO = document.getElementById("ptaData")?.value || "";
-          const condutor = document.getElementById("ptaCondutor")?.value.trim() || "";
-          const kmInicial = Number(document.getElementById("ptaKmInicial")?.value || 0);
-          const kmFinal = Number(document.getElementById("ptaKmFinal")?.value || 0);
-          const local = document.getElementById("ptaLocal")?.value.trim() || "";
-          const descricao = document.getElementById("ptaDescricao")?.value.trim() || "";
-          const assinatura = ptaAssinaturaDataURL();
+const dataISO = document.getElementById("ptaData")?.value || "";
+const condutor = document.getElementById("ptaCondutor")?.value.trim() || "";
+const kmInicial = Number(document.getElementById("ptaKmInicial")?.value || 0);
+const kmFinal = Number(document.getElementById("ptaKmFinal")?.value || 0);
+const local = document.getElementById("ptaLocal")?.value.trim() || "";
+const descricao = document.getElementById("ptaDescricao")?.value.trim() || "";
+const assinatura = ptaAssinaturaDataURL();
 
-          if(!dataISO) return alert("Selecione a data.");
-          if(!condutor) return alert("Informe o nome do condutor.");
-          if(!Number.isFinite(kmInicial)) return alert("Informe o Km Inicial.");
-          if(!Number.isFinite(kmFinal)) return alert("Informe o Km Final.");
-          if(kmFinal < kmInicial) return alert("Km Final não pode ser menor que o Km Inicial.");
-          if(!local) return alert("Informe o local da atividade.");
-          if(!descricao) return alert("Informe a descrição da atividade.");
-          if(!assinatura || assinatura.length < 100) return alert("Faça a assinatura no campo abaixo.");
+if(!dataISO) return alert("Selecione a data.");
+if(!condutor) return alert("Informe o nome do condutor.");
+if(!Number.isFinite(kmInicial)) return alert("Informe o Km Inicial.");
+if(!Number.isFinite(kmFinal)) return alert("Informe o Km Final.");
+if(kmFinal < kmInicial) return alert("Km Final não pode ser menor que o Km Inicial.");
+if(!local) return alert("Informe o local da atividade.");
+if(!descricao) return alert("Informe a descrição da atividade.");
+if(!assinatura || assinatura.length < 100) return alert("Faça a assinatura no campo abaixo.");
 
-          const payload = {
-            dataISO,
-            dataBR: formatarDataBR(dataISO),
-            condutor,
-            kmInicial,
-            kmFinal,
-            local,
-            descricao,
-            assinaturaDataUrl: assinatura,
-            atualizadoEm: new Date().toISOString()
-          };
+const payload = {
+dataISO,
+dataBR: formatarDataBR(dataISO),
+condutor,
+kmInicial,
+kmFinal,
+local,
+descricao,
+assinaturaDataUrl: assinatura,
+atualizadoEm: new Date().toISOString()
+};
 
-          const docId = ptaEditId || `${dataISO}_${idSeguro(condutor)}`.slice(0, 90);
+const docId = ptaEditId || `${dataISO}_${idSeguro(condutor)}`.slice(0, 90);
 
-          await refPTA.doc(docId).set(payload, { merge: true });
+await refPTA.doc(docId).set(payload, { merge: true });
 
-          ptaLimparFormulario();
-          alert("Registro salvo com sucesso!");
-        }catch(e){
-          console.error(e);
-          alert("Erro ao salvar PTA:\n\n" + (e?.message || e));
-        }
-      }
-      window.ptaSalvar = ptaSalvar;
+ptaLimparFormulario();
+alert("Registro salvo com sucesso!");
+}catch(e){
+console.error(e);
+alert("Erro ao salvar PTA:\n\n" + (e?.message || e));
+}
+}
+window.ptaSalvar = ptaSalvar;
 
-      // ✅ Excluir 1 registro PTA (somente gestor)
-      async function ptaExcluirRegistro(docId){
-        try{
-          if(!isAdmin) return alert("Apenas Gestor pode excluir registros da PTA.");
+// ✅ Excluir 1 registro PTA (somente gestor)
+async function ptaExcluirRegistro(docId){
+try{
+if(!isAdmin) return alert("Apenas Gestor pode excluir registros da PTA.");
+          if(contratoAtual !== "pta-inveco") return alert("Selecione o contrato PTA INVECO.");
           if(contratoAtual !== "pta-IVECO") return alert("Selecione o contrato PTA IVECO.");
-          if(!docId) return;
+if(!docId) return;
 
-          if(!confirm("Excluir este registro da PTA?")) return;
+if(!confirm("Excluir este registro da PTA?")) return;
 
-          await refPTA.doc(docId).delete();
-          alert("Registro da PTA excluído.");
-        }catch(e){
-          console.error(e);
-          alert("Erro ao excluir PTA:\n\n" + (e?.message || e));
-        }
-      }
-      window.ptaExcluirRegistro = ptaExcluirRegistro;
+await refPTA.doc(docId).delete();
+alert("Registro da PTA excluído.");
+}catch(e){
+console.error(e);
+alert("Erro ao excluir PTA:\n\n" + (e?.message || e));
+}
+}
+window.ptaExcluirRegistro = ptaExcluirRegistro;
 
-      // ✅ Apagar tudo PTA (só gestor)
-      async function ptaApagarTudo(){
-        try{
-          if(!isAdmin) return alert("Apenas Gestor pode apagar registros da PTA.");
+// ✅ Apagar tudo PTA (só gestor)
+async function ptaApagarTudo(){
+try{
+if(!isAdmin) return alert("Apenas Gestor pode apagar registros da PTA.");
+          if(contratoAtual !== "pta-inveco") return alert("Selecione o contrato PTA INVECO.");
           if(contratoAtual !== "pta-IVECO") return alert("Selecione o contrato PTA IVECO.");
-          if(!auth.currentUser) return alert("Sessão expirada. Faça login novamente.");
+if(!auth.currentUser) return alert("Sessão expirada. Faça login novamente.");
 
+          if(!confirm("Tem certeza que deseja apagar TODOS os registros da PTA INVECO?")) return;
           if(!confirm("Tem certeza que deseja apagar TODOS os registros da PTA IVECO?")) return;
 
-          const snap = await refPTA.get();
-          if(snap.empty){
-            alert("Não há registros para apagar.");
-            return;
-          }
+const snap = await refPTA.get();
+if(snap.empty){
+alert("Não há registros para apagar.");
+return;
+}
 
-          const batch = db.batch();
-          snap.docs.forEach(d => batch.delete(d.ref));
-          await batch.commit();
+const batch = db.batch();
+snap.docs.forEach(d => batch.delete(d.ref));
+await batch.commit();
 
-          alert("Registros da PTA apagados com sucesso!");
-        }catch(e){
-          console.error(e);
-          alert("Erro ao apagar:\n\n" + (e?.message || e));
-        }
-      }
-      window.ptaApagarTudo = ptaApagarTudo;
+alert("Registros da PTA apagados com sucesso!");
+}catch(e){
+console.error(e);
+alert("Erro ao apagar:\n\n" + (e?.message || e));
+}
+}
+window.ptaApagarTudo = ptaApagarTudo;
 
-      function carregarTabelaPTA(){
-        const tbody = document.getElementById("tabelaPTA");
-        if(!tbody) return;
+function carregarTabelaPTA(){
+const tbody = document.getElementById("tabelaPTA");
+if(!tbody) return;
 
-        tbody.innerHTML = "";
+tbody.innerHTML = "";
 
-        const dados = [...LISTA_PTA].sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
+const dados = [...LISTA_PTA].sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
 
-        dados.forEach(item => {
-          const tr = document.createElement("tr");
+dados.forEach(item => {
+const tr = document.createElement("tr");
 
-          const assinaturaThumb = item.assinaturaDataUrl
-            ? `<img src="${item.assinaturaDataUrl}" alt="Assinatura" style="height:34px;max-width:120px;object-fit:contain;border:1px solid var(--border);border-radius:6px;background:var(--card);" />`
-            : "—";
+const assinaturaThumb = item.assinaturaDataUrl
+? `<img src="${item.assinaturaDataUrl}" alt="Assinatura" style="height:34px;max-width:120px;object-fit:contain;border:1px solid var(--border);border-radius:6px;background:var(--card);" />`
+: "—";
 
-          tr.innerHTML = `
-            <td>${item.dataBR || formatarDataBR(item.dataISO)}</td>
-            <td>${item.condutor || ""}</td>
-            <td>${(item.kmInicial ?? "")}</td>
-            <td>${(item.kmFinal ?? "")}</td>
-            <td>${item.local || ""}</td>
-            <td>${item.descricao || ""}</td>
-            <td>${assinaturaThumb}</td>
-            <td class="row-actions"></td>
-          `;
+tr.innerHTML = `
+           <td>${item.dataBR || formatarDataBR(item.dataISO)}</td>
+           <td>${item.condutor || ""}</td>
+           <td>${(item.kmInicial ?? "")}</td>
+           <td>${(item.kmFinal ?? "")}</td>
+           <td>${item.local || ""}</td>
+           <td>${item.descricao || ""}</td>
+           <td>${assinaturaThumb}</td>
+           <td class="row-actions"></td>
+         `;
 
-          const tdAcoes = tr.querySelector("td.row-actions");
+const tdAcoes = tr.querySelector("td.row-actions");
 
-          const btnEditar = document.createElement("button");
-          btnEditar.className = "btn secondary small";
-          btnEditar.type = "button";
-          btnEditar.textContent = "Editar";
-          btnEditar.onclick = () => {
-            ptaEditId = item.id || null;
+const btnEditar = document.createElement("button");
+btnEditar.className = "btn secondary small";
+btnEditar.type = "button";
+btnEditar.textContent = "Editar";
+btnEditar.onclick = () => {
+ptaEditId = item.id || null;
 
-            const d = document.getElementById("ptaData"); if(d) d.value = item.dataISO || hojeISO();
-            const c = document.getElementById("ptaCondutor"); if(c) c.value = item.condutor || "";
-            const ki = document.getElementById("ptaKmInicial"); if(ki) ki.value = String(item.kmInicial ?? "");
-            const kf = document.getElementById("ptaKmFinal"); if(kf) kf.value = String(item.kmFinal ?? "");
-            const l = document.getElementById("ptaLocal"); if(l) l.value = item.local || "";
-            const desc = document.getElementById("ptaDescricao"); if(desc) desc.value = item.descricao || "";
+const d = document.getElementById("ptaData"); if(d) d.value = item.dataISO || hojeISO();
+const c = document.getElementById("ptaCondutor"); if(c) c.value = item.condutor || "";
+const ki = document.getElementById("ptaKmInicial"); if(ki) ki.value = String(item.kmInicial ?? "");
+const kf = document.getElementById("ptaKmFinal"); if(kf) kf.value = String(item.kmFinal ?? "");
+const l = document.getElementById("ptaLocal"); if(l) l.value = item.local || "";
+const desc = document.getElementById("ptaDescricao"); if(desc) desc.value = item.descricao || "";
 
-            ptaInitAssinatura();
-            setTimeout(() => ptaCarregarAssinatura(item.assinaturaDataUrl || ""), 30);
+ptaInitAssinatura();
+setTimeout(() => ptaCarregarAssinatura(item.assinaturaDataUrl || ""), 30);
 
-            document.getElementById("cardPTA")?.scrollIntoView({ behavior:"smooth", block:"start" });
-          };
+document.getElementById("cardPTA")?.scrollIntoView({ behavior:"smooth", block:"start" });
+};
 
-          tdAcoes.appendChild(btnEditar);
+tdAcoes.appendChild(btnEditar);
 
-          // ✅ botão excluir (somente gestor)
-          if(isAdmin){
-            const btnExcluir = document.createElement("button");
-            btnExcluir.className = "btn danger small";
-            btnExcluir.type = "button";
-            btnExcluir.textContent = "Excluir";
-            btnExcluir.onclick = () => ptaExcluirRegistro(item.id);
-            tdAcoes.appendChild(btnExcluir);
-          }
+// ✅ botão excluir (somente gestor)
+if(isAdmin){
+const btnExcluir = document.createElement("button");
+btnExcluir.className = "btn danger small";
+btnExcluir.type = "button";
+btnExcluir.textContent = "Excluir";
+btnExcluir.onclick = () => ptaExcluirRegistro(item.id);
+tdAcoes.appendChild(btnExcluir);
+}
 
-          tbody.appendChild(tr);
-        });
-      }
+tbody.appendChild(tr);
+});
+}
 
-      // ===================== PAINEL =====================
-      function setKpiLabelsFerroport(){
-        const l1 = document.getElementById("kpiLabel1");
-        const l2 = document.getElementById("kpiLabel2");
-        const l3 = document.getElementById("kpiLabel3");
-        if(l1) l1.textContent = "Dias registrados";
-        if(l2) l2.textContent = "Técnicos/Condutores";
-        if(l3) l3.textContent = "Presenças/Registros";
-      }
-      function setKpiLabelsPTA(){
-        const l1 = document.getElementById("kpiLabel1");
-        const l2 = document.getElementById("kpiLabel2");
-        const l3 = document.getElementById("kpiLabel3");
-        if(l1) l1.textContent = "Registros no mês";
-        if(l2) l2.textContent = "Condutores";
-        if(l3) l3.textContent = "Km rodados (estim.)";
-      }
+// ===================== PAINEL =====================
+function setKpiLabelsFerroport(){
+const l1 = document.getElementById("kpiLabel1");
+const l2 = document.getElementById("kpiLabel2");
+const l3 = document.getElementById("kpiLabel3");
+if(l1) l1.textContent = "Dias registrados";
+if(l2) l2.textContent = "Técnicos/Condutores";
+if(l3) l3.textContent = "Presenças/Registros";
+}
+function setKpiLabelsPTA(){
+const l1 = document.getElementById("kpiLabel1");
+const l2 = document.getElementById("kpiLabel2");
+const l3 = document.getElementById("kpiLabel3");
+if(l1) l1.textContent = "Registros no mês";
+if(l2) l2.textContent = "Condutores";
+if(l3) l3.textContent = "Km rodados (estim.)";
+}
 
-      function atualizarPainel(){
-        const sel = getMesAnoSelecionado();
-        if(!sel){
-          const hoje = new Date();
-          const pad = (n)=> String(n).padStart(2,"0");
-          document.getElementById("mesAno").value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
-          return;
-        }
+function atualizarPainel(){
+const sel = getMesAnoSelecionado();
+if(!sel){
+const hoje = new Date();
+const pad = (n)=> String(n).padStart(2,"0");
+document.getElementById("mesAno").value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
+return;
+}
 
-        document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
-        document.getElementById("reportPeriodo").innerText = `Período: ${sel.m}/${sel.y}`;
-        document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
+document.getElementById("reportContrato").textContent = nomeContratoBonito(contratoAtual);
+document.getElementById("reportPeriodo").innerText = `Período: ${sel.m}/${sel.y}`;
+document.getElementById("reportGeradoEm").innerText = `Gerado em: ${agoraBR()}`;
 
+        const isPTA = contratoAtual === "pta-inveco";
         const isPTA = contratoAtual === "pta-IVECO";
 
-        if(isPTA){
-          setKpiLabelsPTA();
+if(isPTA){
+setKpiLabelsPTA();
 
-          const itensMesPTA = [...LISTA_PTA]
-            .filter(x => inMesAno(x.dataISO, sel.y, sel.m))
-            .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
+const itensMesPTA = [...LISTA_PTA]
+.filter(x => inMesAno(x.dataISO, sel.y, sel.m))
+.sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
 
-          const registros = itensMesPTA.length;
-          const condutoresSet = new Set(itensMesPTA.map(x => x.condutor).filter(Boolean));
-          const kmTotal = itensMesPTA.reduce((acc,x)=> acc + Math.max(0, (Number(x.kmFinal||0) - Number(x.kmInicial||0))), 0);
+const registros = itensMesPTA.length;
+const condutoresSet = new Set(itensMesPTA.map(x => x.condutor).filter(Boolean));
+const kmTotal = itensMesPTA.reduce((acc,x)=> acc + Math.max(0, (Number(x.kmFinal||0) - Number(x.kmInicial||0))), 0);
 
-          document.getElementById("kpiDias").textContent = String(registros);
-          document.getElementById("kpiTecnicos").textContent = String(condutoresSet.size);
-          document.getElementById("kpiPresencas").textContent = String(kmTotal);
+document.getElementById("kpiDias").textContent = String(registros);
+document.getElementById("kpiTecnicos").textContent = String(condutoresSet.size);
+document.getElementById("kpiPresencas").textContent = String(kmTotal);
 
-          const printBody = document.getElementById("printPTATable");
-          if(printBody){
-            printBody.innerHTML = "";
-            itensMesPTA.forEach(item => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${item.dataBR || formatarDataBR(item.dataISO)}</td>
-                <td>${item.condutor || ""}</td>
-                <td>${item.kmInicial ?? ""}</td>
-                <td>${item.kmFinal ?? ""}</td>
-                <td>${item.local || ""}</td>
-                <td>${item.descricao || ""}</td>
-              `;
-              printBody.appendChild(tr);
-            });
-          }
+const printBody = document.getElementById("printPTATable");
+if(printBody){
+printBody.innerHTML = "";
+itensMesPTA.forEach(item => {
+const tr = document.createElement("tr");
+tr.innerHTML = `
+               <td>${item.dataBR || formatarDataBR(item.dataISO)}</td>
+               <td>${item.condutor || ""}</td>
+               <td>${item.kmInicial ?? ""}</td>
+               <td>${item.kmFinal ?? ""}</td>
+               <td>${item.local || ""}</td>
+               <td>${item.descricao || ""}</td>
+             `;
+printBody.appendChild(tr);
+});
+}
 
-          return;
-        }
+return;
+}
 
-        setKpiLabelsFerroport();
+setKpiLabelsFerroport();
 
-        const itensMes = [...LISTA]
-          .filter(x => inMesAno(x.dataISO, sel.y, sel.m))
-          .sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
+const itensMes = [...LISTA]
+.filter(x => inMesAno(x.dataISO, sel.y, sel.m))
+.sort((a,b)=> (b.dataISO||"").localeCompare(a.dataISO||""));
 
-        const dias = itensMes.length;
-        const presencas = itensMes.reduce((acc, x)=> acc + (Array.isArray(x.pessoas) ? x.pessoas.length : 0), 0);
+const dias = itensMes.length;
+const presencas = itensMes.reduce((acc, x)=> acc + (Array.isArray(x.pessoas) ? x.pessoas.length : 0), 0);
 
-        const setTec = new Set();
-        itensMes.forEach(x => (x.pessoas||[]).forEach(p => setTec.add(p)));
+const setTec = new Set();
+itensMes.forEach(x => (x.pessoas||[]).forEach(p => setTec.add(p)));
 
-        document.getElementById("kpiDias").textContent = String(dias);
-        document.getElementById("kpiPresencas").textContent = String(presencas);
-        document.getElementById("kpiTecnicos").textContent = String(setTec.size);
+document.getElementById("kpiDias").textContent = String(dias);
+document.getElementById("kpiPresencas").textContent = String(presencas);
+document.getElementById("kpiTecnicos").textContent = String(setTec.size);
 
-        carregarMes(itensMes);
+carregarMes(itensMes);
 
-        const ranking = contarDiasPorTecnico(itensMes);
+const ranking = contarDiasPorTecnico(itensMes);
 
-        const tbodyRank = document.getElementById("tabelaRanking");
-        if(tbodyRank){
-          tbodyRank.innerHTML = "";
-          const top10 = ranking.slice(0,10);
-          const maxDias = Math.max(...top10.map(x => x.dias), 1);
+const tbodyRank = document.getElementById("tabelaRanking");
+if(tbodyRank){
+tbodyRank.innerHTML = "";
+const top10 = ranking.slice(0,10);
+const maxDias = Math.max(...top10.map(x => x.dias), 1);
 
-          top10.forEach((r, idx) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML =
-              `<td>${idx+1}</td>` +
-              `<td>${r.nome}</td>` +
-              `<td>${r.dias}</td>` +
-              `<td><div class="bar"><div class="bar-fill" style="width:${Math.round((r.dias/maxDias)*100)}%"></div></div></td>`;
-            tbodyRank.appendChild(tr);
-          });
-        }
+top10.forEach((r, idx) => {
+const tr = document.createElement("tr");
+tr.innerHTML =
+`<td>${idx+1}</td>` +
+`<td>${r.nome}</td>` +
+`<td>${r.dias}</td>` +
+`<td><div class="bar"><div class="bar-fill" style="width:${Math.round((r.dias/maxDias)*100)}%"></div></div></td>`;
+tbodyRank.appendChild(tr);
+});
+}
 
-        const pRank = document.getElementById("printRanking");
-        if(pRank){
-          pRank.innerHTML = "";
-          ranking.slice(0, 40).forEach((r, idx) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${idx+1}</td><td>${r.nome}</td><td>${r.dias}</td>`;
-            pRank.appendChild(tr);
-          });
-        }
+const pRank = document.getElementById("printRanking");
+if(pRank){
+pRank.innerHTML = "";
+ranking.slice(0, 40).forEach((r, idx) => {
+const tr = document.createElement("tr");
+tr.innerHTML = `<td>${idx+1}</td><td>${r.nome}</td><td>${r.dias}</td>`;
+pRank.appendChild(tr);
+});
+}
 
-        const top1 = ranking[0] || { nome:"—", dias:0 };
-        document.getElementById("insightTopNome").textContent = top1.nome;
-        document.getElementById("insightTopDias").textContent = String(top1.dias);
-        document.getElementById("insightMediaDia").textContent = String(dias ? (presencas / dias).toFixed(1) : 0);
-        document.getElementById("insightMediaTec").textContent = String(ranking.length ? (dias / ranking.length).toFixed(1) : 0);
+const top1 = ranking[0] || { nome:"—", dias:0 };
+document.getElementById("insightTopNome").textContent = top1.nome;
+document.getElementById("insightTopDias").textContent = String(top1.dias);
+document.getElementById("insightMediaDia").textContent = String(dias ? (presencas / dias).toFixed(1) : 0);
+document.getElementById("insightMediaTec").textContent = String(ranking.length ? (dias / ranking.length).toFixed(1) : 0);
 
-        setTimeout(() => desenharGraficoTop10("chartRanking", ranking), 0);
-      }
-      window.atualizarPainel = atualizarPainel;
+setTimeout(() => desenharGraficoTop10("chartRanking", ranking), 0);
+}
+window.atualizarPainel = atualizarPainel;
 
-      function gerarPDF(){
-        atualizarPainel();
-        aplicarTelaPorContrato();
-        setTimeout(()=> window.print(), 60);
-      }
-      window.gerarPDF = gerarPDF;
+function gerarPDF(){
+atualizarPainel();
+aplicarTelaPorContrato();
+setTimeout(()=> window.print(), 60);
+}
+window.gerarPDF = gerarPDF;
 
-      // ===================== AUTH =====================
-      async function login(){
-        const email = document.getElementById("loginEmail").value.trim();
-        const senha = document.getElementById("loginSenha").value.trim();
-        const msg = document.getElementById("loginMsg");
-        const status = document.getElementById("loginStatus");
-        const btn = document.getElementById("btnEntrar");
+// ===================== AUTH =====================
+async function login(){
+const email = document.getElementById("loginEmail").value.trim();
+const senha = document.getElementById("loginSenha").value.trim();
+const msg = document.getElementById("loginMsg");
+const status = document.getElementById("loginStatus");
+const btn = document.getElementById("btnEntrar");
 
-        if(msg) msg.textContent = "";
-        if(status) status.style.display = "flex";
-        if(btn) btn.disabled = true;
+if(msg) msg.textContent = "";
+if(status) status.style.display = "flex";
+if(btn) btn.disabled = true;
 
-        try{
-          await auth.signInWithEmailAndPassword(email, senha);
-        }catch(e){
-          if(msg) msg.textContent = "Falha no login: " + (e?.code || e?.message || e);
-          if(status) status.style.display = "none";
-          if(btn) btn.disabled = false;
-        }
-      }
-      window.login = login;
+try{
+await auth.signInWithEmailAndPassword(email, senha);
+}catch(e){
+if(msg) msg.textContent = "Falha no login: " + (e?.code || e?.message || e);
+if(status) status.style.display = "none";
+if(btn) btn.disabled = false;
+}
+}
+window.login = login;
 
-      async function esqueciSenha(){
-        const email = document.getElementById("loginEmail").value.trim();
-        const msg = document.getElementById("loginMsg");
-        if(msg) msg.textContent = "";
+async function esqueciSenha(){
+const email = document.getElementById("loginEmail").value.trim();
+const msg = document.getElementById("loginMsg");
+if(msg) msg.textContent = "";
 
-        if(!email){
-          if(msg) msg.textContent = "Digite seu e-mail para receber o link de redefinição.";
-          return;
-        }
+if(!email){
+if(msg) msg.textContent = "Digite seu e-mail para receber o link de redefinição.";
+return;
+}
 
-        try{
-          await auth.sendPasswordResetEmail(email);
-          if(msg) msg.textContent = "Pronto! Enviamos um e-mail para redefinir sua senha.";
-        }catch(e){
-          if(msg) msg.textContent = "Não foi possível enviar: " + (e?.code || e?.message || e);
-        }
-      }
-      window.esqueciSenha = esqueciSenha;
+try{
+await auth.sendPasswordResetEmail(email);
+if(msg) msg.textContent = "Pronto! Enviamos um e-mail para redefinir sua senha.";
+}catch(e){
+if(msg) msg.textContent = "Não foi possível enviar: " + (e?.code || e?.message || e);
+}
+}
+window.esqueciSenha = esqueciSenha;
 
-      async function logout(){ await auth.signOut(); }
-      window.logout = logout;
+async function logout(){ await auth.signOut(); }
+window.logout = logout;
 
-      function initUI(){
-        const dataDia = document.getElementById("dataDia");
-        if(dataDia) dataDia.value = hojeISO();
+function initUI(){
+const dataDia = document.getElementById("dataDia");
+if(dataDia) dataDia.value = hojeISO();
 
-        const ptaData = document.getElementById("ptaData");
-        if(ptaData) ptaData.value = hojeISO();
+const ptaData = document.getElementById("ptaData");
+if(ptaData) ptaData.value = hojeISO();
 
-        const d = new Date();
-        const pad = (n)=> String(n).padStart(2,"0");
-        const mesAno = document.getElementById("mesAno");
-        if(mesAno){
-          mesAno.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-          mesAno.addEventListener("change", atualizarPainel);
-        }
+const d = new Date();
+const pad = (n)=> String(n).padStart(2,"0");
+const mesAno = document.getElementById("mesAno");
+if(mesAno){
+mesAno.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+mesAno.addEventListener("change", atualizarPainel);
+}
 
-        const selContrato = document.getElementById("contratoSelect");
-        if(selContrato){
-          selContrato.addEventListener("change", ()=> {
-            contratoAtual = selContrato.value;
-            localStorage.setItem(KEY_CONTRATO, contratoAtual);
-            setRefsContrato();
-            ligarRealtime();
-            aplicarTelaPorContrato();
-            atualizarPainel();
-          });
-        }
+const selContrato = document.getElementById("contratoSelect");
+if(selContrato){
+selContrato.addEventListener("change", ()=> {
+contratoAtual = selContrato.value;
+localStorage.setItem(KEY_CONTRATO, contratoAtual);
+setRefsContrato();
+ligarRealtime();
+aplicarTelaPorContrato();
+atualizarPainel();
+});
+}
 
-        window.addEventListener("resize", () => {
-          try{ atualizarPainel(); }catch(_){}
+window.addEventListener("resize", () => {
+try{ atualizarPainel(); }catch(_){}
+          try{ if(contratoAtual === "pta-inveco") ptaInitAssinatura(); }catch(_){}
           try{ if(contratoAtual === "pta-IVECO") ptaInitAssinatura(); }catch(_){}
-        });
-      }
+});
+}
 
-      auth.onAuthStateChanged(async (user) => {
-        const msg = document.getElementById("loginMsg");
+auth.onAuthStateChanged(async (user) => {
+const msg = document.getElementById("loginMsg");
 
-        if(!user){
-          mostrarApp(false);
-          desligarRealtime();
-          const status = document.getElementById("loginStatus");
-          if(status) status.style.display = "none";
-          const btn = document.getElementById("btnEntrar");
-          if(btn) btn.disabled = false;
-          return;
-        }
+if(!user){
+mostrarApp(false);
+desligarRealtime();
+const status = document.getElementById("loginStatus");
+if(status) status.style.display = "none";
+const btn = document.getElementById("btnEntrar");
+if(btn) btn.disabled = false;
+return;
+}
 
-        try{
-          await carregarPermissoesUsuario(user);
+try{
+await carregarPermissoesUsuario(user);
 
-          if(!allowedContracts.length){
-            mostrarApp(false);
-            if(msg) msg.textContent = "Seu usuário não tem acesso a nenhum contrato. Peça liberação ao gestor.";
-            await auth.signOut();
-            return;
-          }
+if(!allowedContracts.length){
+mostrarApp(false);
+if(msg) msg.textContent = "Seu usuário não tem acesso a nenhum contrato. Peça liberação ao gestor.";
+await auth.signOut();
+return;
+}
 
-          montarSelectContratos();
-          document.getElementById("userBadge").textContent = `Logado como: ${user.email || "—"}`;
-          aplicarPermissoesUI();
-          mostrarApp(true);
+montarSelectContratos();
+document.getElementById("userBadge").textContent = `Logado como: ${user.email || "—"}`;
+aplicarPermissoesUI();
+mostrarApp(true);
 
-          setRefsContrato();
-          ligarRealtime();
-          initUI();
-          aplicarTelaPorContrato();
+setRefsContrato();
+ligarRealtime();
+initUI();
+aplicarTelaPorContrato();
 
-          setTimeout(() => atualizarPainel(), 120);
-        }catch(e){
-          showFatal(e);
-          await auth.signOut();
-        }
-      });
+setTimeout(() => atualizarPainel(), 120);
+}catch(e){
+showFatal(e);
+await auth.signOut();
+}
+});
 
-      setRefsContrato();
+setRefsContrato();
 
-    }catch(err){
-      showFatal(err);
-    }
-  });
+}catch(err){
+showFatal(err);
+}
+});
 })();
 </script>
 
 </body>
 </html>
-
