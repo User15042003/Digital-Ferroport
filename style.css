@@ -130,6 +130,22 @@ body{
 .center{ text-align:center; }
 .tiny{ font-size:11px; }
 
+.hint{
+  margin:14px 0 0;
+  padding:12px;
+  border:1px dashed rgba(203,51,68,.55);
+  border-radius:12px;
+  background: rgba(203,51,68,.08);
+  color: var(--text);
+  text-align:left;
+  font-size:12px;
+}
+.hint code{
+  background: rgba(0,0,0,.08);
+  padding:2px 6px;
+  border-radius:6px;
+}
+
 /* ===================== INPUT COM ÍCONE ===================== */
 .input-icon{
   position:relative;
@@ -423,7 +439,6 @@ input:focus, select:focus{
   border-color:var(--digital-red);
 }
 
-/* ✅ Botão X para excluir nome (somente gestor aparece via JS) */
 .chip-del{
   position:absolute;
   top:-6px;
@@ -662,106 +677,72 @@ th{
   gap:10px;
   justify-content:flex-end;
 }
-/* ===================== AJUSTES MOBILE - PTA INVECO ===================== */
+
+/* ===================== AJUSTES MOBILE - PTA ===================== */
 @media (max-width: 600px) {
-  /* Card da PTA - reduzir padding */
-  #cardPTA {
-    padding: 14px 12px;
+  #cardPTA .card-head {
+    margin-bottom: 8px;
   }
-  
+
   #cardPTA .card-head h2 {
-    font-size: 15px;
-    margin-bottom: 6px;
+    font-size: 16px;
+    line-height: 1.3;
   }
-  
+
   #cardPTA .card-head p {
     font-size: 11px;
-    margin-bottom: 10px;
   }
-  
-  /* Labels */
-  #cardPTA .field label {
-    font-size: 11px;
-    margin-bottom: 4px;
-  }
-  
-  /* Grid menor */
+
   #cardPTA .grid-2 {
-    gap: 8px;
+    gap: 10px;
   }
-  
-  /* Inputs */
-  #cardPTA input {
-    padding: 8px 6px;
-    font-size: 13px;
-    height: 36px;
+
+  #cardPTA input,
+  #cardPTA select {
+    padding: 8px;
+    font-size: 14px;
   }
-  
-  /* Assinatura */
+
   .signature-canvas {
-    height: 120px;
+    height: 140px;
   }
-  
+
   .signature-wrap {
     padding: 8px;
   }
-  
-  /* Botões */
-  #cardPTA .actions {
-    gap: 6px;
-    margin-top: 10px;
-  }
-  
-  #cardPTA .btn {
-    padding: 7px 10px;
-    font-size: 12px;
-    border-radius: 8px;
-    flex: 1 1 auto;
-    min-width: 70px;
-  }
-  
-  /* Lista PTA - scroll horizontal */
-  #cardListaPTA {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
+
   #cardListaPTA table {
-    min-width: 550px;
     font-size: 11px;
   }
-  
+
   #cardListaPTA th,
   #cardListaPTA td {
     padding: 6px 4px;
-    white-space: nowrap;
   }
-  
-  /* Tabela mais compacta */
-  .table-compact th, 
-  .table-compact td {
-    padding: 6px 4px;
-    font-size: 11px;
-  }
-}
 
-@media (max-width: 400px) {
-  /* Telas muito pequenas */
-  #cardPTA .card-head h2 {
-    font-size: 13px;
+  #cardPTA .actions {
+    gap: 6px;
   }
-  
-  .signature-canvas {
-    height: 90px;
-  }
-  
-  #cardPTA input {
+
+  #cardPTA .btn {
+    padding: 8px 10px;
     font-size: 12px;
-    height: 32px;
   }
-  
-  .btn {
-    font-size: 11px;
-    padding: 6px 8px;
+
+  .insight {
+    padding: 8px;
+  }
+
+  .insight-value {
+    font-size: 16px;
+  }
+
+  .kpi {
+    min-width: 100px;
+    padding: 8px;
+  }
+
+  .kpi-value {
+    font-size: 18px;
   }
 }
