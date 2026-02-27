@@ -1078,21 +1078,21 @@ th{
 }
 /* ✅ CENTRALIZAR TODO O CONTEÚDO DO TOPO (logo + título + ações) */
 .topbar{
-  display:flex;
-  justify-content:center;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  padding:16px 0;
 }
 
-.brand{
+/* deixa o topo com a MESMA largura do container */
+.topbar .brand{
   max-width:900px;
-  width:100%;
+  margin:0 auto;          /* 🔥 centraliza igual os cards */
   padding:0 16px;
 
   display:flex;
   align-items:center;
-  justify-content:center;   /* ✅ centraliza o grupo inteiro */
+  justify-content:space-between; /* mantém layout bonito */
   gap:18px;
-  flex-wrap:wrap;
-  text-align:center;
 }
 
 /* ✅ remove o “empurrão” pra direita */
@@ -1109,5 +1109,6 @@ th{
 .brand > div{
   text-align:center;
 }
+
 
 
