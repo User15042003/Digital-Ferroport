@@ -1066,3 +1066,37 @@ th{
   .check-grid{ grid-template-columns: 1fr; }
   .w-mini{ width:56px; }
 }
+/* ✅ CENTRALIZAR TODO O CONTEÚDO DO TOPO (logo + título + ações) */
+.topbar{
+  display:flex;
+  justify-content:center;
+}
+
+.brand{
+  max-width:900px;
+  width:100%;
+  padding:0 16px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;   /* ✅ centraliza o grupo inteiro */
+  gap:18px;
+  flex-wrap:wrap;
+  text-align:center;
+}
+
+/* ✅ remove o “empurrão” pra direita */
+.top-actions{
+  margin-left:0 !important; /* ✅ ESSENCIAL */
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+/* opcional: centraliza texto do título */
+.brand > div{
+  text-align:center;
+}
+
