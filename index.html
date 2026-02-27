@@ -473,7 +473,7 @@
       let ptaEditId = null;
       let ptaEditFotos = null;
 
-      // Checklist rápido (itens do seu formulário)
+      // Checklist rápido
       const CHECK_ITEMS = [
         "Fixação para Transporte",
         "Giro do cesto",
@@ -500,6 +500,7 @@
 
       // ===================== TEMA =====================
       const KEY_TEMA = "tema_site";
+
       function aplicarTema(theme){
         document.documentElement.setAttribute("data-theme", theme);
         localStorage.setItem(KEY_TEMA, theme);
@@ -510,10 +511,15 @@
         if(btn) btn.textContent = txt;
         if(btnLogin) btnLogin.textContent = txt;
       }
+
       function toggleTema(){
         const atual = document.documentElement.getAttribute("data-theme") || "light";
         aplicarTema(atual === "dark" ? "light" : "dark");
+
+        // ✅ Reaplica cor/escala da assinatura no tema novo (quando o canvas existir)
+        setTimeout(() => { try{ ptaInitAssinatura(); }catch(_){ } }, 50);
       }
+
       window.toggleTema = toggleTema;
       aplicarTema(localStorage.getItem(KEY_TEMA) || "light");
 
@@ -724,7 +730,7 @@
         });
       }
 
-      // Tipo de checagem
+      // Tipo de checagem (checkboxes)
       function getTipoChecagem(){
         return {
           recebimento: !!document.getElementById("chkRecebimento")?.checked,
@@ -734,10 +740,10 @@
         };
       }
       function setTipoChecagem(v){
-        document.getElementById("chkRecebimento").checked = !!v?.recebimento;
-        document.getElementById("chkDevolucao").checked = !!v?.devolucao;
-        document.getElementById("chkManutencao").checked = !!v?.manutencao;
-        document.getElementById("chkPeriodico").checked = !!v?.periodico;
+        const a = document.getElementById("chkRecebimento"); if(a) a.checked = !!v?.recebimento;
+        const b = document.getElementById("chkDevolucao"); if(b) b.checked = !!v?.devolucao;
+        const c = document.getElementById("chkManutencao"); if(c) c.checked = !!v?.manutencao;
+        const d = document.getElementById("chkPeriodico");  if(d) d.checked = !!v?.periodico;
       }
 
       // ===================== ASSINATURA =====================
@@ -746,8 +752,9 @@
         if(!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
+        if(rect.width === 0 || rect.height === 0) return;
 
+        const dpr = window.devicePixelRatio || 1;
         canvas.width = Math.floor(rect.width * dpr);
         canvas.height = Math.floor(rect.height * dpr);
 
@@ -755,7 +762,7 @@
         ctx.setTransform(dpr,0,0,dpr,0,0);
 
         const styles = getComputedStyle(document.documentElement);
-        const cor = styles.getPropertyValue("--text").trim() || "#111";
+        const cor = (styles.getPropertyValue("--text") || "").trim() || "#111";
         ctx.lineWidth = 2.2;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
@@ -843,7 +850,6 @@
         if(!sel) return;
 
         sel.innerHTML = "";
-
         const allowed = allowedContracts.length ? allowedContracts : ["pta-inveco"];
 
         CONTRATOS
@@ -911,8 +917,10 @@
 
       function aplicarTelaPorContrato(){
         const isPTA = contratoAtual === "pta-inveco";
-        document.getElementById("cardPTA").style.display = isPTA ? "block" : "none";
-        document.getElementById("cardListaPTA").style.display = isPTA ? "block" : "none";
+        const cardPTA = document.getElementById("cardPTA");
+        const cardLista = document.getElementById("cardListaPTA");
+        if(cardPTA) cardPTA.style.display = isPTA ? "block" : "none";
+        if(cardLista) cardLista.style.display = isPTA ? "block" : "none";
 
         if(isPTA){
           const ptaData = document.getElementById("ptaData");
@@ -927,23 +935,23 @@
         if(!sel){
           const hoje = new Date();
           const pad = (n)=> String(n).padStart(2,"0");
-          document.getElementById("mesAno").value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
+          const el = document.getElementById("mesAno");
+          if(el) el.value = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}`;
           return;
         }
 
-        // KPI PTA
         const itensMesPTA = [...LISTA_PTA].filter(x => inMesAno(x.dataISO, sel.y, sel.m));
         const registros = itensMesPTA.length;
         const condutoresSet = new Set(itensMesPTA.map(x => x.condutor).filter(Boolean));
         const kmTotal = itensMesPTA.reduce((acc,x)=> acc + Math.max(0, (Number(x.kmFinal||0) - Number(x.kmInicial||0))), 0);
 
-        document.getElementById("kpiLabel1").textContent = "Registros no mês";
-        document.getElementById("kpiLabel2").textContent = "Condutores";
-        document.getElementById("kpiLabel3").textContent = "Km rodados (estim.)";
+        const l1 = document.getElementById("kpiLabel1"); if(l1) l1.textContent = "Registros no mês";
+        const l2 = document.getElementById("kpiLabel2"); if(l2) l2.textContent = "Condutores";
+        const l3 = document.getElementById("kpiLabel3"); if(l3) l3.textContent = "Km rodados (estim.)";
 
-        document.getElementById("kpiDias").textContent = String(registros);
-        document.getElementById("kpiTecnicos").textContent = String(condutoresSet.size);
-        document.getElementById("kpiPresencas").textContent = String(kmTotal);
+        const k1 = document.getElementById("kpiDias"); if(k1) k1.textContent = String(registros);
+        const k2 = document.getElementById("kpiTecnicos"); if(k2) k2.textContent = String(condutoresSet.size);
+        const k3 = document.getElementById("kpiPresencas"); if(k3) k3.textContent = String(kmTotal);
       }
       window.atualizarPainel = atualizarPainel;
 
@@ -957,41 +965,38 @@
         };
       }
       function setPatolas(v){
-        document.getElementById("patolaDD").value = v?.dianteiroDireito || "";
-        document.getElementById("patolaDE").value = v?.dianteiroEsquerdo || "";
-        document.getElementById("patolaTD").value = v?.traseiroDireito || "";
-        document.getElementById("patolaTE").value = v?.traseiroEsquerdo || "";
+        const a = document.getElementById("patolaDD"); if(a) a.value = v?.dianteiroDireito || "";
+        const b = document.getElementById("patolaDE"); if(b) b.value = v?.dianteiroEsquerdo || "";
+        const c = document.getElementById("patolaTD"); if(c) c.value = v?.traseiroDireito || "";
+        const d = document.getElementById("patolaTE"); if(d) d.value = v?.traseiroEsquerdo || "";
       }
 
       function ptaLimparFormulario(){
-        document.getElementById("ptaData").value = hojeISO();
+        const dt = document.getElementById("ptaData"); if(dt) dt.value = hojeISO();
+
         ["ptaCondutor","ptaKmInicial","ptaKmFinal","ptaLocal","ptaDescricao","ptaHorimetro","ptaObs"].forEach(id=>{
           const el = document.getElementById(id);
           if(el) el.value = "";
         });
 
-        // checkboxes tipo
         ["chkRecebimento","chkDevolucao","chkManutencao","chkPeriodico"].forEach(id=>{
           const el = document.getElementById(id);
           if(el) el.checked = false;
         });
 
-        // combustível
         const fuel = document.getElementById("ptaCombustivel");
         if(fuel) fuel.value = "50";
-        document.getElementById("fuelPct").textContent = "50%";
+        const fuelPct = document.getElementById("fuelPct");
+        if(fuelPct) fuelPct.textContent = "50%";
 
-        // patolas
         setPatolas(null);
 
-        // checklist rápido
         CHECK_ITEMS.forEach((_, idx)=>{
           const key = `it_${idx}`;
           const sel = document.querySelector(`input[name="${key}"]:checked`);
           if(sel) sel.checked = false;
         });
 
-        // assinatura e fotos
         ptaEditId = null;
         ptaEditFotos = null;
         ptaLimparAssinatura();
@@ -1009,7 +1014,6 @@
           const descricao = document.getElementById("ptaDescricao")?.value.trim() || "";
           const assinatura = ptaAssinaturaDataURL();
 
-          // checklist
           const tipoChecagem = getTipoChecagem();
           const horimetro = document.getElementById("ptaHorimetro")?.value ? Number(document.getElementById("ptaHorimetro").value) : null;
           const combustivel = Number(document.getElementById("ptaCombustivel")?.value || 0);
@@ -1023,10 +1027,9 @@
           if(!Number.isFinite(kmFinal)) return alert("Informe o Km Final.");
           if(kmFinal < kmInicial) return alert("Km Final não pode ser menor que o Km Inicial.");
           if(!local) return alert("Informe o local da atividade.");
-          if!descricao) return alert("Informe a descrição da atividade.");
+          if(!descricao) return alert("Informe a descrição da atividade."); // ✅ CORRIGIDO
           if(!assinatura || assinatura.length < 100) return alert("Faça a assinatura no campo abaixo.");
 
-          // Fotos obrigatórias (ou manter do registro editado)
           const fFrente = document.getElementById("ptaFotoFrente")?.files?.[0] || null;
           const fTras   = document.getElementById("ptaFotoTras")?.files?.[0] || null;
           const fEsq    = document.getElementById("ptaFotoLatEsq")?.files?.[0] || null;
@@ -1060,10 +1063,8 @@
             descricao,
             assinaturaDataUrl: assinatura,
 
-            // fotos
             fotoFrente, fotoTras, fotoLatEsq, fotoLatDir,
 
-            // checklist
             checklist: {
               tipoChecagem,
               horimetro,
@@ -1174,31 +1175,32 @@
           btnEditar.onclick = () => {
             ptaEditId = item.id || null;
 
-            document.getElementById("ptaData").value = item.dataISO || hojeISO();
-            document.getElementById("ptaCondutor").value = item.condutor || "";
-            document.getElementById("ptaKmInicial").value = String(item.kmInicial ?? "");
-            document.getElementById("ptaKmFinal").value = String(item.kmFinal ?? "");
-            document.getElementById("ptaLocal").value = item.local || "";
-            document.getElementById("ptaDescricao").value = item.descricao || "";
+            const ptaData = document.getElementById("ptaData"); if(ptaData) ptaData.value = item.dataISO || hojeISO();
+            const ptaCondutor = document.getElementById("ptaCondutor"); if(ptaCondutor) ptaCondutor.value = item.condutor || "";
+            const ptaKmInicial = document.getElementById("ptaKmInicial"); if(ptaKmInicial) ptaKmInicial.value = String(item.kmInicial ?? "");
+            const ptaKmFinal = document.getElementById("ptaKmFinal"); if(ptaKmFinal) ptaKmFinal.value = String(item.kmFinal ?? "");
+            const ptaLocal = document.getElementById("ptaLocal"); if(ptaLocal) ptaLocal.value = item.local || "";
+            const ptaDescricao = document.getElementById("ptaDescricao"); if(ptaDescricao) ptaDescricao.value = item.descricao || "";
 
-            // checklist
             const c = item.checklist || {};
             setTipoChecagem(c.tipoChecagem || {});
-            document.getElementById("ptaHorimetro").value = (c.horimetro ?? "") === null ? "" : String(c.horimetro ?? "");
+            const ptaHor = document.getElementById("ptaHorimetro");
+            if(ptaHor) ptaHor.value = (c.horimetro ?? "") === null ? "" : String(c.horimetro ?? "");
+
             const fuel = document.getElementById("ptaCombustivel");
+            const fuelPct = document.getElementById("fuelPct");
             if(fuel){
               fuel.value = String(c.combustivel ?? 50);
-              document.getElementById("fuelPct").textContent = `${fuel.value}%`;
+              if(fuelPct) fuelPct.textContent = `${fuel.value}%`;
             }
+
             setPatolas(c.patolas || {});
             setChecklistRapidoValues(c.checklistRapido || {});
-            document.getElementById("ptaObs").value = c.observacoes || "";
+            const ptaObs = document.getElementById("ptaObs"); if(ptaObs) ptaObs.value = c.observacoes || "";
 
-            // assinatura
             ptaInitAssinatura();
             setTimeout(() => ptaCarregarAssinatura(item.assinaturaDataUrl || ""), 30);
 
-            // fotos
             ptaEditFotos = {
               fotoFrente: item.fotoFrente || "",
               fotoTras: item.fotoTras || "",
@@ -1206,12 +1208,11 @@
               fotoLatDir: item.fotoLatDir || "",
             };
 
-            document.getElementById("previewFrente").src = ptaEditFotos.fotoFrente || "";
-            document.getElementById("previewTras").src = ptaEditFotos.fotoTras || "";
-            document.getElementById("previewLatEsq").src = ptaEditFotos.fotoLatEsq || "";
-            document.getElementById("previewLatDir").src = ptaEditFotos.fotoLatDir || "";
+            const p1 = document.getElementById("previewFrente"); if(p1) p1.src = ptaEditFotos.fotoFrente || "";
+            const p2 = document.getElementById("previewTras"); if(p2) p2.src = ptaEditFotos.fotoTras || "";
+            const p3 = document.getElementById("previewLatEsq"); if(p3) p3.src = ptaEditFotos.fotoLatEsq || "";
+            const p4 = document.getElementById("previewLatDir"); if(p4) p4.src = ptaEditFotos.fotoLatDir || "";
 
-            // limpa inputs file
             ["ptaFotoFrente","ptaFotoTras","ptaFotoLatEsq","ptaFotoLatDir"].forEach(id => {
               const el = document.getElementById(id);
               if(el) el.value = "";
@@ -1236,8 +1237,8 @@
 
       // ===================== AUTH =====================
       async function login(){
-        const email = document.getElementById("loginEmail").value.trim();
-        const senha = document.getElementById("loginSenha").value.trim();
+        const email = document.getElementById("loginEmail")?.value.trim() || "";
+        const senha = document.getElementById("loginSenha")?.value.trim() || "";
         const msg = document.getElementById("loginMsg");
         const status = document.getElementById("loginStatus");
         const btn = document.getElementById("btnEntrar");
@@ -1257,7 +1258,7 @@
       window.login = login;
 
       async function esqueciSenha(){
-        const email = document.getElementById("loginEmail").value.trim();
+        const email = document.getElementById("loginEmail")?.value.trim() || "";
         const msg = document.getElementById("loginMsg");
         if(msg) msg.textContent = "";
 
@@ -1278,47 +1279,50 @@
       async function logout(){ await auth.signOut(); }
       window.logout = logout;
 
-      // ===================== INIT UI =====================
+      // ===================== INIT UI (mais seguro) =====================
       function initUI(){
-        // defaults
-        document.getElementById("ptaData").value = hojeISO();
+        const ptaDataEl = document.getElementById("ptaData");
+        if(ptaDataEl && !ptaDataEl.value) ptaDataEl.value = hojeISO();
 
         const d = new Date();
         const pad = (n)=> String(n).padStart(2,"0");
         const mesAno = document.getElementById("mesAno");
-        mesAno.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-        mesAno.addEventListener("change", atualizarPainel);
+        if(mesAno){
+          mesAno.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+          mesAno.addEventListener("change", atualizarPainel);
+        }
 
-        // select contrato
         const selContrato = document.getElementById("contratoSelect");
-        selContrato.addEventListener("change", ()=> {
-          contratoAtual = selContrato.value;
-          localStorage.setItem(KEY_CONTRATO, contratoAtual);
-          setRefsContrato();
-          ligarRealtime();
-          aplicarTelaPorContrato();
-          atualizarPainel();
-        });
+        if(selContrato){
+          selContrato.addEventListener("change", ()=> {
+            contratoAtual = selContrato.value;
+            localStorage.setItem(KEY_CONTRATO, contratoAtual);
+            setRefsContrato();
+            ligarRealtime();
+            aplicarTelaPorContrato();
+            atualizarPainel();
+          });
+        }
 
-        // combustível label
         const fuel = document.getElementById("ptaCombustivel");
-        fuel.addEventListener("input", ()=> {
-          document.getElementById("fuelPct").textContent = `${fuel.value}%`;
-        });
+        if(fuel){
+          fuel.addEventListener("input", ()=> {
+            const fuelPct = document.getElementById("fuelPct");
+            if(fuelPct) fuelPct.textContent = `${fuel.value}%`;
+          });
+        }
 
-        // previews fotos
         configurarPreview("ptaFotoFrente","previewFrente");
         configurarPreview("ptaFotoTras","previewTras");
         configurarPreview("ptaFotoLatEsq","previewLatEsq");
         configurarPreview("ptaFotoLatDir","previewLatDir");
 
-        // abrir foto em tela cheia ao clicar
         ["previewFrente","previewTras","previewLatEsq","previewLatDir"].forEach(id => {
           const img = document.getElementById(id);
+          if(!img) return;
           img.addEventListener("click", ()=> openImgModal(img.src));
         });
 
-        // checklist
         renderChecklistRapido();
 
         window.addEventListener("resize", ()=> {
@@ -1350,7 +1354,8 @@
           }
 
           montarSelectContratos();
-          document.getElementById("userBadge").textContent = `Logado como: ${user.email || "—"}`;
+          const ub = document.getElementById("userBadge");
+          if(ub) ub.textContent = `Logado como: ${user.email || "—"}`;
           aplicarPermissoesUI();
           mostrarApp(true);
 
