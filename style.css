@@ -1,3 +1,12 @@
+/* ============================================================
+   STYLE.CSS — COMPLETO (compatível com o HTML enviado)
+   - Visual mais moderno
+   - Sem duplicações do topo
+   - Melhor contraste, tabelas, botões, inputs, PTA e modais
+   - Dark mode via :root[data-theme="dark"]
+============================================================ */
+
+/* ===================== THEME TOKENS ===================== */
 :root{
   --bg:#f5f6f8;
   --card:#ffffff;
@@ -19,6 +28,8 @@
   --th-bg:#f0f2f5;
   --bar-bg:#E6E8EE;
   --chip-bg:#ffffff;
+
+  --focus: 0 0 0 3px rgba(203,51,68,.14);
 }
 
 :root[data-theme="dark"]{
@@ -41,16 +52,34 @@
   --th-bg:rgba(255,255,255,.06);
   --bar-bg:rgba(255,255,255,.10);
   --chip-bg:#151923;
+
+  --focus: 0 0 0 3px rgba(203,51,68,.20);
 }
 
+/* ===================== BASE ===================== */
 *{ box-sizing:border-box; }
 html{ -webkit-text-size-adjust:100%; }
 
 body{
   margin:0;
-  font-family:Arial, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   background:var(--bg);
   color:var(--text);
+  line-height:1.35;
+}
+
+h2, h3{ margin:0; }
+p{ margin:0; }
+
+.center{ text-align:center; }
+.tiny{ font-size:11px; }
+.small{ font-size:12px; }
+.muted{ color:var(--muted); }
+
+a{ color:inherit; }
+
+::selection{
+  background: rgba(203,51,68,.20);
 }
 
 /* ===================== LOGIN ===================== */
@@ -105,9 +134,7 @@ body{
 .login-card input,
 .login-card select,
 .login-card textarea,
-.login-card button{
-  font-size:16px;
-}
+.login-card button{ font-size:16px; }
 
 .login-status{
   margin-top:14px;
@@ -115,8 +142,9 @@ body{
   align-items:center;
   justify-content:center;
   gap:10px;
-  font-weight:700;
+  font-weight:800;
 }
+
 .spinner{
   width:16px;
   height:16px;
@@ -126,9 +154,6 @@ body{
   animation:spin .8s linear infinite;
 }
 @keyframes spin{ to{ transform:rotate(360deg); } }
-
-.center{ text-align:center; }
-.tiny{ font-size:11px; }
 
 .hint{
   margin:14px 0 0;
@@ -171,8 +196,10 @@ body{
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  transition:.15s;
 }
 .icon-btn:hover{ filter:brightness(.96); }
+.icon-btn:active{ transform:translateY(-50%) scale(.98); }
 
 .cam-icon{
   display:inline-flex;
@@ -205,61 +232,36 @@ button:disabled{
   filter:grayscale(.15);
 }
 
-/* ===================== TOPO ===================== */
+/* ===================== TOPBAR ===================== */
+.topbar{
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  padding:16px 0;
+  position:sticky;
+  top:0;
+  z-index:50;
+  backdrop-filter:saturate(130%) blur(6px);
+}
+
 .topbar .brand{
   max-width:900px;
+  width:100%;
   margin:0 auto;
   padding:0 16px;
 
-  display:flex;
-  flex-direction:column;
-  align-items:center;   /* 🔥 tudo central */
-  justify-content:center;
-  gap:12px;
-  text-align:center;
-}
-
-.top-actions{
-  margin-left:0;
-  justify-content:center;
-}
-
-/* ✅ CENTRALIZA O BLOCO TODO DO TOPO */
-.brand{
-  max-width:900px;
-  width:100%;
-  padding:0 16px;
-
-  display:flex;
+  display:grid;
+  grid-template-columns:auto 1fr auto; /* logos | título | ações */
   align-items:center;
-  justify-content:center;   /* ✅ centraliza tudo */
-  gap:24px;
-  flex-wrap:wrap;
-  text-align:center;
+  column-gap:18px;
 }
 
-/* ✅ remove “empurrão” pra direita e centraliza ações */
-.top-actions{
-  margin-left:0;
-  display:flex;
-  gap:10px;
-  align-items:flex-end;
-  flex-wrap:wrap;
-  justify-content:center;   /* ✅ centraliza ações */
-}
-
-.field.inline label{
-  font-size:12px;
-  margin-bottom:4px;
-}
-
-/* LOGOS */
 .logos{
   display:flex;
   align-items:center;
   gap:16px;
-  justify-content:center;
+  justify-content:flex-start;
 }
+
 .logo{
   height:60px;
   width:auto;
@@ -268,8 +270,36 @@ button:disabled{
 }
 .logo.emive{ height:110px; }
 
-.brand-title{ font-weight:700; font-size:18px; }
-.brand-subtitle{ color:var(--muted); font-size:13px; }
+.brand-title{
+  font-weight:900;
+  font-size:18px;
+  letter-spacing:.2px;
+}
+.brand-subtitle{
+  color:var(--muted);
+  font-size:13px;
+  margin-top:2px;
+}
+
+.topbar .brand > div{
+  text-align:center;
+  justify-self:center;
+}
+
+.top-actions{
+  margin-left:0 !important;
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  justify-self:end;
+  justify-content:flex-end;
+}
+
+.field.inline label{
+  font-size:12px;
+  margin-bottom:4px;
+}
 
 .role-pill{
   display:inline-flex;
@@ -280,10 +310,14 @@ button:disabled{
   border-radius:999px;
   border:1px solid var(--border);
   background:var(--card);
-  font-weight:800;
+  font-weight:900;
   font-size:12px;
 }
-.role-pill.admin{ border-color: rgba(203,51,68,.4); }
+.role-pill.admin{
+  border-color: rgba(203,51,68,.45);
+  background: rgba(203,51,68,.08);
+  color: var(--digital-red);
+}
 
 /* ===================== CONTAINER ===================== */
 .container{
@@ -303,10 +337,9 @@ button:disabled{
   box-shadow:var(--shadow);
   padding:18px;
 }
+
 .card-head{ margin-bottom:10px; }
-.muted{ color:var(--muted); }
-.small{ font-size:12px; }
-.h3{ margin:8px 0 10px; font-size:14px; }
+.h3{ margin:8px 0 10px; font-size:14px; font-weight:900; }
 
 /* ===================== GRIDS ===================== */
 .grid-2{
@@ -335,6 +368,7 @@ button:disabled{
   gap:14px;
   margin-top:14px;
 }
+
 .dash-box{
   border:1px solid var(--border);
   border-radius:16px;
@@ -344,8 +378,9 @@ button:disabled{
   display:flex;
   flex-direction:column;
 }
+
 .dash-title{
-  font-weight:800;
+  font-weight:900;
   font-size:14px;
   margin-bottom:10px;
   display:flex;
@@ -376,7 +411,7 @@ button:disabled{
   background:var(--card);
 }
 .insight-label{ font-size:12px; color:var(--muted); }
-.insight-value{ margin-top:6px; font-size:18px; font-weight:800; }
+.insight-value{ margin-top:6px; font-size:18px; font-weight:900; }
 
 /* ===================== CAMPOS ===================== */
 .field label{
@@ -388,30 +423,36 @@ button:disabled{
 
 input, select{
   width:100%;
-  padding:10px;
+  padding:10px 12px;
   border:1px solid var(--border);
-  border-radius:10px;
+  border-radius:12px;
   text-align:center;
   background:var(--card);
   color:var(--text);
   outline:none;
+  transition: box-shadow .15s, border-color .15s, transform .05s;
 }
 
 textarea{
   width:100%;
-  padding:10px;
+  padding:10px 12px;
   border:1px solid var(--border);
-  border-radius:10px;
+  border-radius:12px;
   background:var(--card);
   color:var(--text);
   outline:none;
   resize:vertical;
   text-align:left;
+  transition: box-shadow .15s, border-color .15s;
 }
 
 input:focus, select:focus, textarea:focus{
-  border-color: rgba(203,51,68,.55);
-  box-shadow: 0 0 0 3px rgba(203,51,68,.12);
+  border-color: rgba(203,51,68,.60);
+  box-shadow: var(--focus);
+}
+
+input::placeholder, textarea::placeholder{
+  color: color-mix(in srgb, var(--muted) 88%, transparent);
 }
 
 /* ===================== KPI ===================== */
@@ -422,13 +463,13 @@ input:focus, select:focus, textarea:focus{
 }
 .kpi{
   border:1px solid var(--border);
-  border-radius:12px;
+  border-radius:14px;
   padding:10px 12px;
   min-width:150px;
   background:var(--card);
 }
 .kpi-label{ font-size:12px; color:var(--muted); }
-.kpi-value{ font-size:22px; font-weight:800; margin-top:4px; }
+.kpi-value{ font-size:22px; font-weight:900; margin-top:4px; }
 
 /* ===================== BARRA (tabela ranking) ===================== */
 .bar{
@@ -451,9 +492,10 @@ input:focus, select:focus, textarea:focus{
   gap:10px;
 }
 .chip-box{ position:relative; display:inline-block; }
+
 .chip{
   border:1px solid var(--border);
-  border-radius:30px;
+  border-radius:999px;
   padding:8px 14px;
   cursor:pointer;
   background:var(--chip-bg);
@@ -464,6 +506,7 @@ input:focus, select:focus, textarea:focus{
 .chip:hover{
   transform:translateY(-1px);
   border-color:rgba(203,51,68,.45);
+  background: color-mix(in srgb, var(--chip-bg) 85%, rgba(203,51,68,.08));
 }
 .chip.active{
   background:var(--digital-red);
@@ -488,6 +531,7 @@ input:focus, select:focus, textarea:focus{
   justify-content:center;
   line-height:1;
   box-shadow:0 6px 16px rgba(0,0,0,.12);
+  transition:.15s;
 }
 .chip-del:hover{
   border-color:rgba(203,51,68,.55);
@@ -511,28 +555,34 @@ input:focus, select:focus, textarea:focus{
   margin-top:14px;
 }
 .actions.center{ justify-content:center; }
+
 .btn{
   background:var(--digital-red);
   color:#fff;
   border:none;
   padding:10px 16px;
-  border-radius:10px;
+  border-radius:12px;
   cursor:pointer;
-  font-weight:700;
-  transition:.2s;
+  font-weight:900;
+  transition:.15s;
+  box-shadow: 0 12px 24px rgba(203,51,68,.18);
 }
-.btn:hover{ filter:brightness(.93); }
+.btn:hover{ filter:brightness(.96); transform:translateY(-1px); }
+.btn:active{ transform:translateY(0); }
+
 .btn.secondary{
   background:var(--btn-secondary);
   color:var(--btn-secondary-text);
+  box-shadow: 0 12px 24px rgba(0,0,0,.14);
 }
-.btn.danger{ background:#dc3545; }
+.btn.danger{ background:#dc3545; box-shadow: 0 12px 24px rgba(220,53,69,.18); }
+
 .btn.small{
   padding:8px 12px;
   font-size:12px;
   border-radius:10px;
+  box-shadow:none;
 }
-.btn:disabled{ opacity:.55; cursor:not-allowed; }
 
 .row-actions{
   display:flex;
@@ -558,9 +608,17 @@ th, td{
 th{
   background:var(--th-bg);
   color:var(--text);
-  font-weight:800;
+  font-weight:900;
 }
 .table-compact th, .table-compact td{ padding:8px; }
+
+/* zebra + hover leve */
+tbody tr:nth-child(even){
+  background: color-mix(in srgb, var(--card) 86%, rgba(203,51,68,.03));
+}
+tbody tr:hover{
+  background: color-mix(in srgb, var(--card) 80%, rgba(203,51,68,.06));
+}
 
 .ver-mais-wrap{
   text-align:center;
@@ -598,7 +656,7 @@ th{
 }
 
 /* ============================================================
-   ✅ PTA PROFISSIONAL (CHECKLIST / FUEL / FOTOS / DIVISÓRIAS)
+   PTA PROFISSIONAL (CHECKLIST / FUEL / FOTOS / DIVISÓRIAS)
 ============================================================ */
 .divider{
   height:1px;
@@ -654,6 +712,7 @@ th{
   padding:6px 8px;
   border-radius:10px;
   border:1px solid transparent;
+  cursor:pointer;
 }
 .check-item:hover{
   border-color:rgba(203,51,68,.25);
@@ -713,7 +772,7 @@ th{
 }
 .check-table .item-cell{
   text-align:left;
-  font-weight:700;
+  font-weight:800;
 }
 .check-table input[type="radio"]{
   width:auto;
@@ -733,9 +792,8 @@ th{
   flex-direction:column;
   gap:8px;
 }
-.photo-card input[type="file"]{
-  text-align:left;
-}
+.photo-card input[type="file"]{ text-align:left; }
+
 .preview-img{
   width:100%;
   height:180px;
@@ -751,7 +809,7 @@ th{
 }
 
 /* ============================================================
-   ✅ MODAL IMAGEM (LIGHTBOX)
+   MODAL IMAGEM (LIGHTBOX)
 ============================================================ */
 .img-modal{
   position:fixed;
@@ -801,7 +859,7 @@ th{
 .img-modal-close:hover{ filter:brightness(.96); }
 
 /* ============================================================
-   ✅ MODAL GALERIA (FOTOS PTA)
+   MODAL GALERIA (FOTOS PTA)
 ============================================================ */
 .galeria-modal{
   position:fixed;
@@ -922,7 +980,7 @@ th{
 
 .report-title{
   font-size:18px;
-  font-weight:800;
+  font-weight:900;
 }
 .report-subtitle{
   font-size:12px;
@@ -943,7 +1001,7 @@ th{
 }
 
 .box-title{
-  font-weight:800;
+  font-weight:900;
   margin-bottom:10px;
   font-size:13px;
 }
@@ -963,7 +1021,7 @@ th{
 }
 .report-table th{
   background:#f2f2f2;
-  font-weight:800;
+  font-weight:900;
 }
 
 .report-table th:nth-child(1),
@@ -1014,23 +1072,31 @@ th{
   .dash-box{ min-height:auto; }
   .dash-canvas{ min-height:380px; }
   .galeria-grid{ grid-template-columns: 1fr; }
+
+  .topbar{
+    position:static;
+  }
+  .topbar .brand{
+    grid-template-columns: 1fr;
+    row-gap: 12px;
+    justify-items: center;
+    text-align: center;
+  }
+  .topbar .brand > div{
+    justify-self:center;
+  }
+  .top-actions{
+    justify-self:center;
+    align-items:center;
+    justify-content:center;
+  }
 }
 
 @media (max-width: 800px){
   .grid-2{ grid-template-columns:1fr; }
   .add-nome{ flex-direction:column; }
 
-  /* no mobile mantém empilhado, mas ainda centralizado */
-  .brand{
-    flex-direction:column;
-    align-items:center;
-    text-align:center;
-  }
-  .top-actions{
-    width:100%;
-    justify-content:center;
-    align-items:center;
-  }
+  .logos{ justify-content:center; }
 
   .logo{ height:50px; }
   .logo.emive{ height:75px; }
@@ -1076,96 +1142,3 @@ th{
   .check-grid{ grid-template-columns: 1fr; }
   .w-mini{ width:56px; }
 }
-/* ✅ CENTRALIZAR TODO O CONTEÚDO DO TOPO (logo + título + ações) */
-.topbar{
-  background:var(--card);
-  border-bottom:1px solid var(--border);
-  padding:16px 0;
-}
-
-/* deixa o topo com a MESMA largura do container */
-.topbar .brand{
-  max-width:900px;
-  margin:0 auto;          /* 🔥 centraliza igual os cards */
-  padding:0 16px;
-
-  display:flex;
-  align-items:center;
-  justify-content:space-between; /* mantém layout bonito */
-  gap:18px;
-}
-
-/* ✅ remove o “empurrão” pra direita */
-.top-actions{
-  margin-left:0 !important; /* ✅ ESSENCIAL */
-  display:flex;
-  gap:10px;
-  align-items:flex-end;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-
-/* opcional: centraliza texto do título */
-.brand > div{
-  text-align:center;
-}
-/* ===================== TOPO (FIX CENTRALIZADO) ===================== */
-.topbar{
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 0;
-}
-
-/* a “caixa” do topo com a mesma largura do container */
-.topbar .brand{
-  max-width: 900px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 16px;
-
-  display: grid;
-  grid-template-columns: auto 1fr auto; /* logos | título | ações */
-  align-items: center;
-  column-gap: 18px;
-}
-
-/* logos ficam à esquerda */
-.topbar .logos{
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-/* título fica CENTRAL DE VERDADE (não “meio mais ou menos”) */
-.topbar .brand > div{
-  text-align: center;
-  justify-self: center;
-}
-
-/* ações ficam à direita */
-.topbar .top-actions{
-  justify-self: end;
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  margin-left: 0 !important;
-}
-
-/* responsivo: empilha bonito no mobile */
-@media (max-width: 900px){
-  .topbar .brand{
-    grid-template-columns: 1fr;
-    row-gap: 12px;
-    justify-items: center;
-    text-align: center;
-  }
-  .topbar .top-actions{
-    justify-self: center;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-
-
