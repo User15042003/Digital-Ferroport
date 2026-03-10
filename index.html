@@ -590,6 +590,7 @@
           <th>Perfil</th>
           <th>Contratos</th>
           <th>Status</th>
+          <th>Último acesso</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -786,6 +787,7 @@
       let unsubNomes = null;
       let unsubPTA = null;
       let unsubAcessos = null;
+      let unsubCurrentUser = null;
 
       let ptaEditId = null;
       let ptaEditFotos = null;
@@ -866,6 +868,14 @@
         return `${d}/${m}/${y}`;
       }
 
+      function formatarDataHoraBR(dataISO){
+        if(!dataISO) return "—";
+        const d = new Date(dataISO);
+        if(Number.isNaN(d.getTime())) return "—";
+        const pad = (n)=> String(n).padStart(2,"0");
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+
       function hojeISO(){
         const d = new Date();
         const pad = (n)=> String(n).padStart(2,"0");
@@ -943,6 +953,103 @@
         setAllowedContractsInForm(["ferroport"]);
       }
       window.limparFormularioUsuario = limparFormularioUsuario;
+
+      async function resetarSenhaUsuario(email){
+        try{
+          if(!isAdmin) return alert("Apenas Gestor pode resetar senha.");
+          if(!email) return alert("E-mail inválido.");
+
+          await auth.sendPasswordResetEmail(email);
+          alert(`Link de redefinição enviado para:\n${email}`);
+        }catch(e){
+          console.error(e);
+          alert("Erro ao enviar redefinição de senha:\n\n" + (e?.message || e));
+        }
+      }
+
+      async function excluirAcessoUsuario(emailDocId){
+        try{
+          if(!isAdmin) return alert("Apenas Gestor pode apagar acessos.");
+          if(!emailDocId) return alert("Acesso inválido.");
+
+          const emailAtual = emailKey(auth.currentUser?.email || "");
+          if(emailKey(emailDocId) === emailAtual){
+            return alert("Você não pode apagar o seu próprio acesso por aqui.");
+          }
+
+          if(!confirm(`Tem certeza que deseja apagar o acesso de:\n${emailDocId}\n\nEssa ação remove o acesso ao sistema.`)) return;
+
+          await refAcessos.doc(emailDocId).delete();
+
+          const userSnap = await db.collection("users")
+            .where("email", "==", emailDocId)
+            .get();
+
+          if(!userSnap.empty){
+            const batch = db.batch();
+            userSnap.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+          }
+
+          alert("Acesso removido com sucesso.");
+        }catch(e){
+          console.error(e);
+          alert("Erro ao excluir acesso:\n\n" + (e?.message || e));
+        }
+      }
+
+      async function registrarUltimoAcesso(user){
+        try{
+          if(!user?.uid) return;
+
+          const agora = new Date().toISOString();
+
+          await db.collection("users").doc(user.uid).set({
+            ultimoAcessoEm: agora
+          }, { merge:true });
+
+          const email = emailKey(user.email || "");
+          if(email){
+            const accessSnap = await refAcessos.doc(email).get();
+            if(accessSnap.exists){
+              await refAcessos.doc(email).set({
+                ultimoAcessoEm: agora
+              }, { merge:true });
+            }
+          }
+        }catch(e){
+          console.error("Erro ao registrar último acesso:", e);
+        }
+      }
+
+      function monitorarSessaoUsuario(user){
+        try{
+          if(typeof unsubCurrentUser === "function") unsubCurrentUser();
+          unsubCurrentUser = null;
+
+          if(!user?.uid) return;
+
+          unsubCurrentUser = db.collection("users").doc(user.uid).onSnapshot(async (snap) => {
+            if(!snap.exists){
+              alert("Seu acesso foi removido. Você será desconectado.");
+              await auth.signOut();
+              return;
+            }
+
+            const dados = snap.data() || {};
+
+            if(dados.ativo === false){
+              alert("Seu acesso foi bloqueado pelo gestor.");
+              await auth.signOut();
+              return;
+            }
+          }, (err) => {
+            console.error("Erro monitorando sessão:", err);
+          });
+        }catch(e){
+          console.error("Erro ao monitorar sessão:", e);
+        }
+      }
 
       function openImgModal(src){
         if(!src) return;
@@ -1499,7 +1606,8 @@
         if(typeof unsubNomes === "function") unsubNomes();
         if(typeof unsubPTA === "function") unsubPTA();
         if(typeof unsubAcessos === "function") unsubAcessos();
-        unsubDiarios = unsubNomes = unsubPTA = unsubAcessos = null;
+        if(typeof unsubCurrentUser === "function") unsubCurrentUser();
+        unsubDiarios = unsubNomes = unsubPTA = unsubAcessos = unsubCurrentUser = null;
       }
 
       function ligarRealtime(){
@@ -1630,27 +1738,39 @@
           if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Informe um e-mail válido.");
           if(!allowed.length) return alert("Selecione pelo menos um contrato.");
 
+          const docIdDestino = editingAccessId || email;
+          const snapAntigo = await refAcessos.doc(docIdDestino).get();
+          const ultimoAcessoAnterior = snapAntigo.exists ? (snapAntigo.data()?.ultimoAcessoEm || null) : null;
+          const criadoEmAnterior = snapAntigo.exists ? (snapAntigo.data()?.criadoEm || null) : null;
+
           const payload = {
             nome,
             email,
             role,
             allowedContracts: allowed,
             ativo,
-            atualizadoEm: new Date().toISOString()
+            atualizadoEm: new Date().toISOString(),
+            ultimoAcessoEm: ultimoAcessoAnterior || null,
+            criadoEm: criadoEmAnterior || new Date().toISOString()
           };
 
-          const ref = refAcessos.doc(editingAccessId || email);
-          const snap = await ref.get();
-          if(!snap.exists){
-            payload.criadoEm = new Date().toISOString();
+          if(editingAccessId && editingAccessId !== email){
+            await refAcessos.doc(editingAccessId).delete();
           }
 
-          await ref.set(payload, { merge:true });
+          await refAcessos.doc(email).set(payload, { merge:true });
 
-          const userSnap = await db.collection("users").where("email", "==", email).get();
+          const userSnap = await db.collection("users").where("email", "==", editingAccessId || email).get();
           if(!userSnap.empty){
             const batch = db.batch();
-            userSnap.docs.forEach(doc => batch.set(doc.ref, payload, { merge:true }));
+            userSnap.docs.forEach(doc => batch.set(doc.ref, {
+              nome,
+              email,
+              role,
+              allowedContracts: allowed,
+              ativo,
+              atualizadoEm: new Date().toISOString()
+            }, { merge:true }));
             await batch.commit();
           }
 
@@ -1677,6 +1797,7 @@
 
           const contratos = (item.allowedContracts || []).map(nomeContratoBonito).join(", ") || "—";
           const statusTxt = item.ativo === false ? "Inativo" : "Ativo";
+          const ultimoAcesso = formatarDataHoraBR(item.ultimoAcessoEm);
 
           tr.innerHTML = `
             <td>${item.nome || ""}</td>
@@ -1684,6 +1805,7 @@
             <td>${item.role === "gestor" ? "Gestor" : "Técnico"}</td>
             <td>${contratos}</td>
             <td>${statusTxt}</td>
+            <td>${ultimoAcesso}</td>
             <td class="row-actions"></td>
           `;
 
@@ -1696,12 +1818,26 @@
           btnEditar.onclick = () => editarAcessoUsuario(item.id);
           tdAcoes.appendChild(btnEditar);
 
+          const btnSenha = document.createElement("button");
+          btnSenha.className = "btn secondary small";
+          btnSenha.type = "button";
+          btnSenha.textContent = "Resetar senha";
+          btnSenha.onclick = () => resetarSenhaUsuario(item.email);
+          tdAcoes.appendChild(btnSenha);
+
           const btnToggle = document.createElement("button");
           btnToggle.className = item.ativo === false ? "btn small" : "btn danger small";
           btnToggle.type = "button";
           btnToggle.textContent = item.ativo === false ? "Ativar" : "Bloquear";
           btnToggle.onclick = () => alternarStatusAcesso(item.id, item.ativo === false);
           tdAcoes.appendChild(btnToggle);
+
+          const btnExcluir = document.createElement("button");
+          btnExcluir.className = "btn danger small";
+          btnExcluir.type = "button";
+          btnExcluir.textContent = "Apagar";
+          btnExcluir.onclick = () => excluirAcessoUsuario(item.id);
+          tdAcoes.appendChild(btnExcluir);
 
           tbody.appendChild(tr);
         });
@@ -1711,6 +1847,11 @@
         try{
           if(!isAdmin) return alert("Apenas Gestor pode alterar acesso.");
           if(!docId) return;
+
+          const emailAtual = emailKey(auth.currentUser?.email || "");
+          if(emailKey(docId) === emailAtual && !ativar){
+            return alert("Você não pode bloquear o seu próprio acesso por aqui.");
+          }
 
           await refAcessos.doc(docId).set({
             ativo: !!ativar,
@@ -1727,6 +1868,8 @@
             }, { merge:true }));
             await batch.commit();
           }
+
+          alert(ativar ? "Acesso ativado com sucesso." : "Acesso bloqueado com sucesso.");
         }catch(e){
           console.error(e);
           alert("Erro ao alterar status:\n\n" + (e?.message || e));
@@ -2774,7 +2917,9 @@
 
         try{
           await garantirPerfilUsuario(user);
+          await registrarUltimoAcesso(user);
           await carregarPermissoesUsuario(user);
+          monitorarSessaoUsuario(user);
 
           if(!allowedContracts.length){
             mostrarApp(false);
