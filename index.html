@@ -1890,44 +1890,68 @@
         document.getElementById("cardUsuarios")?.scrollIntoView({ behavior:"smooth", block:"start" });
       }
 
-      async function criarPrimeiroAcesso(){
-        const email = emailKey(document.getElementById("loginEmail")?.value || "");
-        const senha = document.getElementById("loginSenha")?.value || "";
-        const msg = document.getElementById("loginMsg");
+async function criarPrimeiroAcesso(){
+  const email = emailKey(document.getElementById("loginEmail")?.value || "");
+  const senha = document.getElementById("loginSenha")?.value || "";
+  const msg = document.getElementById("loginMsg");
 
-        if(msg) msg.textContent = "";
+  if(msg) msg.textContent = "";
 
+  try{
+    if(!email) return alert("Digite o e-mail liberado pelo gestor.");
+    if(!senha || senha.length < 6) return alert("Digite uma senha com pelo menos 6 caracteres.");
+
+    const accessSnap = await refAcessos.doc(email).get();
+    if(!accessSnap.exists){
+      return alert("Esse e-mail ainda não foi liberado pelo gestor.");
+    }
+
+    const access = accessSnap.data() || {};
+    if(access.ativo === false){
+      return alert("Seu acesso está inativo. Procure o gestor.");
+    }
+
+    let cred = null;
+
+    try{
+      cred = await auth.createUserWithEmailAndPassword(email, senha);
+    }catch(e){
+      if(e?.code === "auth/email-already-in-use"){
         try{
-          if(!email) return alert("Digite o e-mail liberado pelo gestor.");
-          if(!senha || senha.length < 6) return alert("Digite uma senha com pelo menos 6 caracteres.");
-
-          const accessSnap = await refAcessos.doc(email).get();
-          if(!accessSnap.exists){
-            return alert("Esse e-mail ainda não foi liberado pelo gestor.");
+          cred = await auth.signInWithEmailAndPassword(email, senha);
+        }catch(loginErr){
+          if(loginErr?.code === "auth/wrong-password" || loginErr?.code === "auth/invalid-credential"){
+            return alert("Esse e-mail já foi cadastrado. Use a senha correta para entrar ou clique em 'Esqueci minha senha'.");
           }
-
-          const access = accessSnap.data() || {};
-          if(access.ativo === false){
-            return alert("Seu acesso está inativo. Procure o gestor.");
-          }
-
-          const cred = await auth.createUserWithEmailAndPassword(email, senha);
-
-          await db.collection("users").doc(cred.user.uid).set({
-            nome: access.nome || "",
-            email,
-            role: access.role || "tecnico",
-            allowedContracts: Array.isArray(access.allowedContracts) ? access.allowedContracts : [],
-            ativo: access.ativo !== false,
-            atualizadoEm: new Date().toISOString()
-          }, { merge:true });
-
-          if(msg) msg.textContent = "Primeiro acesso criado com sucesso. Você já pode entrar no sistema.";
-        }catch(e){
-          console.error(e);
-          alert("Erro ao criar primeiro acesso:\n\n" + (e?.message || e));
+          throw loginErr;
         }
+      }else{
+        throw e;
       }
+    }
+
+    if(!cred?.user?.uid){
+      throw new Error("Não foi possível concluir o cadastro do usuário.");
+    }
+
+    await db.collection("users").doc(cred.user.uid).set({
+      nome: access.nome || "",
+      email,
+      role: access.role || "tecnico",
+      allowedContracts: Array.isArray(access.allowedContracts) ? access.allowedContracts : [],
+      ativo: access.ativo !== false,
+      atualizadoEm: new Date().toISOString()
+    }, { merge:true });
+
+    if(msg) msg.textContent = "Primeiro acesso criado/sincronizado com sucesso. Você já pode entrar no sistema.";
+    alert("Cadastro concluído com sucesso.");
+
+  }catch(e){
+    console.error(e);
+    alert("Erro ao criar primeiro acesso:\n\n" + (e?.message || e));
+  }
+}
+window.criarPrimeiroAcesso = criarPrimeiroAcesso;
       window.criarPrimeiroAcesso = criarPrimeiroAcesso;
 
       async function excluirRegistroDiario(dataISO){
@@ -2957,3 +2981,4 @@
 
 </body>
 </html>
+
