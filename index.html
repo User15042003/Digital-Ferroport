@@ -10,7 +10,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-
 <body>
 
 <section class="login-page" id="loginBox">
@@ -1560,32 +1559,6 @@
         allowedContracts = Array.isArray(data.allowedContracts) ? data.allowedContracts : [];
         isAdmin = String(data.role || "").toLowerCase() === "gestor";
       }
-      async function garantirPerfilUsuario(user){
-  const email = emailKey(user?.email || "");
-  if(!email) throw new Error("Usuário sem e-mail.");
-
-  const accessSnap = await refAcessos.doc(email).get();
-
-  if(!accessSnap.exists){
-    throw new Error("Seu e-mail não está liberado. Peça ao gestor para cadastrar seu acesso.");
-  }
-
-  const access = accessSnap.data() || {};
-
-  if(access.ativo === false){
-    throw new Error("Seu acesso está inativo. Procure o gestor.");
-  }
-
-  await db.collection("users").doc(user.uid).set({
-    nome: access.nome || "",
-    email,
-    role: access.role || "tecnico",
-    allowedContracts: Array.isArray(access.allowedContracts) ? access.allowedContracts : [],
-    ativo: access.ativo !== false,
-    atualizadoEm: new Date().toISOString()
-  }, { merge:true });
-}
-
       function montarSelectContratos(){
         const sel = document.getElementById("contratoSelect");
         if(!sel) return;
@@ -1977,7 +1950,6 @@ async function criarPrimeiroAcesso(){
   }
 }
 window.criarPrimeiroAcesso = criarPrimeiroAcesso;
-      window.criarPrimeiroAcesso = criarPrimeiroAcesso;
 
       async function excluirRegistroDiario(dataISO){
         try{
@@ -3006,5 +2978,6 @@ window.criarPrimeiroAcesso = criarPrimeiroAcesso;
 
 </body>
 </html>
+
 
 
