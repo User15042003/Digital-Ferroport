@@ -1202,3 +1202,24 @@ tbody tr:hover{
 #cardUsuarios table th{
   vertical-align: middle;
 }
+#cardUsuarios .contracts-grid{
+  max-width: 520px;
+}
+
+.access-status-line{
+  margin-top: 8px;
+  justify-content: flex-start;
+}
+
+#cardUsuarios table td,
+#cardUsuarios table th{
+  vertical-align: middle;
+}
+
+#cardUsuarios .row-actions{
+  gap: 6px;
+}
+
+#cardUsuarios .row-actions .btn{
+  min-width: 108px;
+}
